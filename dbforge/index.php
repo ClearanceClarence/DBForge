@@ -3,10 +3,10 @@
  * ╔═══════════════════════════════════════════════════╗
  * ║  DBForge — Database Management Tool               ║
  * ║  A lightweight PhpMyAdmin alternative              ║
+ * ║                                                    ║
+ * ║  Production-ready with auth, CSRF, IP whitelist,  ║
+ * ║  query logging, read-only mode, and more.         ║
  * ╚═══════════════════════════════════════════════════╝
- * 
- * Drop this folder into your XAMPP htdocs directory
- * and navigate to http://localhost/dbforge/
  */
 
 // ── Error Handling ─────────────────────────────────────
@@ -18,21 +18,92 @@ set_exception_handler(function (Throwable $e) {
     echo '<div style="font-family:monospace;background:#1a0808;color:#f06060;padding:20px;margin:20px;border-radius:8px;border:1px solid #3a1a1a;">';
     echo '<h2 style="margin:0 0 10px;">DBForge — Fatal Error</h2>';
     echo '<p>' . htmlspecialchars($e->getMessage()) . '</p>';
-    echo '<pre style="color:#888;font-size:12px;margin-top:10px;">' . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . '</pre>';
     echo '</div>';
     exit;
 });
+
+// ── First-run check ───────────────────────────────────
+if (!file_exists(__DIR__ . '/config.php')) {
+    header('Location: install.php');
+    exit;
+}
 
 // ── Bootstrap ──────────────────────────────────────────
 $config = require __DIR__ . '/config.php';
 require __DIR__ . '/includes/Database.php';
 require __DIR__ . '/includes/helpers.php';
 require __DIR__ . '/includes/icons.php';
+require __DIR__ . '/includes/Auth.php';
 
-// ── Theme System ───────────────────────────────────────
+// ── Security Bootstrap ─────────────────────────────────
+$auth = new Auth($config['security']);
+
+// 1) Security headers (always)
+$auth->sendSecurityHeaders();
+
+// 2) HTTPS enforcement
+if ($auth->shouldForceHttps()) {
+    $url = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    header("Location: {$url}", true, 301);
+    exit;
+}
+
+// 3) IP whitelist
+if (!$auth->isIpAllowed()) {
+    http_response_code(403);
+    echo '<div style="font-family:monospace;padding:40px;text-align:center;color:#888;">Access denied. Your IP is not whitelisted.</div>';
+    exit;
+}
+
+// 4) Start session (needed for auth + CSRF)
+$auth->startSession();
+
+// ── Theme System (needed for login page too) ──────────
 $themeData = dbforge_load_themes(__DIR__ . '/themes', $config['app']['default_theme']);
 $themes      = $themeData['list'];
 $activeTheme = $themeData['active'];
+
+$appName    = $config['app']['name'];
+$appVersion = $config['app']['version'];
+$serverHost = $config['db']['host'];
+
+// ── Authentication ─────────────────────────────────────
+if ($auth->isAuthRequired()) {
+    $action = input('action');
+
+    // Handle logout
+    if ($action === 'logout') {
+        $auth->logout();
+        header('Location: ?');
+        exit;
+    }
+
+    // Handle login POST
+    $loginError = '';
+    if ($action === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Validate CSRF even on login
+        if (!$auth->validateCsrf()) {
+            $loginError = 'Invalid security token. Please try again.';
+        } else {
+            $result = $auth->login(
+                $_POST['username'] ?? '',
+                $_POST['password'] ?? ''
+            );
+            if ($result === true) {
+                header('Location: ?');
+                exit;
+            } else {
+                $loginError = $result;
+            }
+        }
+    }
+
+    // If not logged in, show login page
+    if (!$auth->isLoggedIn()) {
+        include __DIR__ . '/templates/login.php';
+        exit;
+    }
+}
 
 // ── Database Connection ────────────────────────────────
 $dbInstance = Database::getInstance($config['db']);
@@ -40,6 +111,7 @@ $dbInstance = Database::getInstance($config['db']);
 try {
     $dbInstance->connect();
     $databases = $dbInstance->getDatabases();
+    $databases = $auth->filterDatabases($databases);
     $serverVersion = $dbInstance->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
     $connected = true;
 } catch (PDOException $e) {
@@ -55,79 +127,102 @@ $currentTable = input('table');
 $activeTab    = input('tab', 'browse');
 $action       = input('action');
 
-// App info for templates
-$appName    = $config['app']['name'];
-$appVersion = $config['app']['version'];
-$serverHost = $config['db']['host'];
+// Block access to hidden databases
+if ($currentDb && $auth->isDatabaseHidden($currentDb)) {
+    $currentDb = null;
+    $currentTable = null;
+}
 
 // ── Handle Actions (exports, drop, truncate) ──────────
 if ($action && $connected) {
-    switch ($action) {
-        case 'export_sql':
-            if ($currentDb && $currentTable) {
-                $sql = $dbInstance->exportTable($currentDb, $currentTable);
-                header('Content-Type: application/sql');
-                header("Content-Disposition: attachment; filename=\"{$currentTable}.sql\"");
-                echo $sql;
-                exit;
-            }
-            break;
 
-        case 'export_csv':
-            if ($currentDb && $currentTable) {
-                $csv = $dbInstance->exportTableCsv($currentDb, $currentTable);
-                header('Content-Type: text/csv');
-                header("Content-Disposition: attachment; filename=\"{$currentTable}.csv\"");
-                echo $csv;
-                exit;
-            }
-            break;
+    // Read-only guard for destructive actions
+    $writeActions = ['truncate', 'drop'];
+    if ($auth->isReadOnly() && in_array($action, $writeActions)) {
+        $actionError = 'Write operations are disabled in read-only mode.';
+        $action = null;
+    }
 
-        case 'export_db':
-            if ($currentDb) {
-                header('Content-Type: application/sql');
-                header("Content-Disposition: attachment; filename=\"{$currentDb}.sql\"");
-                $tables = $dbInstance->getTables($currentDb);
-                echo "-- DBForge Full Database Export\n";
-                echo "-- Database: {$currentDb}\n";
-                echo "-- Generated: " . date('Y-m-d H:i:s') . "\n\n";
-                echo "CREATE DATABASE IF NOT EXISTS `{$currentDb}`;\nUSE `{$currentDb}`;\n\n";
-                foreach ($tables as $tbl) {
-                    echo $dbInstance->exportTable($currentDb, $tbl['Name']);
-                    echo "\n\n";
-                }
-                exit;
-            }
-            break;
+    // Export guard
+    if (in_array($action, ['export_sql', 'export_csv', 'export_db']) && empty($config['app']['enable_export'])) {
+        $actionError = 'Export is disabled.';
+        $action = null;
+    }
 
-        case 'truncate':
-            if ($currentDb && $currentTable) {
-                try {
-                    $dbInstance->truncateTable($currentDb, $currentTable);
-                    header("Location: ?db=" . urlencode($currentDb) . "&table=" . urlencode($currentTable) . "&tab=browse&msg=truncated");
+    if ($action) {
+        switch ($action) {
+            case 'export_sql':
+                if ($currentDb && $currentTable) {
+                    $sql = $dbInstance->exportTable($currentDb, $currentTable);
+                    header('Content-Type: application/sql');
+                    header("Content-Disposition: attachment; filename=\"{$currentTable}.sql\"");
+                    echo $sql;
                     exit;
-                } catch (Exception $e) {
-                    $actionError = $e->getMessage();
                 }
-            }
-            break;
+                break;
 
-        case 'drop':
-            if ($currentDb && $currentTable) {
-                try {
-                    $dbInstance->dropTable($currentDb, $currentTable);
-                    header("Location: ?db=" . urlencode($currentDb) . "&tab=browse&msg=dropped");
+            case 'export_csv':
+                if ($currentDb && $currentTable) {
+                    $csv = $dbInstance->exportTableCsv($currentDb, $currentTable);
+                    header('Content-Type: text/csv');
+                    header("Content-Disposition: attachment; filename=\"{$currentTable}.csv\"");
+                    echo $csv;
                     exit;
-                } catch (Exception $e) {
-                    $actionError = $e->getMessage();
                 }
-            }
-            break;
+                break;
+
+            case 'export_db':
+                if ($currentDb) {
+                    header('Content-Type: application/sql');
+                    header("Content-Disposition: attachment; filename=\"{$currentDb}.sql\"");
+                    $tables = $dbInstance->getTables($currentDb);
+                    echo "-- DBForge Full Database Export\n";
+                    echo "-- Database: {$currentDb}\n";
+                    echo "-- Exported by: " . ($auth->getUsername() ?: 'anonymous') . "\n";
+                    echo "-- Generated: " . date('Y-m-d H:i:s') . "\n\n";
+                    echo "CREATE DATABASE IF NOT EXISTS `{$currentDb}`;\nUSE `{$currentDb}`;\n\n";
+                    foreach ($tables as $tbl) {
+                        echo $dbInstance->exportTable($currentDb, $tbl['Name']);
+                        echo "\n\n";
+                    }
+                    $auth->logActivity("Exported database: {$currentDb}");
+                    exit;
+                }
+                break;
+
+            case 'truncate':
+                if ($currentDb && $currentTable) {
+                    try {
+                        $dbInstance->truncateTable($currentDb, $currentTable);
+                        $auth->logActivity("Truncated table: {$currentDb}.{$currentTable}");
+                        header("Location: ?db=" . urlencode($currentDb) . "&table=" . urlencode($currentTable) . "&tab=browse&msg=truncated");
+                        exit;
+                    } catch (Exception $e) {
+                        $actionError = $e->getMessage();
+                    }
+                }
+                break;
+
+            case 'drop':
+                if ($currentDb && $currentTable) {
+                    try {
+                        $dbInstance->dropTable($currentDb, $currentTable);
+                        $auth->logActivity("Dropped table: {$currentDb}.{$currentTable}");
+                        header("Location: ?db=" . urlencode($currentDb) . "&tab=browse&msg=dropped");
+                        exit;
+                    } catch (Exception $e) {
+                        $actionError = $e->getMessage();
+                    }
+                }
+                break;
+        }
     }
 }
 
 // ── Determine Content Template ─────────────────────────
-if (!$connected) {
+if ($activeTab === 'settings') {
+    $contentTemplate = __DIR__ . '/templates/settings.php';
+} elseif (!$connected) {
     $contentTemplate = __DIR__ . '/templates/connection_error.php';
 } elseif ($activeTab === 'server') {
     $contentTemplate = __DIR__ . '/templates/server_info.php';
@@ -137,7 +232,7 @@ if (!$connected) {
     $contentTemplate = __DIR__ . '/templates/structure.php';
 } elseif ($activeTab === 'info' && $currentTable) {
     $contentTemplate = __DIR__ . '/templates/info.php';
-} elseif ($activeTab === 'export' && $currentTable) {
+} elseif ($activeTab === 'export' && ($currentTable || $currentDb)) {
     $contentTemplate = __DIR__ . '/templates/export.php';
 } else {
     $contentTemplate = __DIR__ . '/templates/browse.php';

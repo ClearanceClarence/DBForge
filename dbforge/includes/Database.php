@@ -106,6 +106,60 @@ class Database
     }
 
     /**
+     * Get foreign key relationships for a table
+     */
+    public function getForeignKeys(string $database, string $table): array
+    {
+        $pdo = $this->connect($database);
+        $stmt = $pdo->prepare("
+            SELECT
+                kcu.CONSTRAINT_NAME,
+                kcu.COLUMN_NAME,
+                kcu.REFERENCED_TABLE_SCHEMA,
+                kcu.REFERENCED_TABLE_NAME,
+                kcu.REFERENCED_COLUMN_NAME,
+                rc.UPDATE_RULE,
+                rc.DELETE_RULE
+            FROM information_schema.KEY_COLUMN_USAGE kcu
+            JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+                ON rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+                AND rc.CONSTRAINT_SCHEMA = kcu.TABLE_SCHEMA
+            WHERE kcu.TABLE_SCHEMA = :db
+                AND kcu.TABLE_NAME = :tbl
+                AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
+            ORDER BY kcu.CONSTRAINT_NAME, kcu.ORDINAL_POSITION
+        ");
+        $stmt->execute(['db' => $database, 'tbl' => $table]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get tables that reference this table (reverse FK lookup)
+     */
+    public function getReferencedBy(string $database, string $table): array
+    {
+        $pdo = $this->connect($database);
+        $stmt = $pdo->prepare("
+            SELECT
+                kcu.TABLE_NAME AS referencing_table,
+                kcu.COLUMN_NAME AS referencing_column,
+                kcu.REFERENCED_COLUMN_NAME AS local_column,
+                kcu.CONSTRAINT_NAME,
+                rc.UPDATE_RULE,
+                rc.DELETE_RULE
+            FROM information_schema.KEY_COLUMN_USAGE kcu
+            JOIN information_schema.REFERENTIAL_CONSTRAINTS rc
+                ON rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+                AND rc.CONSTRAINT_SCHEMA = kcu.TABLE_SCHEMA
+            WHERE kcu.REFERENCED_TABLE_SCHEMA = :db
+                AND kcu.REFERENCED_TABLE_NAME = :tbl
+            ORDER BY kcu.TABLE_NAME, kcu.ORDINAL_POSITION
+        ");
+        $stmt->execute(['db' => $database, 'tbl' => $table]);
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Get create statement
      */
     public function getCreateStatement(string $database, string $table): string

@@ -161,3 +161,8 @@
 .sql-variable  { color: #795e26; font-style: italic; }
 .sql-constant  { color: #0000ff; font-weight: 600; }
 .sql-table     { color: #795e26; text-decoration: underline; text-decoration-color: rgba(121,94,38,0.3); text-underline-offset: 2px; }
+
+/* Settings */
+.settings-input, .settings-textarea { background: var(--bg-panel-alt); border-color: var(--border-light); color: var(--text-primary); }
+.settings-input:focus, .settings-textarea:focus { border-color: var(--accent); }
+select.settings-input option { background: var(--bg-panel); }

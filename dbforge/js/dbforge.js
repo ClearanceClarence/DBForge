@@ -430,6 +430,11 @@ const DBForge = {
             .replace(/"/g, '&quot;');
     },
 
+    getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    },
+
     // ── Editor Sync ──────────────────────────────────────
 
     syncEditor() {
@@ -1070,6 +1075,8 @@ const DBForge = {
         this.initHighlighter();
         this.initAutocomplete();
         this.initInlineEdit();
+        this.initBulkSelect();
+        this.initColTypeToggle();
         this.bindKeyboard();
         this.bindQuickQueries();
         this.autoFocusEditor();
@@ -1128,11 +1135,16 @@ const DBForge = {
         cell.dataset.origHtml = origHtml;
         this._editingCell = cell;
 
+        // Use textarea for large content (>60 chars or has newlines)
+        const isLarge = value.length > 60 || value.includes('\n');
+        const inputTag = isLarge
+            ? `<textarea class="inline-input inline-input-large" placeholder="${isNull ? 'NULL' : ''}">${this.escapeHtml(value)}</textarea>`
+            : `<input type="text" class="inline-input" value="${this.escapeHtml(value)}" placeholder="${isNull ? 'NULL' : ''}">`;
+
         // Build editor
         const editorHtml = `
-            <div class="inline-editor">
-                <input type="text" class="inline-input" value="${this.escapeHtml(value)}"
-                       placeholder="${isNull ? 'NULL' : ''}">
+            <div class="inline-editor${isLarge ? ' inline-editor-large' : ''}">
+                ${inputTag}
                 <div class="inline-actions">
                     <label class="inline-null-label">
                         <input type="checkbox" class="inline-null-check" ${isNull ? 'checked' : ''}>
@@ -1150,9 +1162,19 @@ const DBForge = {
         const saveBtn   = cell.querySelector('.inline-save');
         const cancelBtn = cell.querySelector('.inline-cancel');
 
+        // Auto-size textarea
+        if (isLarge && input.tagName === 'TEXTAREA') {
+            const autoSize = () => {
+                input.style.height = 'auto';
+                input.style.height = Math.min(Math.max(input.scrollHeight, 60), 300) + 'px';
+            };
+            autoSize();
+            input.addEventListener('input', autoSize);
+        }
+
         // Focus input
         input.focus();
-        input.select();
+        if (input.tagName === 'INPUT') input.select();
 
         // NULL checkbox toggles input
         nullCheck.addEventListener('change', () => {
@@ -1175,9 +1197,9 @@ const DBForge = {
 
         // Keyboard
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); doSave(); }
+            if (e.key === 'Enter' && (e.ctrlKey || input.tagName === 'INPUT')) { e.preventDefault(); doSave(); }
             if (e.key === 'Escape') { e.preventDefault(); this.closeCellEditor(cell, false); }
-            if (e.key === 'Tab') {
+            if (e.key === 'Tab' && input.tagName === 'INPUT') {
                 e.preventDefault();
                 doSave();
                 // Move to next editable cell
@@ -1207,6 +1229,7 @@ const DBForge = {
         formData.append('is_null', isNull ? '1' : '0');
         formData.append('pk_col', pkCol);
         formData.append('pk_val', pkVal);
+        formData.append('_csrf_token', this.getCsrfToken());
 
         fetch('ajax.php', { method: 'POST', body: formData })
             .then(r => r.json())
@@ -1258,6 +1281,7 @@ const DBForge = {
         formData.append('table', table);
         formData.append('pk_col', pkCol);
         formData.append('pk_val', pkVal);
+        formData.append('_csrf_token', this.getCsrfToken());
 
         fetch('ajax.php', { method: 'POST', body: formData })
             .then(r => r.json())
@@ -1272,9 +1296,153 @@ const DBForge = {
                 row.style.height = '0';
                 setTimeout(() => row.remove(), 300);
                 this.setStatus('Row deleted: ' + pkCol + ' = ' + pkVal);
+                this.updateBulkBar();
             })
             .catch(err => {
                 row.style.opacity = '1';
+                this.setStatus('Network error: ' + err.message);
+            });
+    },
+
+    // ── Bulk Row Selection ───────────────────────────────
+
+    initBulkSelect() {
+        const wrapper = document.getElementById('browse-table');
+        const selectAll = document.getElementById('select-all');
+        const bulkBar = document.getElementById('bulk-bar');
+        if (!wrapper || !selectAll || !bulkBar) return;
+
+        const db    = wrapper.dataset.db;
+        const table = wrapper.dataset.table;
+        const pkCol = wrapper.dataset.pk;
+        if (!pkCol) return;
+
+        // Select all checkbox
+        selectAll.addEventListener('change', () => {
+            const checkboxes = wrapper.querySelectorAll('.row-select');
+            checkboxes.forEach(cb => {
+                cb.checked = selectAll.checked;
+                cb.closest('tr').classList.toggle('row-selected', selectAll.checked);
+            });
+            this.updateBulkBar();
+        });
+
+        // Individual row checkboxes
+        wrapper.addEventListener('change', (e) => {
+            if (!e.target.classList.contains('row-select')) return;
+            e.target.closest('tr').classList.toggle('row-selected', e.target.checked);
+
+            // Update select-all state
+            const all = wrapper.querySelectorAll('.row-select');
+            const checked = wrapper.querySelectorAll('.row-select:checked');
+            selectAll.checked = all.length > 0 && checked.length === all.length;
+            selectAll.indeterminate = checked.length > 0 && checked.length < all.length;
+
+            this.updateBulkBar();
+        });
+
+        // Delete selected button
+        document.getElementById('bulk-delete-btn').addEventListener('click', () => {
+            const selected = this.getSelectedPks();
+            if (selected.length === 0) return;
+
+            this.confirm({
+                title: 'Delete ' + selected.length + ' Row' + (selected.length > 1 ? 's' : ''),
+                message: 'Delete ' + selected.length + ' selected row' + (selected.length > 1 ? 's' : '') + ' from ' + table + '? This cannot be undone.',
+                confirmText: 'Delete ' + selected.length,
+                cancelText: 'Cancel',
+                danger: true,
+            }).then(confirmed => {
+                if (!confirmed) return;
+                this.bulkDelete(db, table, pkCol, selected);
+            });
+        });
+
+        // Clear selection button
+        document.getElementById('bulk-clear-btn').addEventListener('click', () => {
+            this.clearSelection();
+        });
+    },
+
+    getSelectedPks() {
+        const wrapper = document.getElementById('browse-table');
+        if (!wrapper) return [];
+        return Array.from(wrapper.querySelectorAll('.row-select:checked'))
+            .map(cb => cb.dataset.pk);
+    },
+
+    clearSelection() {
+        const wrapper = document.getElementById('browse-table');
+        const selectAll = document.getElementById('select-all');
+        if (!wrapper) return;
+        wrapper.querySelectorAll('.row-select').forEach(cb => {
+            cb.checked = false;
+            cb.closest('tr').classList.remove('row-selected');
+        });
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
+        this.updateBulkBar();
+    },
+
+    updateBulkBar() {
+        const bulkBar = document.getElementById('bulk-bar');
+        const countLabel = document.getElementById('bulk-count');
+        if (!bulkBar || !countLabel) return;
+
+        const selected = this.getSelectedPks();
+        const count = selected.length;
+
+        if (count > 0) {
+            bulkBar.style.display = 'flex';
+            countLabel.textContent = count + ' row' + (count > 1 ? 's' : '') + ' selected';
+        } else {
+            bulkBar.style.display = 'none';
+        }
+    },
+
+    bulkDelete(db, table, pkCol, pkVals) {
+        // Dim selected rows
+        const wrapper = document.getElementById('browse-table');
+        wrapper.querySelectorAll('.row-select:checked').forEach(cb => {
+            cb.closest('tr').style.opacity = '0.4';
+        });
+
+        const formData = new FormData();
+        formData.append('action', 'bulk_delete');
+        formData.append('db', db);
+        formData.append('table', table);
+        formData.append('pk_col', pkCol);
+        formData.append('pk_vals', JSON.stringify(pkVals));
+        formData.append('_csrf_token', this.getCsrfToken());
+
+        fetch('ajax.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    wrapper.querySelectorAll('.row-select:checked').forEach(cb => {
+                        cb.closest('tr').style.opacity = '1';
+                    });
+                    this.setStatus('Bulk delete error: ' + data.error);
+                    return;
+                }
+
+                // Remove deleted rows with animation
+                wrapper.querySelectorAll('.row-select:checked').forEach(cb => {
+                    const row = cb.closest('tr');
+                    row.style.transition = 'all 0.3s';
+                    row.style.opacity = '0';
+                    setTimeout(() => row.remove(), 300);
+                });
+
+                this.clearSelection();
+                this.setStatus('Deleted ' + data.affected + ' row' + (data.affected > 1 ? 's' : ''));
+            })
+            .catch(err => {
+                wrapper.querySelectorAll('.row-select:checked').forEach(cb => {
+                    cb.closest('tr').style.opacity = '1';
+                });
                 this.setStatus('Network error: ' + err.message);
             });
     },
@@ -1318,6 +1486,32 @@ const DBForge = {
     switchTheme(slug) {
         document.cookie = 'dbforge_theme=' + slug + ';path=/;max-age=' + (365*86400) + ';SameSite=Lax';
         window.location.reload();
+    },
+
+    // ── Column Type Toggle ───────────────────────────────
+
+    toggleColTypes() {
+        const table = document.getElementById('browse-table');
+        if (!table) return;
+        const hidden = table.classList.toggle('hide-col-types');
+        document.cookie = 'dbforge_hide_types=' + (hidden ? '1' : '0') + ';path=/;max-age=' + (365*86400) + ';SameSite=Lax';
+        // Update button state
+        const btn = document.getElementById('toggle-col-types');
+        if (btn) {
+            btn.classList.toggle('btn-toggled-off', hidden);
+        }
+    },
+
+    initColTypeToggle() {
+        const table = document.getElementById('browse-table');
+        if (!table) return;
+        const cookie = document.cookie.split(';').find(c => c.trim().startsWith('dbforge_hide_types='));
+        const hidden = cookie && cookie.trim().split('=')[1] === '1';
+        if (hidden) {
+            table.classList.add('hide-col-types');
+            const btn = document.getElementById('toggle-col-types');
+            if (btn) btn.classList.add('btn-toggled-off');
+        }
     },
 
     // ── Keyboard Shortcuts ───────────────────────────────

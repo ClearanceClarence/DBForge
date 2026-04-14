@@ -78,3 +78,8 @@
 .sql-variable  { color: #906010; font-style: italic; }
 .sql-constant  { color: #4878a8; font-weight: 600; }
 .sql-table     { color: #705010; text-decoration: underline; text-decoration-color: rgba(112,80,16,0.25); text-underline-offset: 2px; }
+
+/* Settings */
+.settings-input, .settings-textarea { background: var(--bg-panel-alt); border-color: var(--border-light); color: var(--text-primary); }
+.settings-input:focus, .settings-textarea:focus { border-color: var(--accent); }
+select.settings-input option { background: var(--bg-panel); }

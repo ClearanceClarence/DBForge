@@ -84,3 +84,8 @@
 .sql-variable  { color: #b45309; font-style: italic; }
 .sql-constant  { color: #2563eb; font-weight: 600; }
 .sql-table     { color: #0369a1; text-decoration: underline; text-decoration-color: rgba(3,105,161,0.25); text-underline-offset: 2px; }
+
+/* Settings */
+.settings-input, .settings-textarea { background: #f3f4f8; border-color: #c8ccd6; color: #1e2028; }
+.settings-input:focus, .settings-textarea:focus { border-color: #3b82f6; }
+select.settings-input option { background: #ffffff; }

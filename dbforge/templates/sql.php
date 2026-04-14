@@ -4,16 +4,37 @@ $queryResult = null;
 
 // POST submission takes priority (user edited and pressed execute)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['sql'])) {
-    $sqlInput = $_POST['sql'];
-    if (!empty($sqlInput)) {
-        $queryResult = $dbInstance->executeQuery($currentDb ?? 'mysql', $sqlInput);
+    // Validate CSRF
+    if (isset($auth) && $auth->csrfEnabled() && !$auth->validateCsrf()) {
+        $queryResult = ['success' => false, 'error' => 'Invalid security token. Please reload the page.', 'code' => '', 'time' => 0];
+    } else {
+        $sqlInput = $_POST['sql'];
+        if (!empty($sqlInput)) {
+            // Read-only enforcement
+            if (isset($auth) && $auth->isReadOnly() && $auth->isWriteQuery($sqlInput)) {
+                $queryResult = ['success' => false, 'error' => 'Write operations are disabled in read-only mode.', 'code' => '', 'time' => 0];
+            } else {
+                $queryResult = $dbInstance->executeQuery($currentDb ?? 'mysql', $sqlInput);
+                // Log query
+                if (isset($auth)) {
+                    $auth->logQuery($currentDb ?? 'mysql', $sqlInput, $queryResult['time'] ?? 0);
+                }
+            }
+        }
     }
 }
-// GET with run=1 → auto-execute (from quick query links on other tabs)
+// GET with run=1 → auto-execute (from quick query links)
 elseif (!empty($_GET['sql'])) {
     $sqlInput = $_GET['sql'];
     if (($_GET['run'] ?? '') === '1') {
-        $queryResult = $dbInstance->executeQuery($currentDb ?? 'mysql', $sqlInput);
+        if (isset($auth) && $auth->isReadOnly() && $auth->isWriteQuery($sqlInput)) {
+            $queryResult = ['success' => false, 'error' => 'Write operations are disabled in read-only mode.', 'code' => '', 'time' => 0];
+        } else {
+            $queryResult = $dbInstance->executeQuery($currentDb ?? 'mysql', $sqlInput);
+            if (isset($auth)) {
+                $auth->logQuery($currentDb ?? 'mysql', $sqlInput, $queryResult['time'] ?? 0);
+            }
+        }
     }
 }
 ?>
@@ -37,6 +58,7 @@ if (window.location.search.includes('sql=')) {
 
 <!-- Editor — always POSTs, never carries GET sql param -->
 <form method="post" id="sql-form" action="?db=<?= urlencode($currentDb ?? '') ?>&tab=sql<?= $currentTable ? '&table=' . urlencode($currentTable) : '' ?>">
+    <?php if (isset($auth)): ?><?= $auth->csrfField() ?><?php endif; ?>
     <input type="hidden" name="db" value="<?= h($currentDb ?? '') ?>">
     <input type="hidden" name="tab" value="sql">
     <?php if ($currentTable): ?>

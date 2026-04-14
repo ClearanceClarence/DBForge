@@ -12,6 +12,9 @@
     <!-- Active theme overrides -->
     <link rel="stylesheet" href="themes/<?= h($activeTheme) ?>/style.css" id="active-theme">
     <?php endif; ?>
+    <?php if (isset($auth)): ?>
+    <?= $auth->csrfMeta() ?>
+    <?php endif; ?>
 </head>
 <body>
 <div class="app-wrapper">
@@ -36,6 +39,9 @@
             </div>
         </div>
         <div class="header-right">
+            <?php if (isset($auth) && $auth->isReadOnly()): ?>
+            <span class="header-chip" style="color:var(--warning);border-color:var(--warning);"><?= icon('eye', 11) ?> Read-Only</span>
+            <?php endif; ?>
             <select class="theme-select" id="theme-selector" onchange="DBForge.switchTheme(this.value)">
                 <?php foreach ($themes as $slug => $theme): ?>
                 <option value="<?= h($slug) ?>" <?= $slug === $activeTheme ? 'selected' : '' ?>>
@@ -45,6 +51,10 @@
             </select>
             <span class="status-dot online"></span>
             <span class="header-chip"><?= icon('activity', 11) ?> Connected</span>
+            <?php if (isset($auth) && $auth->isAuthRequired() && $auth->isLoggedIn()): ?>
+            <span class="header-chip"><?= icon('key', 11) ?> <?= h($auth->getUsername()) ?></span>
+            <a href="?action=logout" class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:var(--font-size-xs);"><?= icon('x', 12) ?> Logout</a>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -81,6 +91,9 @@
                     <?php endforeach; ?>
                     <a href="?tab=server" class="tab-btn <?= $activeTab === 'server' ? 'active' : '' ?>">
                         <?= icon('server', 14) ?> Server
+                    </a>
+                    <a href="?tab=settings" class="tab-btn <?= $activeTab === 'settings' ? 'active' : '' ?>">
+                        <?= icon('settings', 14) ?> Settings
                     </a>
                 </div>
                 <?php if ($currentDb): ?>

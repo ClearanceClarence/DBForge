@@ -1,9 +1,125 @@
-<?php if (!$currentDb): ?>
-<div class="info-card" style="max-width:500px;margin:40px auto;text-align:center;">
-    <div style="margin-bottom:8px;"><?= icon("database", 36) ?></div>
-    <div class="info-label">No Database Selected</div>
-    <div style="margin-top:6px;color:var(--text-secondary);font-size:var(--font-size-sm);">Choose a database from the sidebar to get started.</div>
+<?php if (!$currentDb):
+    // ── Server Overview — all databases ──
+    $dbStats = [];
+    $totalTables = 0;
+    $totalSize = 0;
+    foreach ($databases as $dbName) {
+        $stat = ['name' => $dbName, 'tables' => 0, 'rows' => 0, 'data_size' => 0, 'index_size' => 0, 'collation' => '—'];
+        try {
+            $tables = $dbInstance->getTables($dbName);
+            $stat['tables'] = count($tables);
+            $totalTables += $stat['tables'];
+            foreach ($tables as $t) {
+                $stat['rows'] += (int)($t['Rows'] ?? 0);
+                $stat['data_size'] += (int)($t['Data_length'] ?? 0);
+                $stat['index_size'] += (int)($t['Index_length'] ?? 0);
+            }
+            if (!empty($tables[0]['Collation'])) {
+                $stat['collation'] = $tables[0]['Collation'];
+            }
+            $totalSize += $stat['data_size'] + $stat['index_size'];
+        } catch (Exception $e) {
+            // skip inaccessible dbs
+        }
+        $dbStats[] = $stat;
+    }
+?>
+
+<!-- Server Stats -->
+<h3 class="section-title"><?= icon('server', 16) ?> Server Overview</h3>
+
+<div class="info-grid" style="margin-bottom:20px;">
+    <div class="info-card">
+        <div class="info-label">Databases</div>
+        <div class="info-value accent"><?= count($databases) ?></div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">Total Tables</div>
+        <div class="info-value info"><?= format_number($totalTables) ?></div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">Total Size</div>
+        <div class="info-value warning"><?= format_bytes($totalSize) ?></div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">MySQL Version</div>
+        <div class="info-value purple"><?= h($serverVersion) ?></div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">PHP Version</div>
+        <div class="info-value gold"><?= PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION ?></div>
+    </div>
+    <div class="info-card">
+        <div class="info-label">Server</div>
+        <div class="info-value muted"><?= h($serverHost) ?></div>
+    </div>
 </div>
+
+<!-- Quick Actions -->
+<div style="display:flex;gap:8px;margin-bottom:20px;">
+    <a href="?tab=server" class="btn btn-ghost btn-sm"><?= icon('settings', 13) ?> Server Details</a>
+    <a href="?tab=sql" class="btn btn-ghost btn-sm"><?= icon('terminal', 13) ?> SQL Query</a>
+</div>
+
+<!-- Database List -->
+<div class="table-toolbar">
+    <h3 class="section-title" style="margin-bottom:0;"><?= icon('database', 15) ?> All Databases</h3>
+    <span class="toolbar-info"><?= count($databases) ?> databases</span>
+</div>
+
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Database</th>
+                <th>Tables</th>
+                <th>Rows (est.)</th>
+                <th>Data Size</th>
+                <th>Index Size</th>
+                <th>Total Size</th>
+                <th>Collation</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($dbStats as $stat): ?>
+            <tr>
+                <td>
+                    <a href="?db=<?= urlencode($stat['name']) ?>" style="color:var(--warning);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;">
+                        <?= icon('database', 14) ?> <?= h($stat['name']) ?>
+                    </a>
+                </td>
+                <td class="cell-number"><?= format_number($stat['tables']) ?></td>
+                <td class="cell-number"><?= format_number($stat['rows']) ?></td>
+                <td style="color:var(--text-secondary);"><?= format_bytes($stat['data_size']) ?></td>
+                <td style="color:var(--text-secondary);"><?= format_bytes($stat['index_size']) ?></td>
+                <td style="color:var(--text-primary);font-weight:500;"><?= format_bytes($stat['data_size'] + $stat['index_size']) ?></td>
+                <td style="color:var(--text-muted);font-size:var(--font-size-xs);"><?= h($stat['collation']) ?></td>
+                <td>
+                    <div style="display:flex;gap:4px;">
+                        <a href="?db=<?= urlencode($stat['name']) ?>&tab=browse" class="btn btn-ghost btn-sm" title="Browse"><?= icon('table', 13) ?></a>
+                        <a href="?db=<?= urlencode($stat['name']) ?>&tab=sql" class="btn btn-ghost btn-sm" title="SQL"><?= icon('terminal', 13) ?></a>
+                        <a href="?db=<?= urlencode($stat['name']) ?>&action=export_db" class="btn btn-ghost btn-sm" title="Export"><?= icon('download', 13) ?></a>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr style="font-weight:600;">
+                <td>Total: <?= count($databases) ?> databases</td>
+                <td class="cell-number"><?= format_number($totalTables) ?></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td style="color:var(--accent);"><?= format_bytes($totalSize) ?></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
 <?php return; endif; ?>
 
 <?php if ($currentDb && !$currentTable):
@@ -167,18 +283,35 @@ foreach ($columns as $col) {
         <span>Page <?= $page ?>/<?= max(1, $totalPages) ?></span>
     </div>
     <div class="toolbar-actions">
+        <button type="button" class="btn btn-ghost btn-sm" id="toggle-col-types" onclick="DBForge.toggleColTypes()" title="Toggle column types">
+            <?= icon('eye', 13) ?> Types
+        </button>
         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($currentTable) ?>&tab=export" class="btn btn-ghost btn-sm"><?= icon("download", 13) ?> Export</a>
     </div>
 </div>
 
-<!-- Data Table -->
 <?php
-// Find primary key column for inline editing
+// Find primary key column for inline editing + bulk select
 $pkCol = null;
 foreach ($columns as $col) {
     if ($col['Key'] === 'PRI') { $pkCol = $col['Field']; break; }
 }
 ?>
+
+<!-- Bulk Actions Bar (hidden until rows selected) -->
+<?php if ($pkCol && !empty($rows)): ?>
+<div class="bulk-bar" id="bulk-bar" style="display:none;">
+    <label class="bulk-count" id="bulk-count">0 rows selected</label>
+    <button type="button" class="btn btn-danger btn-sm" id="bulk-delete-btn">
+        <?= icon('trash', 13) ?> Delete Selected
+    </button>
+    <button type="button" class="btn btn-ghost btn-sm" id="bulk-clear-btn">
+        <?= icon('x', 13) ?> Clear
+    </button>
+</div>
+<?php endif; ?>
+
+<!-- Data Table -->
 <div class="table-wrapper"
      id="browse-table"
      data-db="<?= h($currentDb) ?>"
@@ -187,6 +320,11 @@ foreach ($columns as $col) {
     <table class="data-table">
         <thead>
             <tr>
+                <?php if ($pkCol): ?>
+                <th style="width:36px;text-align:center;padding:6px;">
+                    <input type="checkbox" id="select-all" class="row-checkbox" title="Select all">
+                </th>
+                <?php endif; ?>
                 <?php foreach ($columns as $col): ?>
                 <?php
                     $field = $col['Field'];
@@ -217,7 +355,7 @@ foreach ($columns as $col) {
         <tbody>
             <?php if (empty($rows)): ?>
             <tr>
-                <td colspan="<?= count($columns) + ($pkCol ? 1 : 0) ?>" style="text-align:center;padding:30px;color:var(--text-muted);">
+                <td colspan="<?= count($columns) + ($pkCol ? 2 : 0) ?>" style="text-align:center;padding:30px;color:var(--text-muted);">
                     <?= $search ? 'No rows match your filter.' : 'Table is empty.' ?>
                 </td>
             </tr>
@@ -225,6 +363,11 @@ foreach ($columns as $col) {
             <?php foreach ($rows as $ri => $row): ?>
             <?php $pkVal = $pkCol ? ($row[$pkCol] ?? '') : ''; ?>
             <tr data-pk-val="<?= h(strval($pkVal)) ?>">
+                <?php if ($pkCol): ?>
+                <td style="text-align:center;padding:4px 6px;">
+                    <input type="checkbox" class="row-checkbox row-select" data-pk="<?= h(strval($pkVal)) ?>">
+                </td>
+                <?php endif; ?>
                 <?php foreach ($columns as $col): ?>
                 <?php
                     $field = $col['Field'];

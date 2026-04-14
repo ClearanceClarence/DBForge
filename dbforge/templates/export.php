@@ -1,35 +1,164 @@
-<?php if (!$currentDb || !$currentTable): ?>
-<div class="error-box">Select a table to export.</div>
-<?php return; endif; ?>
+<?php
+if (!$currentDb) {
+    echo '<div class="error-box">Select a database to export.</div>';
+    return;
+}
 
-<h3 class="section-title">Export — <span class="highlight"><?= h($currentTable) ?></span></h3>
+// Get table info if selected
+$tableInfo = null;
+$tableRows = 0;
+$tableSize = 0;
+if ($currentTable) {
+    try {
+        $allTables = $dbInstance->getTables($currentDb);
+        foreach ($allTables as $t) {
+            if ($t['Name'] === $currentTable) {
+                $tableInfo = $t;
+                $tableRows = $dbInstance->getExactRowCount($currentDb, $currentTable);
+                $tableSize = (int)($t['Data_length'] ?? 0) + (int)($t['Index_length'] ?? 0);
+                break;
+            }
+        }
+    } catch (Exception $e) {}
+}
 
-<div class="info-grid" style="max-width:600px;">
-    <div class="info-card">
-        <div class="info-label">Export as SQL</div>
-        <div style="margin-top:8px;font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:12px;">
-            CREATE TABLE + INSERT statements
+// Get database info
+$dbTables = [];
+$dbTotalRows = 0;
+$dbTotalSize = 0;
+try {
+    $dbTables = $dbInstance->getTables($currentDb);
+    foreach ($dbTables as $t) {
+        $dbTotalRows += (int)($t['Rows'] ?? 0);
+        $dbTotalSize += (int)($t['Data_length'] ?? 0) + (int)($t['Index_length'] ?? 0);
+    }
+} catch (Exception $e) {}
+?>
+
+<!-- Header -->
+<div class="info-header">
+    <div class="info-header-left">
+        <div class="info-header-icon"><?= icon('download', 24) ?></div>
+        <div>
+            <h3 class="info-header-title">Export</h3>
+            <span class="info-header-sub"><?= h($currentDb) ?><?= $currentTable ? ' · ' . h($currentTable) : '' ?></span>
+        </div>
+    </div>
+</div>
+
+<?php if ($currentTable && $tableInfo): ?>
+<!-- ═══ Table Export ═══ -->
+<h3 class="section-title" style="margin-top:20px;">
+    <?= icon('table', 16) ?> Table: <span class="highlight"><?= h($currentTable) ?></span>
+</h3>
+
+<div class="export-grid">
+    <!-- SQL -->
+    <div class="export-card">
+        <div class="export-card-icon" style="color:var(--accent);"><?= icon('code', 28) ?></div>
+        <div class="export-card-body">
+            <div class="export-card-title">SQL Dump</div>
+            <div class="export-card-desc">
+                <code>CREATE TABLE</code> + <code>INSERT</code> statements.<br>
+                Importable into any MySQL/MariaDB server.
+            </div>
+            <div class="export-card-meta">
+                <span><?= icon('layers', 11) ?> <?= format_number($tableRows) ?> rows</span>
+                <span><?= icon('database', 11) ?> ~<?= format_bytes($tableSize) ?></span>
+            </div>
         </div>
         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($currentTable) ?>&action=export_sql"
-           class="btn btn-primary btn-sm"><?= icon('download', 13) ?> Download .sql</a>
+           class="btn btn-primary export-btn">
+            <?= icon('download', 14) ?> <?= h($currentTable) ?>.sql
+        </a>
     </div>
-    <div class="info-card">
-        <div class="info-label">Export as CSV</div>
-        <div style="margin-top:8px;font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:12px;">
-            Comma-separated values with headers
+
+    <!-- CSV -->
+    <div class="export-card">
+        <div class="export-card-icon" style="color:var(--info);"><?= icon('file-text', 28) ?></div>
+        <div class="export-card-body">
+            <div class="export-card-title">CSV</div>
+            <div class="export-card-desc">
+                Comma-separated values with column headers.<br>
+                Opens in Excel, Google Sheets, or any spreadsheet app.
+            </div>
+            <div class="export-card-meta">
+                <span><?= icon('layers', 11) ?> <?= format_number($tableRows) ?> rows</span>
+                <span><?= icon('columns', 11) ?> <?= count($dbInstance->getColumns($currentDb, $currentTable)) ?> columns</span>
+            </div>
         </div>
         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($currentTable) ?>&action=export_csv"
-           class="btn btn-primary btn-sm"><?= icon('download', 13) ?> Download .csv</a>
+           class="btn btn-primary export-btn">
+            <?= icon('download', 14) ?> <?= h($currentTable) ?>.csv
+        </a>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- ═══ Database Export ═══ -->
+<h3 class="section-title" style="margin-top:28px;">
+    <?= icon('database', 16) ?> Database: <span class="highlight"><?= h($currentDb) ?></span>
+</h3>
+
+<div class="export-grid">
+    <div class="export-card export-card-wide">
+        <div class="export-card-icon" style="color:var(--warning);"><?= icon('database', 28) ?></div>
+        <div class="export-card-body">
+            <div class="export-card-title">Full Database SQL Dump</div>
+            <div class="export-card-desc">
+                Exports all <?= count($dbTables) ?> tables with <code>CREATE TABLE</code> + <code>INSERT</code> statements.
+                Includes <code>CREATE DATABASE IF NOT EXISTS</code> and <code>USE</code> statements.
+            </div>
+            <div class="export-card-meta">
+                <span><?= icon('table', 11) ?> <?= count($dbTables) ?> tables</span>
+                <span><?= icon('layers', 11) ?> ~<?= format_number($dbTotalRows) ?> rows</span>
+                <span><?= icon('database', 11) ?> ~<?= format_bytes($dbTotalSize) ?></span>
+            </div>
+        </div>
+        <a href="?db=<?= urlencode($currentDb) ?>&action=export_db"
+           class="btn btn-primary export-btn">
+            <?= icon('download', 14) ?> <?= h($currentDb) ?>.sql
+        </a>
     </div>
 </div>
 
-<!-- Export All Tables -->
-<h3 class="section-title" style="margin-top:30px;">Export Entire Database</h3>
-<div class="info-card" style="max-width:600px;">
-    <div class="info-label">Export all tables in <span style="color:var(--warning);"><?= h($currentDb) ?></span></div>
-    <div style="margin-top:8px;font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:12px;">
-        Generates SQL dump of all tables with CREATE + INSERT statements.
-    </div>
-    <a href="?db=<?= urlencode($currentDb) ?>&action=export_db"
-       class="btn btn-primary btn-sm"><?= icon('download', 13) ?> Download full database .sql</a>
+<?php if (!empty($dbTables)): ?>
+<!-- Tables in this database -->
+<h3 class="section-title" style="margin-top:24px;"><?= icon('list', 16) ?> Tables in Database</h3>
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Table</th>
+                <th>Rows</th>
+                <th>Size</th>
+                <th>Engine</th>
+                <th>Export</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($dbTables as $t):
+                $tName = $t['Name'];
+                $tSize = (int)($t['Data_length'] ?? 0) + (int)($t['Index_length'] ?? 0);
+            ?>
+            <tr>
+                <td>
+                    <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=export" style="color:var(--info);text-decoration:none;font-weight:500;">
+                        <?= icon('table', 12) ?> <?= h($tName) ?>
+                    </a>
+                </td>
+                <td class="cell-number"><?= format_number($t['Rows'] ?? 0) ?></td>
+                <td style="color:var(--text-secondary);"><?= format_bytes($tSize) ?></td>
+                <td style="color:var(--text-muted);font-size:var(--font-size-xs);"><?= h($t['Engine'] ?? '') ?></td>
+                <td>
+                    <div style="display:flex;gap:4px;">
+                        <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&action=export_sql" class="btn btn-ghost btn-sm"><?= icon('code', 11) ?> SQL</a>
+                        <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&action=export_csv" class="btn btn-ghost btn-sm"><?= icon('file-text', 11) ?> CSV</a>
+                    </div>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 </div>
+<?php endif; ?>

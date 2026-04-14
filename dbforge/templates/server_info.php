@@ -9,124 +9,118 @@ try {
 $vars = $serverInfo['variables'];
 $status = $serverInfo['status'];
 $uptime = (int)($status['Uptime'] ?? 0);
+$bytesIn = (int)($status['Bytes_received'] ?? 0);
+$bytesOut = (int)($status['Bytes_sent'] ?? 0);
 ?>
 
-<h3 class="section-title">Server Overview</h3>
-
-<div class="info-grid">
-    <div class="info-card">
-        <div class="info-label">MySQL Version</div>
-        <div class="info-value accent"><?= h($serverInfo['version']) ?></div>
+<!-- Header -->
+<div class="info-header">
+    <div class="info-header-left">
+        <div class="info-header-icon"><?= icon('server', 24) ?></div>
+        <div>
+            <h3 class="info-header-title"><?= h($vars['hostname'] ?? php_uname('n')) ?></h3>
+            <span class="info-header-sub">MySQL <?= h($serverInfo['version']) ?> · Port <?= h($vars['port'] ?? '3306') ?> · Up <?= format_uptime($uptime) ?></span>
+        </div>
     </div>
-    <div class="info-card">
-        <div class="info-label">Server</div>
-        <div class="info-value warning"><?= h($vars['hostname'] ?? php_uname('n')) ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Port</div>
-        <div class="info-value info"><?= h($vars['port'] ?? '3306') ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Uptime</div>
-        <div class="info-value purple"><?= format_uptime($uptime) ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Character Set</div>
-        <div class="info-value muted"><?= h($vars['character_set_server'] ?? '—') ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Collation</div>
-        <div class="info-value muted"><?= h($vars['collation_server'] ?? '—') ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Data Directory</div>
-        <div class="info-value muted" style="font-size:var(--font-size-sm);word-break:break-all;"><?= h($vars['datadir'] ?? '—') ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Max Connections</div>
-        <div class="info-value gold"><?= h($vars['max_connections'] ?? '—') ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Active Connections</div>
-        <div class="info-value accent"><?= h($status['Threads_connected'] ?? '—') ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Total Queries</div>
-        <div class="info-value info"><?= format_number($status['Questions'] ?? 0) ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">InnoDB Buffer Pool</div>
-        <div class="info-value purple"><?= format_bytes((int)($vars['innodb_buffer_pool_size'] ?? 0)) ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Traffic In / Out</div>
-        <div class="info-value muted" style="font-size:var(--font-size-sm);">
-            <?= format_bytes((int)($status['Bytes_received'] ?? 0)) ?> / <?= format_bytes((int)($status['Bytes_sent'] ?? 0)) ?>
+    <div class="info-header-stats">
+        <div class="info-stat">
+            <span class="info-stat-value accent"><?= count($databases) ?></span>
+            <span class="info-stat-label">Databases</span>
+        </div>
+        <div class="info-stat">
+            <span class="info-stat-value gold"><?= h($status['Threads_connected'] ?? '0') ?></span>
+            <span class="info-stat-label">Connections</span>
+        </div>
+        <div class="info-stat">
+            <span class="info-stat-value info"><?= format_number($status['Questions'] ?? 0) ?></span>
+            <span class="info-stat-label">Queries</span>
+        </div>
+        <div class="info-stat">
+            <span class="info-stat-value purple"><?= format_uptime($uptime) ?></span>
+            <span class="info-stat-label">Uptime</span>
         </div>
     </div>
 </div>
 
-<!-- PHP Info -->
-<h3 class="section-title" style="margin-top:24px;">PHP Environment</h3>
-<div class="info-grid">
-    <div class="info-card">
-        <div class="info-label">PHP Version</div>
-        <div class="info-value accent"><?= PHP_VERSION ?></div>
+<!-- Details -->
+<div class="info-details">
+
+    <!-- MySQL -->
+    <div class="info-section">
+        <div class="info-section-title"><?= icon('database', 14) ?> MySQL Server</div>
+        <table class="info-table">
+            <tr><td class="info-table-key">Version</td><td class="info-table-val" style="color:var(--accent);font-weight:600;"><?= h($serverInfo['version']) ?></td></tr>
+            <tr><td class="info-table-key">Hostname</td><td class="info-table-val"><?= h($vars['hostname'] ?? php_uname('n')) ?></td></tr>
+            <tr><td class="info-table-key">Port</td><td class="info-table-val"><?= h($vars['port'] ?? '3306') ?></td></tr>
+            <tr><td class="info-table-key">Character Set</td><td class="info-table-val"><?= h($vars['character_set_server'] ?? '—') ?></td></tr>
+            <tr><td class="info-table-key">Collation</td><td class="info-table-val"><?= h($vars['collation_server'] ?? '—') ?></td></tr>
+            <tr><td class="info-table-key">Data Directory</td><td class="info-table-val" style="word-break:break-all;"><?= h($vars['datadir'] ?? '—') ?></td></tr>
+        </table>
     </div>
-    <div class="info-card">
-        <div class="info-label">OS</div>
-        <div class="info-value muted" style="font-size:var(--font-size-sm);"><?= h(php_uname('s') . ' ' . php_uname('r')) ?></div>
+
+    <!-- Performance -->
+    <div class="info-section">
+        <div class="info-section-title"><?= icon('activity', 14) ?> Performance</div>
+        <table class="info-table">
+            <tr><td class="info-table-key">Uptime</td><td class="info-table-val" style="color:var(--purple);"><?= format_uptime($uptime) ?></td></tr>
+            <tr><td class="info-table-key">Max Connections</td><td class="info-table-val"><?= h($vars['max_connections'] ?? '—') ?></td></tr>
+            <tr><td class="info-table-key">Active Threads</td><td class="info-table-val" style="color:var(--accent);"><?= h($status['Threads_connected'] ?? '—') ?></td></tr>
+            <tr><td class="info-table-key">Total Queries</td><td class="info-table-val" style="color:var(--info);"><?= format_number($status['Questions'] ?? 0) ?></td></tr>
+            <tr><td class="info-table-key">InnoDB Buffer</td><td class="info-table-val"><?= format_bytes((int)($vars['innodb_buffer_pool_size'] ?? 0)) ?></td></tr>
+            <tr><td class="info-table-key">Traffic In</td><td class="info-table-val"><?= format_bytes($bytesIn) ?></td></tr>
+            <tr><td class="info-table-key">Traffic Out</td><td class="info-table-val"><?= format_bytes($bytesOut) ?></td></tr>
+        </table>
     </div>
-    <div class="info-card">
-        <div class="info-label">SAPI</div>
-        <div class="info-value info"><?= h(php_sapi_name()) ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">PDO Drivers</div>
-        <div class="info-value purple"><?= h(implode(', ', PDO::getAvailableDrivers())) ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Memory Limit</div>
-        <div class="info-value warning"><?= h(ini_get('memory_limit')) ?></div>
-    </div>
-    <div class="info-card">
-        <div class="info-label">Max Upload</div>
-        <div class="info-value muted"><?= h(ini_get('upload_max_filesize')) ?></div>
+
+    <!-- PHP -->
+    <div class="info-section">
+        <div class="info-section-title"><?= icon('code', 14) ?> PHP Environment</div>
+        <table class="info-table">
+            <tr><td class="info-table-key">PHP Version</td><td class="info-table-val" style="color:var(--accent);font-weight:600;"><?= PHP_VERSION ?></td></tr>
+            <tr><td class="info-table-key">OS</td><td class="info-table-val"><?= h(php_uname('s') . ' ' . php_uname('r')) ?></td></tr>
+            <tr><td class="info-table-key">SAPI</td><td class="info-table-val" style="color:var(--info);"><?= h(php_sapi_name()) ?></td></tr>
+            <tr><td class="info-table-key">PDO Drivers</td><td class="info-table-val" style="color:var(--purple);"><?= h(implode(', ', PDO::getAvailableDrivers())) ?></td></tr>
+            <tr><td class="info-table-key">Memory Limit</td><td class="info-table-val"><?= h(ini_get('memory_limit')) ?></td></tr>
+            <tr><td class="info-table-key">Max Upload</td><td class="info-table-val"><?= h(ini_get('upload_max_filesize')) ?></td></tr>
+            <tr><td class="info-table-key">Max POST Size</td><td class="info-table-val"><?= h(ini_get('post_max_size')) ?></td></tr>
+        </table>
     </div>
 </div>
 
-<!-- Database List with Stats -->
-<h3 class="section-title" style="margin-top:24px;">All Databases</h3>
+<!-- Database List -->
+<h3 class="section-title" style="margin-top:24px;"><?= icon('layers', 16) ?> All Databases</h3>
 <div class="table-wrapper">
     <table class="data-table">
         <thead>
             <tr>
                 <th>Database</th>
                 <th>Tables</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($databases as $i => $dbName): ?>
+            <?php foreach ($databases as $dbName): ?>
             <tr>
                 <td>
-                    <a href="?db=<?= urlencode($dbName) ?>" style="color:var(--warning);font-weight:600;">
-                        <?= h($dbName) ?>
+                    <a href="?db=<?= urlencode($dbName) ?>" style="color:var(--warning);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                        <?= icon('database', 13) ?> <?= h($dbName) ?>
                     </a>
                 </td>
                 <td class="cell-number">
                     <?php
                     try {
-                        $tCount = count($dbInstance->getTables($dbName));
-                        echo $tCount;
+                        echo count($dbInstance->getTables($dbName));
                     } catch (Exception $e) {
                         echo '<span class="cell-null">N/A</span>';
                     }
                     ?>
                 </td>
                 <td>
-                    <a href="?db=<?= urlencode($dbName) ?>&tab=browse" class="btn btn-ghost btn-sm">Browse</a>
-                    <a href="?db=<?= urlencode($dbName) ?>&tab=sql" class="btn btn-ghost btn-sm">SQL</a>
+                    <div style="display:flex;gap:4px;">
+                        <a href="?db=<?= urlencode($dbName) ?>&tab=browse" class="btn btn-ghost btn-sm"><?= icon('table', 12) ?> Browse</a>
+                        <a href="?db=<?= urlencode($dbName) ?>&tab=sql" class="btn btn-ghost btn-sm"><?= icon('terminal', 12) ?> SQL</a>
+                        <a href="?db=<?= urlencode($dbName) ?>&action=export_db" class="btn btn-ghost btn-sm"><?= icon('download', 12) ?> Export</a>
+                    </div>
                 </td>
             </tr>
             <?php endforeach; ?>
