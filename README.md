@@ -8,8 +8,6 @@
 
 <h1 align="center">
   <br>
-  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/main/assets/logo.svg" alt="DBForge" width="48">
-  <br>
   DBForge
   <br>
 </h1>
