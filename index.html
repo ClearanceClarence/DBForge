@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBForge — The database tool phpMyAdmin should have been</title>
+<meta name="description" content="A lightweight, production-ready MySQL/MariaDB management tool. Zero dependencies, 10 themes, real SQL editor, inline editing, full auth system. Drop-in install.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══ Reset & Vars ═══ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #06060a;
+  --bg-card: #0c0c14;
+  --bg-card-hover: #10101a;
+  --bg-code: #0a0a12;
+  --border: #1a1a28;
+  --border-light: #24243a;
+  --green: #4ade80;
+  --green-dim: #1a3a28;
+  --green-glow: rgba(74, 222, 128, 0.08);
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --cyan: #22d3ee;
+  --text: #d4d4e0;
+  --text-dim: #6b6b80;
+  --text-muted: #3a3a4e;
+  --white: #f0f0f6;
+  --font: 'Outfit', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: var(--green); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ═══ Utility ═══ */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.mono { font-family: var(--mono); }
+.green { color: var(--green); }
+.dim { color: var(--text-dim); }
+.muted { color: var(--text-muted); }
+
+/* ═══ Noise Texture ═══ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ═══ Nav ═══ */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 16px 0;
+  background: rgba(6, 6, 10, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s;
+}
+.nav.scrolled { border-color: var(--border); }
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.nav-logo-text {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--white);
+}
+.nav-logo-ver {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--white); text-decoration: none; }
+.nav-cta {
+  background: var(--green) !important;
+  color: #050510 !important;
+  padding: 7px 18px !important;
+  border-radius: 6px;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  transition: opacity 0.15s;
+}
+.nav-cta:hover { opacity: 0.9; text-decoration: none !important; }
+
+/* ═══ Hero ═══ */
+.hero {
+  padding: 160px 0 100px;
+  text-align: center;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, var(--green-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--green);
+  background: var(--green-dim);
+  border: 1px solid rgba(74,222,128,0.15);
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  letter-spacing: 0.04em;
+}
+.hero h1 {
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 800;
+  line-height: 1.08;
+  color: var(--white);
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.hero h1 em {
+  font-style: normal;
+  color: var(--green);
+}
+.hero-sub {
+  font-size: 18px;
+  color: var(--text-dim);
+  max-width: 560px;
+  margin: 0 auto 36px;
+  line-height: 1.6;
+}
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--green);
+  color: #050510;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  transition: opacity 0.15s, transform 0.15s;
+  text-decoration: none;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); text-decoration: none; }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: border-color 0.15s, background 0.15s;
+  text-decoration: none;
+}
+.btn-ghost:hover { border-color: var(--text-muted); background: rgba(255,255,255,0.02); text-decoration: none; }
+
+/* Terminal install block */
+.hero-install {
+  margin-top: 48px;
+  display: inline-block;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 28px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-dim);
+  text-align: left;
+  position: relative;
+}
+.hero-install .prompt { color: var(--green); }
+.hero-install .cmd { color: var(--white); }
+.hero-install .comment { color: var(--text-muted); }
+
+/* ═══ Section ═══ */
+.section {
+  padding: 100px 0;
+}
+.section-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 16px;
+}
+.section-desc {
+  font-size: 17px;
+  color: var(--text-dim);
+  max-width: 600px;
+  line-height: 1.6;
+  margin-bottom: 48px;
+}
+
+/* ═══ Comparison Table ═══ */
+.compare { border-collapse: collapse; width: 100%; }
+.compare th, .compare td { padding: 14px 20px; text-align: left; border-bottom: 1px solid var(--border); }
+.compare th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 600; }
+.compare td:first-child { font-weight: 600; color: var(--text-dim); white-space: nowrap; font-size: 14px; }
+.compare .col-old { color: var(--text-muted); font-size: 14px; }
+.compare .col-new { color: var(--white); font-size: 14px; }
+.compare .col-new strong { color: var(--green); font-weight: 600; }
+.compare tr:hover { background: rgba(255,255,255,0.01); }
+.compare-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ═══ Feature Grid ═══ */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.feature-card:hover {
+  border-color: var(--border-light);
+  background: var(--bg-card-hover);
+}
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+.feature-icon-green { background: var(--green-dim); color: var(--green); }
+.feature-icon-blue { background: rgba(96,165,250,0.1); color: var(--blue); }
+.feature-icon-purple { background: rgba(167,139,250,0.1); color: var(--purple); }
+.feature-icon-amber { background: rgba(251,191,36,0.1); color: var(--amber); }
+.feature-icon-red { background: rgba(248,113,113,0.1); color: var(--red); }
+.feature-icon-cyan { background: rgba(34,211,238,0.1); color: var(--cyan); }
+.feature-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+.feature-text {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.feature-text code {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--green);
+  background: var(--green-dim);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* ═══ Code Block ═══ */
+.code-showcase {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.01);
+}
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-dot-r { background: #ff5f57; }
+.code-dot-y { background: #febc2e; }
+.code-dot-g { background: #28c840; }
+.code-header-title { margin-left: 10px; font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+.code-body {
+  padding: 22px 24px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-x: auto;
+  white-space: pre;
+}
+.code-body .kw { color: var(--green); font-weight: 600; }
+.code-body .fn { color: var(--blue); }
+.code-body .str { color: #a5d6a7; }
+.code-body .num { color: var(--cyan); }
+.code-body .tbl { color: var(--amber); text-decoration: underline; text-decoration-color: rgba(251,191,36,0.3); }
+.code-body .cm { color: var(--text-muted); }
+.code-body .op { color: var(--text-dim); }
+
+/* ═══ Themes Showcase ═══ */
+.themes-row {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+}
+.theme-pill {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.theme-pill:hover { transform: translateY(-2px); }
+
+/* ═══ Stats ═══ */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin: 48px 0;
+}
+.stat-card {
+  text-align: center;
+  padding: 28px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.stat-num {
+  font-family: var(--mono);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--green);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ═══ Security Chain ═══ */
+.chain-list { list-style: none; }
+.chain-item {
+  display: flex;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+.chain-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  background: var(--green-dim);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.chain-text { flex: 1; }
+.chain-title { font-weight: 600; color: var(--white); font-size: 15px; }
+.chain-desc { font-size: 13px; color: var(--text-dim); margin-top: 2px; }
+
+/* ═══ CTA ═══ */
+.cta-section {
+  text-align: center;
+  padding: 80px 0 120px;
+}
+.cta-section h2 {
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+/* ═══ Footer ═══ */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.footer a { color: var(--text-dim); }
+
+/* ═══ Animations ═══ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.anim { opacity: 0; animation: fadeUp 0.6s ease forwards; }
+.anim-d1 { animation-delay: 0.1s; }
+.anim-d2 { animation-delay: 0.2s; }
+.anim-d3 { animation-delay: 0.3s; }
+.anim-d4 { animation-delay: 0.4s; }
+.anim-d5 { animation-delay: 0.5s; }
+
+/* ═══ Responsive ═══ */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .hero { padding: 120px 0 60px; }
+  .section { padding: 60px 0; }
+  .hero-install { font-size: 12px; padding: 14px 18px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ Navigation ═══ -->
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="#" class="nav-logo">
+      <svg width="24" height="18" viewBox="0 0 46 34" fill="none">
+        <path d="M10 3H4v28h6" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M36 3h6v28h-6" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <ellipse cx="23" cy="12" rx="8" ry="3" stroke="#4ade80" stroke-width="2"/>
+        <path d="M15 12v5.5c0 1.66 3.58 3 8 3s8-1.34 8-3V12" stroke="#4ade80" stroke-width="2"/>
+        <path d="M15 17.5V23c0 1.66 3.58 3 8 3s8-1.34 8-3v-5.5" stroke="#4ade80" stroke-width="1.5" opacity="0.35"/>
+      </svg>
+      <span class="nav-logo-text">DBForge</span>
+      <span class="nav-logo-ver">v1.3.0</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#editor">SQL Editor</a>
+      <a href="#security">Security</a>
+      <a href="#themes">Themes</a>
+      <a href="https://github.com/ClearanceClarence/DBForge" class="nav-cta">GitHub →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ Hero ═══ -->
+<section class="hero">
+  <div class="container">
+    <div class="anim hero-badge">⚡ Version 1.3.0 — Import, Create Table, Font Control</div>
+    <h1 class="anim anim-d1">The database tool<br>phpMyAdmin <em>should have been</em></h1>
+    <p class="anim anim-d2 hero-sub">
+      A lightweight MySQL &amp; MariaDB management tool built for developers who want something fast, modern, and actually nice to use. Zero dependencies. Drop-in install.
+    </p>
+    <div class="anim anim-d3 hero-actions">
+      <a href="https://github.com/ClearanceClarence/DBForge" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a href="#features" class="btn-ghost">See features ↓</a>
+    </div>
+    <div class="anim anim-d4 hero-install">
+      <span class="comment"># Install in 10 seconds</span><br>
+      <span class="prompt">$</span> <span class="cmd">git clone https://github.com/ClearanceClarence/DBForge.git</span><br>
+      <span class="comment"># Copy dbforge/ to your web root, open browser → done</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Stats ═══ -->
+<section>
+  <div class="container">
+    <div class="stats-row">
+      <div class="stat-card anim"><div class="stat-num">0</div><div class="stat-label">External dependencies</div></div>
+      <div class="stat-card anim anim-d1"><div class="stat-num">10</div><div class="stat-label">Built-in themes</div></div>
+      <div class="stat-card anim anim-d2"><div class="stat-num">28</div><div class="stat-label">Selectable fonts</div></div>
+      <div class="stat-card anim anim-d3"><div class="stat-num">12</div><div class="stat-label">SQL token types</div></div>
+      <div class="stat-card anim anim-d4"><div class="stat-num">11</div><div class="stat-label">Security layers</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Comparison ═══ -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">Why switch</div>
+    <div class="section-title">phpMyAdmin was built in 1998.<br>It's time for something better.</div>
+    <div class="section-desc">Same ease of install. None of the pain.</div>
+    <div class="compare-wrap">
+      <table class="compare">
+        <thead><tr><th></th><th style="color:var(--text-muted);">phpMyAdmin</th><th style="color:var(--green);">DBForge</th></tr></thead>
+        <tbody>
+          <tr><td>Install</td><td class="col-old">Config files, blowfish secret, extract</td><td class="col-new"><strong>3-step wizard</strong>, zero config</td></tr>
+          <tr><td>SQL Editor</td><td class="col-old">Syntax coloring only</td><td class="col-new"><strong>12-type tokenizer</strong>, autocomplete, alias tracking</td></tr>
+          <tr><td>Edit Data</td><td class="col-old">Full page reloads</td><td class="col-new"><strong>Click cell → inline edit → AJAX save</strong></td></tr>
+          <tr><td>Delete Rows</td><td class="col-old">One at a time</td><td class="col-new"><strong>Bulk select → DELETE WHERE IN</strong></td></tr>
+          <tr><td>Auth</td><td class="col-old">HTTP Basic or cookie</td><td class="col-new"><strong>Bcrypt, brute force, IP whitelist, CSRF</strong></td></tr>
+          <tr><td>Themes</td><td class="col-old">3 color options</td><td class="col-new"><strong>10 themes</strong> + custom theme API + font control</td></tr>
+          <tr><td>Import</td><td class="col-old">Form with options</td><td class="col-new"><strong>Drag-and-drop</strong>, target mode, live results</td></tr>
+          <tr><td>Create Table</td><td class="col-old">Multi-page form</td><td class="col-new"><strong>Visual builder</strong> with live SQL preview</td></tr>
+          <tr><td>Dependencies</td><td class="col-old">Composer on newer versions</td><td class="col-new"><strong>Zero</strong>. Pure PHP + vanilla JS</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ SQL Editor Showcase ═══ -->
+<section class="section" id="editor" style="background:rgba(255,255,255,0.01);">
+  <div class="container">
+    <div class="section-label">SQL Editor</div>
+    <div class="section-title">Not a textarea with coloring.<br>A real editor.</div>
+    <div class="section-desc">Custom tokenizer. Context-aware autocomplete. Two-pass alias tracking. All running in vanilla JS — no CodeMirror, no Monaco, no libraries.</div>
+
+    <div class="code-showcase">
+      <div class="code-header">
+        <span class="code-dot code-dot-r"></span>
+        <span class="code-dot code-dot-y"></span>
+        <span class="code-dot code-dot-g"></span>
+        <span class="code-header-title">SQL Editor — idleflow</span>
+      </div>
+      <div class="code-body"><span class="kw">SELECT</span>
+    <span class="tbl">u</span>.<span class="op">username</span>,
+    <span class="tbl">u</span>.<span class="op">email</span>,
+    <span class="fn">COUNT</span>(<span class="tbl">o</span>.<span class="op">id</span>) <span class="kw">AS</span> <span class="op">order_count</span>,
+    <span class="fn">SUM</span>(<span class="tbl">o</span>.<span class="op">total</span>) <span class="kw">AS</span> <span class="op">lifetime_value</span>,
+    <span class="fn">MAX</span>(<span class="tbl">o</span>.<span class="op">created_at</span>) <span class="kw">AS</span> <span class="op">last_order</span>
+<span class="kw">FROM</span> <span class="tbl">users</span> <span class="tbl">u</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">orders</span> <span class="tbl">o</span> <span class="kw">ON</span> <span class="tbl">o</span>.<span class="op">user_id</span> = <span class="tbl">u</span>.<span class="op">id</span>
+<span class="kw">WHERE</span> <span class="tbl">u</span>.<span class="op">active</span> = <span class="num">1</span>
+    <span class="kw">AND</span> <span class="tbl">u</span>.<span class="op">created_at</span> &gt;= <span class="str">'2025-01-01'</span>
+<span class="kw">GROUP BY</span> <span class="tbl">u</span>.<span class="op">id</span>
+<span class="kw">HAVING</span> <span class="op">order_count</span> &gt; <span class="num">5</span>
+<span class="kw">ORDER BY</span> <span class="op">lifetime_value</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">25</span>;</div>
+    </div>
+
+    <div class="features-grid" style="margin-top:32px;">
+      <div class="feature-card">
+        <div class="feature-title">12 Token Types</div>
+        <div class="feature-text">Keywords, functions, types, tables, strings, numbers, comments, operators, identifiers, backticks, variables, constants — each distinctly styled per theme.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Smart Autocomplete</div>
+        <div class="feature-text">Tables after <code>FROM</code>, scoped columns after <code>WHERE</code>, dot-notation for <code>u.email</code> when there's a <code>FROM users u</code>. Not just a word list.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Alias Tracking</div>
+        <div class="feature-text">Two-pass analysis: first extract tables + aliases from FROM/JOIN, then re-classify matching identifiers throughout the entire query.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Features ═══ -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-label">Features</div>
+    <div class="section-title">Everything you need.<br>Nothing you don't.</div>
+    <div class="section-desc">No bloat. Every feature exists because someone needed it while working on a real project.</div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-green">⚡</div>
+        <div class="feature-title">Inline Cell Editing</div>
+        <div class="feature-text">Click any cell to edit. Enter saves via AJAX. Tab jumps to the next. Large text auto-switches to a textarea. No page reloads, ever.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-blue">☐</div>
+        <div class="feature-title">Bulk Selection</div>
+        <div class="feature-text">Checkbox column with select-all. Pick rows, click "Delete Selected" — one <code>WHERE IN</code> query. Confirmation modal, not a browser alert.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-purple">+</div>
+        <div class="feature-title">Insert Rows Visually</div>
+        <div class="feature-text">Auto-generated form from column types. Date pickers for DATE, dropdowns for ENUM, textarea for TEXT. AI columns skipped. Batch entry mode.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-amber">⊞</div>
+        <div class="feature-title">Create Tables Visually</div>
+        <div class="feature-text">Dynamic column builder with type datalist, PK/AI/UQ/IDX checkboxes, and a live syntax-highlighted SQL preview that updates as you type.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-red">⇅</div>
+        <div class="feature-title">Import & Export</div>
+        <div class="feature-text">Drag-and-drop SQL/CSV import. Target mode for new databases. CSV with delimiter/header config. Export single tables or full database dumps.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-cyan">⊟</div>
+        <div class="feature-title">Structure Editor</div>
+        <div class="feature-text">Edit columns inline — rename, retype, toggle null, change defaults. FK visualization with gold/blue borders and clickable relation links.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Security ═══ -->
+<section class="section" id="security" style="background:rgba(255,255,255,0.01);">
+  <div class="container">
+    <div class="section-label">Security</div>
+    <div class="section-title">Not an afterthought.</div>
+    <div class="section-desc">11 security layers, all opt-in. Local dev stays frictionless. Production stays locked down.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+      <ul class="chain-list">
+        <li class="chain-item"><span class="chain-num">1</span><div class="chain-text"><div class="chain-title">Security Headers</div><div class="chain-desc">X-Frame, XSS, HSTS, Permissions-Policy</div></div></li>
+        <li class="chain-item"><span class="chain-num">2</span><div class="chain-text"><div class="chain-title">HTTPS Enforcement</div><div class="chain-desc">301 redirect from HTTP</div></div></li>
+        <li class="chain-item"><span class="chain-num">3</span><div class="chain-text"><div class="chain-title">IP Whitelist</div><div class="chain-desc">CIDR ranges, blocks before page load</div></div></li>
+        <li class="chain-item"><span class="chain-num">4</span><div class="chain-text"><div class="chain-title">Session Hardening</div><div class="chain-desc">httponly + secure + samesite, ID rotation</div></div></li>
+        <li class="chain-item"><span class="chain-num">5</span><div class="chain-text"><div class="chain-title">Authentication</div><div class="chain-desc">Bcrypt passwords, themed login page</div></div></li>
+        <li class="chain-item"><span class="chain-num">6</span><div class="chain-text"><div class="chain-title">Brute Force</div><div class="chain-desc">IP lockout after N failed attempts</div></div></li>
+      </ul>
+      <ul class="chain-list">
+        <li class="chain-item"><span class="chain-num">7</span><div class="chain-text"><div class="chain-title">CSRF Tokens</div><div class="chain-desc">Every form, every AJAX request</div></div></li>
+        <li class="chain-item"><span class="chain-num">8</span><div class="chain-text"><div class="chain-title">Read-Only Mode</div><div class="chain-desc">Blocks all writes at the query level</div></div></li>
+        <li class="chain-item"><span class="chain-num">9</span><div class="chain-text"><div class="chain-title">Hidden Databases</div><div class="chain-desc">Filtered from sidebar, autocomplete, URLs</div></div></li>
+        <li class="chain-item"><span class="chain-num">10</span><div class="chain-text"><div class="chain-title">Query Logging</div><div class="chain-desc">User, IP, database, duration — every query</div></div></li>
+        <li class="chain-item"><span class="chain-num">11</span><div class="chain-text"><div class="chain-title">.htaccess Rules</div><div class="chain-desc">Blocks config, includes, logs from the web</div></div></li>
+        <li class="chain-item" style="border:none;"><span class="chain-num" style="background:transparent;color:var(--text-muted);">∞</span><div class="chain-text"><div class="chain-title" style="color:var(--text-muted);">No default passwords</div><div class="chain-desc">Installer forces you to set one</div></div></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Themes ═══ -->
+<section class="section" id="themes">
+  <div class="container">
+    <div class="section-label">Theming</div>
+    <div class="section-title">10 themes. 28 fonts.<br>Infinite combinations.</div>
+    <div class="section-desc">Switch themes from the dropdown. Customize fonts for 5 UI zones. Build your own theme with one CSS file.</div>
+
+    <div class="themes-row" style="margin-bottom:12px;">
+      <div class="theme-pill" style="background:#f8f8fa;color:#1e2028;border-color:#d0d0d8;">Clean</div>
+      <div class="theme-pill" style="background:#f5f5f0;color:#1a2e1a;border-color:#c8d0c0;">Forge</div>
+      <div class="theme-pill" style="background:#f4f0ea;color:#3a2a18;border-color:#d8ccb8;">Sand</div>
+      <div class="theme-pill" style="background:#f0eef4;color:#2a2040;border-color:#c8c0d8;">Lavender</div>
+      <div class="theme-pill" style="background:#fdf6e3;color:#657b83;border-color:#eee8d5;">Solarized Light</div>
+    </div>
+    <div class="themes-row">
+      <div class="theme-pill" style="background:#0c0c12;color:#4ade80;border-color:#1c1c28;">Dark Industrial</div>
+      <div class="theme-pill" style="background:#0a1520;color:#2dd4bf;border-color:#152535;">Midnight Teal</div>
+      <div class="theme-pill" style="background:#1e1e1e;color:#569cd6;border-color:#2d2d2d;">Carbon</div>
+      <div class="theme-pill" style="background:#2e3440;color:#88c0d0;border-color:#3b4252;">Nord</div>
+      <div class="theme-pill" style="background:#002b36;color:#839496;border-color:#073642;">Solarized Dark</div>
+    </div>
+
+    <div class="features-grid" style="margin-top:32px;">
+      <div class="feature-card">
+        <div class="feature-title">Custom Themes</div>
+        <div class="feature-text">Create a <code>themes/my-theme/</code> folder with a <code>theme.json</code> and <code>style.css</code>. Override CSS variables. Refresh. Done.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Font Control</div>
+        <div class="feature-text">Pick fonts for General UI, Headings, Sidebar, Table Data, and SQL/Code independently. 28 curated options. Live preview. Google Fonts auto-loaded.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Drop it in. <span class="green">Set it up.</span> Done.</h2>
+    <p class="dim" style="margin-bottom:32px;font-size:17px;">Pure PHP. Vanilla JS. Zero dependencies. MIT license.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/ClearanceClarence/DBForge" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a href="https://github.com/ClearanceClarence/DBForge/releases" class="btn-ghost">Download Latest →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Footer ═══ -->
+<footer class="footer">
+  <div class="container">
+    <svg width="20" height="15" viewBox="0 0 46 34" fill="none" style="vertical-align:middle;margin-right:6px;">
+      <path d="M10 3H4v28h6" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M36 3h6v28h-6" stroke="#4ade80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <ellipse cx="23" cy="12" rx="8" ry="3" stroke="#4ade80" stroke-width="2"/>
+      <path d="M15 12v5.5c0 1.66 3.58 3 8 3s8-1.34 8-3V12" stroke="#4ade80" stroke-width="2"/>
+      <path d="M15 17.5V23c0 1.66 3.58 3 8 3s8-1.34 8-3v-5.5" stroke="#4ade80" stroke-width="1.5" opacity="0.35"/>
+    </svg>
+    DBForge v1.3.0 · MIT License · Made with PHP &amp; vanilla JS · <a href="https://github.com/ClearanceClarence/DBForge">GitHub</a>
+  </div>
+</footer>
+
+<script>
+// Nav scroll border
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// Scroll-triggered animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.style.animationPlayState = 'running'; }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.anim').forEach(el => {
+  el.style.animationPlayState = 'paused';
+  observer.observe(el);
+});
+</script>
+</body>
+</html>
