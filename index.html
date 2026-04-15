@@ -506,7 +506,7 @@ body::before {
         <path d="M15 17.5V23c0 1.66 3.58 3 8 3s8-1.34 8-3v-5.5" stroke="#4ade80" stroke-width="1.5" opacity="0.35"/>
       </svg>
       <span class="nav-logo-text">DBForge</span>
-      <span class="nav-logo-ver">v1.3.0</span>
+      <span class="nav-logo-ver">v1.4.0</span>
     </a>
     <div class="nav-links">
       <a href="#features">Features</a>
@@ -521,7 +521,7 @@ body::before {
 <!-- ═══ Hero ═══ -->
 <section class="hero">
   <div class="container">
-    <div class="anim hero-badge">⚡ Version 1.3.0 — Import, Create Table, Font Control</div>
+    <div class="anim hero-badge">⚡ Version 1.4.0 — ER Diagram, Search Across Tables, Query History</div>
     <h1 class="anim anim-d1">The database tool<br>phpMyAdmin <em>should have been</em></h1>
     <p class="anim anim-d2 hero-sub">
       A lightweight MySQL &amp; MariaDB management tool built for developers who want something fast, modern, and actually nice to use. Zero dependencies. Drop-in install.
@@ -546,9 +546,9 @@ body::before {
   <div class="container">
     <div class="stats-row">
       <div class="stat-card anim"><div class="stat-num">0</div><div class="stat-label">External dependencies</div></div>
-      <div class="stat-card anim anim-d1"><div class="stat-num">10</div><div class="stat-label">Built-in themes</div></div>
-      <div class="stat-card anim anim-d2"><div class="stat-num">28</div><div class="stat-label">Selectable fonts</div></div>
-      <div class="stat-card anim anim-d3"><div class="stat-num">12</div><div class="stat-label">SQL token types</div></div>
+      <div class="stat-card anim anim-d1"><div class="stat-num">612</div><div class="stat-label">SQL tokens recognized</div></div>
+      <div class="stat-card anim anim-d2"><div class="stat-num">10</div><div class="stat-label">Built-in themes</div></div>
+      <div class="stat-card anim anim-d3"><div class="stat-num">14</div><div class="stat-label">Template pages</div></div>
       <div class="stat-card anim anim-d4"><div class="stat-num">11</div><div class="stat-label">Security layers</div></div>
     </div>
   </div>
@@ -565,10 +565,14 @@ body::before {
         <thead><tr><th></th><th style="color:var(--text-muted);">phpMyAdmin</th><th style="color:var(--green);">DBForge</th></tr></thead>
         <tbody>
           <tr><td>Install</td><td class="col-old">Config files, blowfish secret, extract</td><td class="col-new"><strong>3-step wizard</strong>, zero config</td></tr>
-          <tr><td>SQL Editor</td><td class="col-old">Syntax coloring only</td><td class="col-new"><strong>12-type tokenizer</strong>, autocomplete, alias tracking</td></tr>
+          <tr><td>SQL Editor</td><td class="col-old">Syntax coloring only</td><td class="col-new"><strong>612-token tokenizer</strong>, autocomplete, alias tracking</td></tr>
           <tr><td>Edit Data</td><td class="col-old">Full page reloads</td><td class="col-new"><strong>Click cell → inline edit → AJAX save</strong></td></tr>
           <tr><td>Delete Rows</td><td class="col-old">One at a time</td><td class="col-new"><strong>Bulk select → DELETE WHERE IN</strong></td></tr>
+          <tr><td>Search</td><td class="col-old">Per-table only</td><td class="col-new"><strong>Search across every table</strong> in the database at once</td></tr>
+          <tr><td>ER Diagram</td><td class="col-old">Not available</td><td class="col-new"><strong>Interactive SVG</strong> with drag, zoom, auto-layout</td></tr>
+          <tr><td>Query History</td><td class="col-old">Not available</td><td class="col-new"><strong>Syntax-highlighted</strong>, searchable, click to re-run</td></tr>
           <tr><td>Auth</td><td class="col-old">HTTP Basic or cookie</td><td class="col-new"><strong>Bcrypt, brute force, IP whitelist, CSRF</strong></td></tr>
+          <tr><td>Table Mgmt</td><td class="col-old">Multi-page forms</td><td class="col-new"><strong>Visual builder</strong> + rename, copy, drop inline</td></tr>
           <tr><td>Themes</td><td class="col-old">3 color options</td><td class="col-new"><strong>10 themes</strong> + custom theme API + font control</td></tr>
           <tr><td>Import</td><td class="col-old">Form with options</td><td class="col-new"><strong>Drag-and-drop</strong>, target mode, live results</td></tr>
           <tr><td>Create Table</td><td class="col-old">Multi-page form</td><td class="col-new"><strong>Visual builder</strong> with live SQL preview</td></tr>
@@ -584,7 +588,7 @@ body::before {
   <div class="container">
     <div class="section-label">SQL Editor</div>
     <div class="section-title">Not a textarea with coloring.<br>A real editor.</div>
-    <div class="section-desc">Custom tokenizer. Context-aware autocomplete. Two-pass alias tracking. All running in vanilla JS — no CodeMirror, no Monaco, no libraries.</div>
+    <div class="section-desc">Custom tokenizer with 612 recognized tokens. Context-aware autocomplete. Two-pass alias tracking. All running in vanilla JS — no CodeMirror, no Monaco, no libraries.</div>
 
     <div class="code-showcase">
       <div class="code-header">
@@ -637,32 +641,94 @@ body::before {
       <div class="feature-card">
         <div class="feature-icon feature-icon-green">⚡</div>
         <div class="feature-title">Inline Cell Editing</div>
-        <div class="feature-text">Click any cell to edit. Enter saves via AJAX. Tab jumps to the next. Large text auto-switches to a textarea. No page reloads, ever.</div>
+        <div class="feature-text">Click any cell to edit. Enter saves via AJAX. Tab jumps to the next. Large text auto-switches to a textarea. The page never reloads.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-icon feature-icon-blue">☐</div>
-        <div class="feature-title">Bulk Selection</div>
-        <div class="feature-text">Checkbox column with select-all. Pick rows, click "Delete Selected" — one <code>WHERE IN</code> query. Confirmation modal, not a browser alert.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon feature-icon-purple">+</div>
-        <div class="feature-title">Insert Rows Visually</div>
-        <div class="feature-text">Auto-generated form from column types. Date pickers for DATE, dropdowns for ENUM, textarea for TEXT. AI columns skipped. Batch entry mode.</div>
+        <div class="feature-icon feature-icon-purple">🔍</div>
+        <div class="feature-title">Search Across Tables</div>
+        <div class="feature-text">Enter any value — email, ID, date — and scan every table in the database. Results grouped by table with matched cells highlighted. The feature phpMyAdmin doesn't have.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon feature-icon-amber">⊞</div>
-        <div class="feature-title">Create Tables Visually</div>
-        <div class="feature-text">Dynamic column builder with type datalist, PK/AI/UQ/IDX checkboxes, and a live syntax-highlighted SQL preview that updates as you type.</div>
+        <div class="feature-title">ER Diagram</div>
+        <div class="feature-text">Interactive SVG with every table and FK relationship. Drag tables, zoom, pan. Force-directed auto-layout clusters related tables. Hover to trace relationships.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-cyan">⏱</div>
+        <div class="feature-title">Query History</div>
+        <div class="feature-text">Every query saved to session with syntax highlighting, timing, row counts. Click to reload into the editor. Search, delete individual items, or clear all.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-blue">☐</div>
+        <div class="feature-title">Table Operations</div>
+        <div class="feature-text">Rename, copy (structure or with data), and drop tables from the database overview. Visual Create Table form with live SQL preview. Bulk select and delete rows.</div>
       </div>
       <div class="feature-card">
         <div class="feature-icon feature-icon-red">⇅</div>
         <div class="feature-title">Import & Export</div>
-        <div class="feature-text">Drag-and-drop SQL/CSV import. Target mode for new databases. CSV with delimiter/header config. Export single tables or full database dumps.</div>
+        <div class="feature-text">Drag-and-drop SQL/CSV import with target mode for new databases. Export single tables or full dumps. Insert rows visually with type-aware form fields.</div>
       </div>
       <div class="feature-card">
-        <div class="feature-icon feature-icon-cyan">⊟</div>
-        <div class="feature-title">Structure Editor</div>
-        <div class="feature-text">Edit columns inline — rename, retype, toggle null, change defaults. FK visualization with gold/blue borders and clickable relation links.</div>
+        <div class="feature-icon feature-icon-green">🔑</div>
+        <div class="feature-title">FK Visualization</div>
+        <div class="feature-text">Structure tab shows gold/blue borders on PK/FK columns, clickable relation links, dedicated FK tables with <code>ON DELETE</code> / <code>ON UPDATE</code> badges.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon feature-icon-purple">⌨</div>
+        <div class="feature-title">Keyboard Shortcuts</div>
+        <div class="feature-text">Press <code>?</code> anywhere to see every shortcut. <code>Ctrl+Enter</code> to execute, <code>Tab</code> for autocomplete, <code>Esc</code> to cancel. Designed for keyboard-first workflows.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ER Diagram ═══ -->
+<section class="section" style="background:rgba(255,255,255,0.01);">
+  <div class="container">
+    <div class="section-label">ER Diagram</div>
+    <div class="section-title">See your schema.<br>Not just imagine it.</div>
+    <div class="section-desc">Every table, every column, every foreign key — rendered as an interactive SVG you can drag, zoom, and explore.</div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-title">Force-Directed Layout</div>
+        <div class="feature-text">Click "Auto Layout" and a physics simulation runs 300 iterations: tables repel each other, FK edges attract, gravity holds it together. Connected tables cluster. Unrelated ones drift apart.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Drag, Zoom, Pan</div>
+        <div class="feature-text">Drag any table to reposition it. Scroll wheel zooms centered on your cursor. Click empty space to pan. "Fit" button auto-centers everything. Double-click a table to open it.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-title">Hover to Trace</div>
+        <div class="feature-text">Hover a table and its FK lines brighten while everything else dims. Instantly see which tables are connected and through which columns — without reading a single line of SQL.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ Search & History ═══ -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">Search & History</div>
+    <div class="section-title">Find anything.<br>Remember everything.</div>
+    <div class="section-desc">Two features that phpMyAdmin simply doesn't offer.</div>
+
+    <div class="features-grid" style="grid-template-columns: 1fr 1fr;">
+      <div class="feature-card" style="border-left:3px solid var(--purple);">
+        <div class="feature-title" style="color:var(--purple);">Search Across Tables</div>
+        <div class="feature-text">
+          Enter a value — an email, an ID, a date — and DBForge scans every table in the database.<br><br>
+          Results come back grouped by table, with matched columns highlighted in purple. Click through to browse the matching rows. Filter 39 tables in one search instead of opening each one manually.<br><br>
+          Skips BLOB and BINARY columns automatically. Links to the Browse tab with the search filter pre-filled.
+        </div>
+      </div>
+      <div class="feature-card" style="border-left:3px solid var(--amber);">
+        <div class="feature-title" style="color:var(--amber);">Query History</div>
+        <div class="feature-text">
+          Every query you execute is saved to the session — SQL text, database, timing, row count, success/error.<br><br>
+          Collapsible panel on the SQL tab with full syntax highlighting. Click an entry to reload it into the editor. Filter by keyword. Delete individual items with ×. Clear all with one click.<br><br>
+          Duplicate suppression: running the same query twice updates the timestamp instead of creating a new entry.
+        </div>
       </div>
     </div>
   </div>
@@ -756,7 +822,7 @@ body::before {
       <path d="M15 12v5.5c0 1.66 3.58 3 8 3s8-1.34 8-3V12" stroke="#4ade80" stroke-width="2"/>
       <path d="M15 17.5V23c0 1.66 3.58 3 8 3s8-1.34 8-3v-5.5" stroke="#4ade80" stroke-width="1.5" opacity="0.35"/>
     </svg>
-    DBForge v1.3.0 · MIT License · Made with PHP &amp; vanilla JS · <a href="https://github.com/ClearanceClarence/DBForge">GitHub</a>
+    DBForge v1.4.0 · MIT License · Made with PHP &amp; vanilla JS · <a href="https://github.com/ClearanceClarence/DBForge">GitHub</a>
   </div>
 </footer>
 
