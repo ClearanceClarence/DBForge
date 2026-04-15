@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/assets/logo.svg" alt="DBForge" width="80">
+  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg" alt="DBForge" width="80">
 </p>
 
 <h1 align="center">DBForge</h1>
