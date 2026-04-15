@@ -64,3 +64,20 @@ function icon(string $name, int $size = 16, string $class = ''): string
 
     return '<svg ' . $s . ' style="display:inline-block;vertical-align:middle;flex-shrink:0;">' . $icons[$name] . '</svg>';
 }
+
+/**
+ * DBForge logo — square brackets + database cylinder (8E)
+ * Usage: <?= dbforge_logo(20) ?>  or  <?= dbforge_logo(32, '#4ade80') ?>
+ */
+function dbforge_logo(int $size = 20, string $color = 'currentColor'): string
+{
+    $w = $size;
+    $h = round($size * 34 / 46, 1);
+    return '<svg width="' . $w . '" height="' . $h . '" viewBox="0 0 46 34" fill="none" style="display:inline-block;vertical-align:middle;flex-shrink:0;">'
+        . '<path d="M10 3H4v28h6" stroke="' . $color . '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+        . '<path d="M36 3h6v28h-6" stroke="' . $color . '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+        . '<ellipse cx="23" cy="12" rx="8" ry="3" stroke="' . $color . '" stroke-width="2"/>'
+        . '<path d="M15 12v5.5c0 1.66 3.58 3 8 3s8-1.34 8-3V12" stroke="' . $color . '" stroke-width="2"/>'
+        . '<path d="M15 17.5V23c0 1.66 3.58 3 8 3s8-1.34 8-3v-5.5" stroke="' . $color . '" stroke-width="1.5" opacity="0.35"/>'
+        . '</svg>';
+}

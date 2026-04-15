@@ -1,9 +1,64 @@
 <?php
-if (!$currentDb) {
-    echo '<div class="error-box">Select a database to export.</div>';
-    return;
-}
+if (!$currentDb):
+    // ── No database selected — show all databases for export ──
+?>
 
+<!-- Header -->
+<div class="info-header">
+    <div class="info-header-left">
+        <div class="info-header-icon"><?= icon('download', 24) ?></div>
+        <div>
+            <h3 class="info-header-title">Export</h3>
+            <span class="info-header-sub">Select a database to export</span>
+        </div>
+    </div>
+</div>
+
+<h3 class="section-title" style="margin-top:20px;"><?= icon('layers', 16) ?> All Databases</h3>
+<div class="table-wrapper">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Database</th>
+                <th>Tables</th>
+                <th>Size</th>
+                <th>Export</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($databases as $dbName):
+                $dbSize = 0;
+                $dbTableCount = 0;
+                try {
+                    $tList = $dbInstance->getTables($dbName);
+                    $dbTableCount = count($tList);
+                    foreach ($tList as $t) {
+                        $dbSize += (int)($t['Data_length'] ?? 0) + (int)($t['Index_length'] ?? 0);
+                    }
+                } catch (Exception $e) {}
+            ?>
+            <tr>
+                <td>
+                    <a href="?tab=export&db=<?= urlencode($dbName) ?>" style="color:var(--warning);font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                        <?= icon('database', 13) ?> <?= h($dbName) ?>
+                    </a>
+                </td>
+                <td class="cell-number"><?= format_number($dbTableCount) ?></td>
+                <td style="color:var(--text-secondary);"><?= format_bytes($dbSize) ?></td>
+                <td>
+                    <a href="?db=<?= urlencode($dbName) ?>&action=export_db" class="btn btn-primary btn-sm">
+                        <?= icon('download', 12) ?> <?= h($dbName) ?>.sql
+                    </a>
+                </td>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
+
+<?php return; endif; ?>
+
+<?php
 // Get table info if selected
 $tableInfo = null;
 $tableRows = 0;

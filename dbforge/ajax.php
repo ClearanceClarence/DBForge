@@ -410,6 +410,142 @@ switch ($action) {
         }
         break;
 
+    // ── Insert a row (POST, write) ──
+    case 'insert_row':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+
+        $table = $_POST['table'] ?? '';
+        $data = json_decode($_POST['data'] ?? '{}', true);
+
+        if (!$db || !$table || !is_array($data) || empty($data)) {
+            echo json_encode(['error' => 'Missing required fields.']);
+            break;
+        }
+
+        try {
+            $pdo = $dbInstance->connect($db);
+            $esc = function($s) { return '`' . str_replace('`', '``', $s) . '`'; };
+
+            $cols = [];
+            $placeholders = [];
+            $values = [];
+            foreach ($data as $col => $val) {
+                $cols[] = $esc($col);
+                $placeholders[] = '?';
+                $values[] = $val; // null values are handled by PDO
+            }
+
+            $sql = "INSERT INTO {$esc($table)} (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $placeholders) . ")";
+            $start = microtime(true);
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($values);
+            $elapsed = microtime(true) - $start;
+
+            $insertId = $pdo->lastInsertId();
+            $auth->logQuery($db, "INSERT INTO {$table} (" . implode(', ', array_keys($data)) . ")", $elapsed);
+
+            echo json_encode([
+                'success'   => true,
+                'insert_id' => $insertId ?: null,
+            ]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Execute arbitrary SQL (POST, write) ──
+    case 'execute_sql':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+
+        $sql = trim($_POST['sql'] ?? '');
+        if (!$sql) {
+            echo json_encode(['error' => 'No SQL provided.']);
+            break;
+        }
+
+        $targetDb = $db ?: null;
+
+        try {
+            $pdo = $dbInstance->connect($targetDb);
+            $start = microtime(true);
+            $affected = $pdo->exec($sql);
+            $elapsed = microtime(true) - $start;
+            $auth->logQuery($targetDb ?? '-', $sql, $elapsed);
+
+            echo json_encode([
+                'success'  => true,
+                'affected' => $affected !== false ? $affected : 0,
+                'time'     => $elapsed,
+            ]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Create a database (POST, write) ──
+    case 'create_database':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+
+        $name      = trim($_POST['name'] ?? '');
+        $charset   = $_POST['charset'] ?? 'utf8mb4';
+        $collation = $_POST['collation'] ?? 'utf8mb4_general_ci';
+
+        if (!$name) {
+            echo json_encode(['error' => 'Database name is required.']);
+            break;
+        }
+        if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $name)) {
+            echo json_encode(['error' => 'Database name can only contain letters, numbers, underscores, and hyphens.']);
+            break;
+        }
+
+        try {
+            $dbInstance->createDatabase($name, $charset, $collation);
+            $auth->logActivity("Created database: {$name} ({$charset}/{$collation})");
+            echo json_encode(['success' => true, 'name' => $name]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Drop a database (POST, write) ──
+    case 'drop_database':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+
+        $name = trim($_POST['name'] ?? '');
+        if (!$name) {
+            echo json_encode(['error' => 'Database name is required.']);
+            break;
+        }
+
+        // Block dropping system databases
+        $protected = ['mysql', 'information_schema', 'performance_schema', 'sys'];
+        if (in_array(strtolower($name), $protected)) {
+            echo json_encode(['error' => 'Cannot drop system database: ' . $name]);
+            break;
+        }
+
+        try {
+            $dbInstance->dropDatabase($name);
+            $auth->logActivity("Dropped database: {$name}");
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
     default:
         echo json_encode(['error' => 'Unknown action']);
         break;

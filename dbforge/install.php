@@ -304,11 +304,12 @@ if ($cookieTheme && is_dir(__DIR__ . '/themes/' . basename($cookieTheme))) {
         <!-- Header -->
         <div class="installer-header">
             <div class="installer-logo">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="1" width="18" height="22" rx="2"/>
-                    <ellipse cx="12" cy="7" rx="6" ry="3"/>
-                    <path d="M6 7v5c0 1.66 2.69 3 6 3s6-1.34 6-3V7"/>
-                    <path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/>
+                <svg width="28" height="21" viewBox="0 0 46 34" fill="none" style="color:var(--accent);">
+                    <path d="M10 3H4v28h6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M36 3h6v28h-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <ellipse cx="23" cy="12" rx="8" ry="3" stroke="currentColor" stroke-width="2"/>
+                    <path d="M15 12v5.5c0 1.66 3.58 3 8 3s8-1.34 8-3V12" stroke="currentColor" stroke-width="2"/>
+                    <path d="M15 17.5V23c0 1.66 3.58 3 8 3s8-1.34 8-3v-5.5" stroke="currentColor" stroke-width="1.5" opacity="0.35"/>
                 </svg>
                 <span class="installer-logo-text">DBForge Setup</span>
             </div>

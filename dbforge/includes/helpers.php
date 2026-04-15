@@ -105,3 +105,109 @@ function input(string $key, $default = null)
 {
     return $_GET[$key] ?? $_POST[$key] ?? $default;
 }
+
+/**
+ * Font catalog — curated fonts grouped by type.
+ * 'google' = true means it needs Google Fonts loading.
+ */
+function dbforge_font_catalog(): array
+{
+    return [
+        'sans' => [
+            ''                  => ['label' => 'Theme default', 'google' => false],
+            'DM Sans'           => ['label' => 'DM Sans', 'google' => true, 'weights' => '400;500;600;700'],
+            'Inter'             => ['label' => 'Inter', 'google' => true, 'weights' => '400;500;600;700'],
+            'Nunito Sans'       => ['label' => 'Nunito Sans', 'google' => true, 'weights' => '400;600;700'],
+            'Open Sans'         => ['label' => 'Open Sans', 'google' => true, 'weights' => '400;600;700'],
+            'Lato'              => ['label' => 'Lato', 'google' => true, 'weights' => '400;700'],
+            'Roboto'            => ['label' => 'Roboto', 'google' => true, 'weights' => '400;500;700'],
+            'Source Sans 3'     => ['label' => 'Source Sans 3', 'google' => true, 'weights' => '400;600;700'],
+            'Outfit'            => ['label' => 'Outfit', 'google' => true, 'weights' => '400;600;700'],
+            'Sora'              => ['label' => 'Sora', 'google' => true, 'weights' => '400;600;700'],
+            'Work Sans'         => ['label' => 'Work Sans', 'google' => true, 'weights' => '400;500;600;700'],
+            'Poppins'           => ['label' => 'Poppins', 'google' => true, 'weights' => '400;500;600;700'],
+            'IBM Plex Sans'     => ['label' => 'IBM Plex Sans', 'google' => true, 'weights' => '400;500;600;700'],
+            'system-ui'         => ['label' => 'System UI', 'google' => false],
+            'Segoe UI'          => ['label' => 'Segoe UI (Windows)', 'google' => false],
+            '-apple-system'     => ['label' => 'San Francisco (macOS)', 'google' => false],
+        ],
+        'mono' => [
+            ''                  => ['label' => 'Theme default', 'google' => false],
+            'JetBrains Mono'    => ['label' => 'JetBrains Mono', 'google' => true, 'weights' => '400;500;600;700'],
+            'Fira Code'         => ['label' => 'Fira Code', 'google' => true, 'weights' => '400;500;600;700'],
+            'Source Code Pro'   => ['label' => 'Source Code Pro', 'google' => true, 'weights' => '400;500;600;700'],
+            'IBM Plex Mono'     => ['label' => 'IBM Plex Mono', 'google' => true, 'weights' => '400;500;600;700'],
+            'Roboto Mono'       => ['label' => 'Roboto Mono', 'google' => true, 'weights' => '400;500;700'],
+            'Inconsolata'       => ['label' => 'Inconsolata', 'google' => true, 'weights' => '400;600;700'],
+            'Space Mono'        => ['label' => 'Space Mono', 'google' => true, 'weights' => '400;700'],
+            'Ubuntu Mono'       => ['label' => 'Ubuntu Mono', 'google' => true, 'weights' => '400;700'],
+            'Cascadia Code'     => ['label' => 'Cascadia Code (local)', 'google' => false],
+            'Consolas'          => ['label' => 'Consolas (Windows)', 'google' => false],
+            'Monaco'            => ['label' => 'Monaco (macOS)', 'google' => false],
+            'monospace'         => ['label' => 'System monospace', 'google' => false],
+        ],
+    ];
+}
+
+/**
+ * Font zones — which config key maps to which CSS variable and which catalog to use.
+ */
+function dbforge_font_zones(): array
+{
+    return [
+        'general' => ['label' => 'General UI',       'css_var' => '--font-body',    'catalog' => 'sans', 'desc' => 'Body text, labels, buttons, menus'],
+        'heading' => ['label' => 'Headings',          'css_var' => '--font-heading', 'catalog' => 'sans', 'desc' => 'Section titles, page headers'],
+        'sidebar' => ['label' => 'Sidebar',           'css_var' => '--font-sidebar', 'catalog' => 'sans', 'desc' => 'Database/table names in the sidebar'],
+        'data'    => ['label' => 'Table Data',        'css_var' => '--font-data',    'catalog' => 'mono', 'desc' => 'Cell values in data tables'],
+        'code'    => ['label' => 'SQL / Code',        'css_var' => '--font-mono',    'catalog' => 'mono', 'desc' => 'SQL editor, code blocks, monospace text'],
+    ];
+}
+
+/**
+ * Build the Google Fonts <link> URL and CSS overrides from font config.
+ * Returns ['link' => '<link ...>' or '', 'css' => 'style block content']
+ */
+function dbforge_font_styles(array $fontConfig): array
+{
+    $catalog = dbforge_font_catalog();
+    $zones = dbforge_font_zones();
+    $googleFamilies = [];
+    $cssOverrides = [];
+
+    foreach ($zones as $key => $zone) {
+        $fontName = $fontConfig[$key] ?? '';
+        if (empty($fontName)) continue;
+
+        $catKey = $zone['catalog']; // 'sans' or 'mono'
+        $fontInfo = $catalog[$catKey][$fontName] ?? null;
+        if (!$fontInfo) continue;
+
+        // Build CSS value
+        $fallback = ($catKey === 'mono') ? ', monospace' : ', system-ui, sans-serif';
+        $cssVal = (strpos($fontName, '-') !== false || strpos($fontName, ' ') !== false || ctype_lower($fontName[0] ?? 'A'))
+            ? $fontName . $fallback
+            : "'{$fontName}'" . $fallback;
+
+        $cssOverrides[] = "    {$zone['css_var']}: {$cssVal};";
+
+        // Track Google Fonts to load
+        if (!empty($fontInfo['google'])) {
+            $weights = $fontInfo['weights'] ?? '400;700';
+            $family = str_replace(' ', '+', $fontName) . ':wght@' . $weights;
+            $googleFamilies[$family] = true;
+        }
+    }
+
+    $link = '';
+    if (!empty($googleFamilies)) {
+        $families = implode('&family=', array_keys($googleFamilies));
+        $link = '<link href="https://fonts.googleapis.com/css2?family=' . $families . '&display=swap" rel="stylesheet">';
+    }
+
+    $css = '';
+    if (!empty($cssOverrides)) {
+        $css = ":root {\n" . implode("\n", $cssOverrides) . "\n}";
+    }
+
+    return ['link' => $link, 'css' => $css];
+}

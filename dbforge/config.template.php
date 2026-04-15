@@ -14,11 +14,18 @@ return [
     ],
     'app' => [
         'name'              => 'DBForge',
-        'version'           => '1.2.0',
+        'version'           => '1.3.0',
         'default_theme'     => 'light-clean',
         'rows_per_page'     => 50,
         'max_query_history'  => 50,
         'enable_export'     => true,
+        'fonts' => [
+            'general'  => '',
+            'code'     => '',
+            'sidebar'  => '',
+            'data'     => '',
+            'heading'  => '',
+        ],
     ],
     'security' => [
         'require_auth'       => true,

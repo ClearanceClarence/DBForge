@@ -1077,6 +1077,8 @@ const DBForge = {
         this.initInlineEdit();
         this.initBulkSelect();
         this.initColTypeToggle();
+        this.initCreateDatabase();
+        this.initSidebar();
         this.bindKeyboard();
         this.bindQuickQueries();
         this.autoFocusEditor();
@@ -1511,6 +1513,282 @@ const DBForge = {
             table.classList.add('hide-col-types');
             const btn = document.getElementById('toggle-col-types');
             if (btn) btn.classList.add('btn-toggled-off');
+        }
+    },
+
+    // ── Create / Drop Database ───────────────────────────
+
+    initCreateDatabase() {
+        const self = this;
+
+        // Home page form toggle
+        const homeBtn = document.getElementById('home-create-db-btn');
+        const form = document.getElementById('create-db-form');
+        const cancelBtn = document.getElementById('create-db-cancel');
+        const submitBtn = document.getElementById('create-db-submit');
+
+        if (homeBtn && form) {
+            homeBtn.addEventListener('click', () => {
+                form.style.display = '';
+                homeBtn.style.display = 'none';
+                document.getElementById('create-db-name').focus();
+            });
+        }
+        if (cancelBtn && form) {
+            cancelBtn.addEventListener('click', () => {
+                form.style.display = 'none';
+                if (homeBtn) homeBtn.style.display = '';
+            });
+        }
+        if (submitBtn) {
+            submitBtn.addEventListener('click', () => this.submitCreateDatabase());
+        }
+
+        // Sidebar "+" button — shows a prompt modal
+        const sidebarBtn = document.getElementById('sidebar-create-db');
+        if (sidebarBtn) {
+            sidebarBtn.addEventListener('click', () => {
+                // If the home form exists (we're on the home page), just toggle it
+                if (form) {
+                    form.style.display = '';
+                    if (homeBtn) homeBtn.style.display = 'none';
+                    document.getElementById('create-db-name').focus();
+                    return;
+                }
+                // Otherwise use a simple prompt-style flow
+                this.showCreateDbModal();
+            });
+        }
+
+        // Drop database buttons
+        document.querySelectorAll('.drop-db-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const dbName = btn.dataset.db;
+                self.confirm({
+                    title: 'Drop Database',
+                    message: 'DROP DATABASE `' + dbName + '`? This will permanently delete all tables, data, and relationships. This cannot be undone.',
+                    confirmText: 'Drop Database',
+                    cancelText: 'Cancel',
+                    danger: true,
+                }).then(ok => {
+                    if (!ok) return;
+                    const formData = new FormData();
+                    formData.append('action', 'drop_database');
+                    formData.append('name', dbName);
+                    formData.append('_csrf_token', self.getCsrfToken());
+
+                    fetch('ajax.php', { method: 'POST', body: formData })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.error) {
+                                self.setStatus('Error: ' + data.error);
+                                return;
+                            }
+                            self.setStatus('Database "' + dbName + '" dropped.');
+                            window.location.href = '?';
+                        });
+                });
+            });
+        });
+
+        // Enter key in create-db-name input
+        const nameInput = document.getElementById('create-db-name');
+        if (nameInput) {
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); this.submitCreateDatabase(); }
+                if (e.key === 'Escape') { e.preventDefault(); if (cancelBtn) cancelBtn.click(); }
+            });
+        }
+    },
+
+    submitCreateDatabase() {
+        const name = document.getElementById('create-db-name')?.value.trim();
+        const charset = document.getElementById('create-db-charset')?.value || 'utf8mb4';
+        const collation = document.getElementById('create-db-collation')?.value || 'utf8mb4_general_ci';
+
+        if (!name) {
+            this.setStatus('Database name is required.');
+            return;
+        }
+        if (!/^[a-zA-Z0-9_\-]+$/.test(name)) {
+            this.setStatus('Name can only contain letters, numbers, underscores, and hyphens.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('action', 'create_database');
+        formData.append('name', name);
+        formData.append('charset', charset);
+        formData.append('collation', collation);
+        formData.append('_csrf_token', this.getCsrfToken());
+
+        fetch('ajax.php', { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    this.setStatus('Error: ' + data.error);
+                    return;
+                }
+                this.setStatus('Database "' + name + '" created.');
+                window.location.href = '?db=' + encodeURIComponent(name);
+            })
+            .catch(err => {
+                this.setStatus('Network error: ' + err.message);
+            });
+    },
+
+    showCreateDbModal() {
+        this.closeModal();
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'dbforge-modal';
+
+        overlay.innerHTML = `
+            <div class="modal-box" style="max-width:460px;">
+                <div class="modal-header">
+                    <span class="modal-title">Create Database</span>
+                    <button class="modal-close" data-action="cancel">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="settings-field" style="margin-bottom:12px;">
+                        <label class="settings-label">Database Name</label>
+                        <input type="text" id="modal-db-name" class="settings-input" placeholder="my_database"
+                               style="background:var(--bg-input);">
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <div class="settings-field" style="flex:1;">
+                            <label class="settings-label">Charset</label>
+                            <select id="modal-db-charset" class="settings-input" style="background:var(--bg-input);">
+                                <option value="utf8mb4" selected>utf8mb4</option>
+                                <option value="utf8">utf8</option>
+                                <option value="latin1">latin1</option>
+                            </select>
+                        </div>
+                        <div class="settings-field" style="flex:1;">
+                            <label class="settings-label">Collation</label>
+                            <select id="modal-db-collation" class="settings-input" style="background:var(--bg-input);">
+                                <option value="utf8mb4_general_ci" selected>utf8mb4_general_ci</option>
+                                <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
+                                <option value="utf8mb4_bin">utf8mb4_bin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost modal-btn" data-action="cancel">Cancel</button>
+                    <button class="btn btn-primary modal-btn" id="modal-db-submit">Create</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('modal-visible'));
+
+        const nameInput = overlay.querySelector('#modal-db-name');
+        nameInput.focus();
+
+        const doCreate = () => {
+            const name = nameInput.value.trim();
+            const charset = overlay.querySelector('#modal-db-charset').value;
+            const collation = overlay.querySelector('#modal-db-collation').value;
+
+            if (!name || !/^[a-zA-Z0-9_\-]+$/.test(name)) {
+                this.setStatus('Invalid database name.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('action', 'create_database');
+            formData.append('name', name);
+            formData.append('charset', charset);
+            formData.append('collation', collation);
+            formData.append('_csrf_token', this.getCsrfToken());
+
+            fetch('ajax.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        this.setStatus('Error: ' + data.error);
+                        return;
+                    }
+                    overlay.remove();
+                    window.location.href = '?db=' + encodeURIComponent(name);
+                });
+        };
+
+        overlay.querySelector('#modal-db-submit').addEventListener('click', doCreate);
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') doCreate();
+        });
+
+        const close = () => {
+            overlay.classList.remove('modal-visible');
+            setTimeout(() => overlay.remove(), 150);
+        };
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay || e.target.dataset?.action === 'cancel' || e.target.closest('[data-action="cancel"]')) close();
+        });
+        document.addEventListener('keydown', function handler(e) {
+            if (e.key === 'Escape') { close(); document.removeEventListener('keydown', handler); }
+        });
+    },
+
+    // ── Sidebar Settings ─────────────────────────────────
+
+    initSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const gearBtn = document.getElementById('sidebar-gear');
+        const panel = document.getElementById('sidebar-settings');
+        if (!sidebar || !gearBtn || !panel) return;
+
+        const setCookie = (name, val) => {
+            document.cookie = name + '=' + val + ';path=/;max-age=' + (365 * 86400) + ';SameSite=Lax';
+        };
+
+        // Chevron toggle — collapse/expand table list without page reload
+        sidebar.querySelectorAll('.db-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const group = btn.closest('.db-group');
+                const tableList = group.querySelector('.table-list');
+                if (!tableList) return;
+
+                const isCollapsed = tableList.style.display === 'none';
+                tableList.style.display = isCollapsed ? '' : 'none';
+
+                // Swap icon
+                const svgDown = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>';
+                const svgRight = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>';
+                btn.innerHTML = isCollapsed ? svgDown : svgRight;
+                btn.classList.toggle('open', isCollapsed);
+                btn.title = isCollapsed ? 'Collapse' : 'Expand';
+            });
+        });
+
+        // Toggle settings panel
+        gearBtn.addEventListener('click', () => {
+            panel.style.display = panel.style.display === 'none' ? '' : 'none';
+        });
+
+        // Spacing buttons
+        const currentSpacing = sidebar.dataset.spacing || 'normal';
+        panel.querySelectorAll('.sidebar-spacing-btn').forEach(btn => {
+            if (btn.dataset.spacing === currentSpacing) btn.classList.add('active');
+            btn.addEventListener('click', () => {
+                panel.querySelectorAll('.sidebar-spacing-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                sidebar.dataset.spacing = btn.dataset.spacing;
+                setCookie('dbforge_sidebar_spacing', btn.dataset.spacing);
+            });
+        });
+
+        // Hide counts checkbox
+        const hideCounts = document.getElementById('sidebar-hide-counts');
+        if (hideCounts) {
+            hideCounts.checked = sidebar.dataset.hideCounts === '1';
+            hideCounts.addEventListener('change', () => {
+                sidebar.dataset.hideCounts = hideCounts.checked ? '1' : '0';
+                setCookie('dbforge_hide_counts', hideCounts.checked ? '1' : '0');
+            });
         }
     },
 

@@ -29,6 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_settings_action'] ?? '') 
         $newConfig['app']['rows_per_page']   = max(10, min(500, (int)($_POST['rows_per_page'] ?? 50)));
         $newConfig['app']['enable_export']   = isset($_POST['enable_export']);
 
+        // ── Fonts ──
+        $fontZones = dbforge_font_zones();
+        if (!isset($newConfig['app']['fonts'])) $newConfig['app']['fonts'] = [];
+        foreach ($fontZones as $zoneKey => $zone) {
+            $newConfig['app']['fonts'][$zoneKey] = trim($_POST['font_' . $zoneKey] ?? '');
+        }
+
         // ── Security ──
         $newConfig['security']['require_auth']      = isset($_POST['require_auth']);
         $newConfig['security']['csrf_enabled']       = isset($_POST['csrf_enabled']);
@@ -319,6 +326,62 @@ $db  = $config['db'] ?? [];
         </div>
     </div>
 
+    <!-- ═══ Fonts ═══ -->
+    <div class="settings-section">
+        <h3 class="section-title"><?= icon('edit', 16) ?> Fonts</h3>
+        <div class="settings-hint" style="margin-bottom:14px;">Customize fonts for different parts of the interface. Select "Theme default" to use the theme's built-in font. Google Fonts are loaded automatically.</div>
+
+        <?php
+        $fontZones = dbforge_font_zones();
+        $fontCatalog = dbforge_font_catalog();
+        $currentFonts = $config['app']['fonts'] ?? [];
+        ?>
+
+        <div class="font-grid">
+            <?php foreach ($fontZones as $zoneKey => $zone): ?>
+            <div class="font-zone">
+                <label class="settings-label" for="font-<?= h($zoneKey) ?>"><?= h($zone['label']) ?></label>
+                <select id="font-<?= h($zoneKey) ?>" name="font_<?= h($zoneKey) ?>" class="settings-input font-select"
+                        data-zone="<?= h($zoneKey) ?>" data-catalog="<?= h($zone['catalog']) ?>">
+                    <?php
+                    $cat = $fontCatalog[$zone['catalog']] ?? [];
+                    $currentVal = $currentFonts[$zoneKey] ?? '';
+                    $hasGroups = true;
+                    $inGoogle = false;
+                    $inSystem = false;
+                    foreach ($cat as $fontName => $fontInfo):
+                        $isGoogle = !empty($fontInfo['google']);
+                        // Group headers
+                        if ($fontName === '' || ($isGoogle && !$inGoogle)):
+                            if ($inSystem) echo '</optgroup>';
+                            if ($fontName === ''):
+                                // default option
+                            elseif ($isGoogle && !$inGoogle):
+                                echo '<optgroup label="Google Fonts">';
+                                $inGoogle = true;
+                            endif;
+                        elseif (!$isGoogle && $inGoogle && !$inSystem):
+                            echo '</optgroup><optgroup label="System Fonts">';
+                            $inSystem = true;
+                        endif;
+                    ?>
+                    <option value="<?= h($fontName) ?>" <?= $currentVal === $fontName ? 'selected' : '' ?>
+                            <?= $fontName ? 'style="font-family: ' . h($fontName) . ';"' : '' ?>>
+                        <?= h($fontInfo['label']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                    <?php if ($inGoogle || $inSystem) echo '</optgroup>'; ?>
+                </select>
+                <div class="settings-hint"><?= h($zone['desc']) ?></div>
+                <div class="font-preview" id="font-preview-<?= h($zoneKey) ?>"
+                     data-catalog="<?= h($zone['catalog']) ?>">
+                    The quick brown fox jumps over the lazy dog — 0123456789
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
     <!-- ═══ Access Control ═══ -->
     <div class="settings-section">
         <h3 class="section-title"><?= icon('filter', 16) ?> Access Control</h3>
@@ -348,3 +411,49 @@ $db  = $config['db'] ?? [];
         <span class="settings-hint">Changes are written to config.php</span>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var loadedFonts = {};
+
+    function loadGoogleFont(fontName, weights) {
+        if (!fontName || loadedFonts[fontName]) return;
+        loadedFonts[fontName] = true;
+        var family = fontName.replace(/ /g, '+') + ':wght@' + (weights || '400;700');
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=' + family + '&display=swap';
+        document.head.appendChild(link);
+    }
+
+    // Font catalog (mirrors PHP)
+    var googleFonts = {
+        'DM Sans':1,'Inter':1,'Nunito Sans':1,'Open Sans':1,'Lato':1,'Roboto':1,
+        'Source Sans 3':1,'Outfit':1,'Sora':1,'Work Sans':1,'Poppins':1,'IBM Plex Sans':1,
+        'JetBrains Mono':1,'Fira Code':1,'Source Code Pro':1,'IBM Plex Mono':1,
+        'Roboto Mono':1,'Inconsolata':1,'Space Mono':1,'Ubuntu Mono':1
+    };
+
+    document.querySelectorAll('.font-select').forEach(function(sel) {
+        var zone = sel.dataset.zone;
+        var catalog = sel.dataset.catalog;
+        var preview = document.getElementById('font-preview-' + zone);
+
+        function update() {
+            var fontName = sel.value;
+            if (!fontName) {
+                preview.style.fontFamily = catalog === 'mono' ? 'var(--font-mono)' : 'var(--font-body)';
+                return;
+            }
+            // Load if Google Font
+            if (googleFonts[fontName]) loadGoogleFont(fontName, '400;600;700');
+
+            var fallback = catalog === 'mono' ? ', monospace' : ', system-ui, sans-serif';
+            preview.style.fontFamily = "'" + fontName + "'" + fallback;
+        }
+
+        sel.addEventListener('change', update);
+        update(); // Initial
+    });
+});
+</script>

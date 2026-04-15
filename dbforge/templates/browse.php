@@ -59,7 +59,54 @@
 <div style="display:flex;gap:8px;margin-bottom:20px;">
     <a href="?tab=server" class="btn btn-ghost btn-sm"><?= icon('settings', 13) ?> Server Details</a>
     <a href="?tab=sql" class="btn btn-ghost btn-sm"><?= icon('terminal', 13) ?> SQL Query</a>
+    <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+    <button type="button" class="btn btn-primary btn-sm" id="home-create-db-btn"><?= icon('plus', 13) ?> Create Database</button>
+    <?php endif; ?>
 </div>
+
+<!-- Create Database Form (hidden) -->
+<?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+<div id="create-db-form" class="create-db-form" style="display:none;">
+    <div class="settings-section">
+        <h3 class="section-title"><?= icon('plus', 16) ?> Create New Database</h3>
+        <div class="settings-grid">
+            <div class="settings-field">
+                <label class="settings-label">Database Name</label>
+                <input type="text" id="create-db-name" class="settings-input" placeholder="my_database"
+                       pattern="[a-zA-Z0-9_\-]+" title="Letters, numbers, underscores, hyphens only">
+            </div>
+            <div class="settings-field">
+                <label class="settings-label">Character Set</label>
+                <select id="create-db-charset" class="settings-input">
+                    <option value="utf8mb4" selected>utf8mb4 (recommended)</option>
+                    <option value="utf8">utf8</option>
+                    <option value="latin1">latin1</option>
+                    <option value="ascii">ascii</option>
+                    <option value="binary">binary</option>
+                </select>
+            </div>
+            <div class="settings-field">
+                <label class="settings-label">Collation</label>
+                <select id="create-db-collation" class="settings-input">
+                    <option value="utf8mb4_general_ci" selected>utf8mb4_general_ci</option>
+                    <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
+                    <option value="utf8mb4_bin">utf8mb4_bin</option>
+                    <option value="utf8_general_ci">utf8_general_ci</option>
+                    <option value="latin1_swedish_ci">latin1_swedish_ci</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+            <button type="button" class="btn btn-primary btn-sm" id="create-db-submit">
+                <?= icon('plus', 13) ?> Create Database
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="create-db-cancel">
+                <?= icon('x', 13) ?> Cancel
+            </button>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Database List -->
 <div class="table-toolbar">
@@ -100,6 +147,9 @@
                         <a href="?db=<?= urlencode($stat['name']) ?>&tab=browse" class="btn btn-ghost btn-sm" title="Browse"><?= icon('table', 13) ?></a>
                         <a href="?db=<?= urlencode($stat['name']) ?>&tab=sql" class="btn btn-ghost btn-sm" title="SQL"><?= icon('terminal', 13) ?></a>
                         <a href="?db=<?= urlencode($stat['name']) ?>&action=export_db" class="btn btn-ghost btn-sm" title="Export"><?= icon('download', 13) ?></a>
+                        <?php if (!(isset($auth) && $auth->isReadOnly()) && !in_array(strtolower($stat['name']), ['mysql','information_schema','performance_schema','sys'])): ?>
+                        <button type="button" class="btn btn-danger btn-sm drop-db-btn" data-db="<?= h($stat['name']) ?>" title="Drop database" style="padding:2px 6px;"><?= icon('trash', 12) ?></button>
+                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
@@ -182,9 +232,301 @@
 <!-- Quick Actions -->
 <div style="display:flex;gap:8px;margin-bottom:20px;">
     <a href="?db=<?= urlencode($currentDb) ?>&tab=sql" class="btn btn-primary btn-sm"><?= icon('terminal', 13) ?> SQL Query</a>
+    <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+    <button type="button" class="btn btn-primary btn-sm" id="create-table-btn"><?= icon('plus', 13) ?> Create Table</button>
+    <?php endif; ?>
     <a href="?db=<?= urlencode($currentDb) ?>&action=export_db" class="btn btn-ghost btn-sm"><?= icon('download', 13) ?> Export Database</a>
     <a href="?tab=server" class="btn btn-ghost btn-sm"><?= icon('settings', 13) ?> Server Info</a>
 </div>
+
+<!-- Create Table Form -->
+<?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+<div id="create-table-form" style="display:none;margin-bottom:20px;">
+    <div class="settings-section">
+        <h3 class="section-title"><?= icon('plus', 16) ?> Create New Table</h3>
+
+        <!-- Table Options -->
+        <div class="settings-grid">
+            <div class="settings-field">
+                <label class="settings-label">Table Name</label>
+                <input type="text" id="ct-name" class="settings-input" placeholder="my_table">
+            </div>
+            <div class="settings-field" style="flex:0.6;">
+                <label class="settings-label">Engine</label>
+                <select id="ct-engine" class="settings-input">
+                    <option value="InnoDB" selected>InnoDB</option>
+                    <option value="MyISAM">MyISAM</option>
+                    <option value="MEMORY">MEMORY</option>
+                    <option value="ARCHIVE">ARCHIVE</option>
+                </select>
+            </div>
+            <div class="settings-field" style="flex:0.8;">
+                <label class="settings-label">Collation</label>
+                <select id="ct-collation" class="settings-input">
+                    <option value="utf8mb4_general_ci" selected>utf8mb4_general_ci</option>
+                    <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
+                    <option value="utf8mb4_bin">utf8mb4_bin</option>
+                    <option value="utf8_general_ci">utf8_general_ci</option>
+                    <option value="latin1_swedish_ci">latin1_swedish_ci</option>
+                </select>
+            </div>
+            <div class="settings-field">
+                <label class="settings-label">Comment</label>
+                <input type="text" id="ct-comment" class="settings-input" placeholder="Optional">
+            </div>
+        </div>
+
+        <!-- Column Definitions -->
+        <div class="ct-columns-header">
+            <span class="settings-label" style="margin:0;">Columns</span>
+            <button type="button" class="btn btn-ghost btn-sm" id="ct-add-col"><?= icon('plus', 12) ?> Add Column</button>
+        </div>
+
+        <div class="table-wrapper" style="margin-top:8px;">
+            <table class="data-table" id="ct-columns-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th style="width:50px;">Null</th>
+                        <th>Default</th>
+                        <th style="width:40px;" title="Primary Key">PK</th>
+                        <th style="width:40px;" title="Auto Increment">AI</th>
+                        <th style="width:40px;" title="Unique">UQ</th>
+                        <th style="width:40px;" title="Index">IDX</th>
+                        <th style="width:36px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="ct-columns-body">
+                    <!-- Rows added by JS -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SQL Preview -->
+        <details class="ct-preview" style="margin-top:14px;">
+            <summary style="cursor:pointer;font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);">
+                <?= icon('code', 12) ?> SQL Preview
+            </summary>
+            <div class="code-block" id="ct-sql-preview" style="margin-top:8px;font-size:var(--font-size-xs);min-height:40px;"></div>
+        </details>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:8px;margin-top:14px;">
+            <button type="button" class="btn btn-primary" id="ct-submit">
+                <?= icon('plus', 14) ?> Create Table
+            </button>
+            <button type="button" class="btn btn-ghost" id="ct-cancel">
+                <?= icon('x', 14) ?> Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MySQL Type Datalist for Create Table -->
+<datalist id="ct-types">
+    <option value="INT"><option value="INT UNSIGNED"><option value="TINYINT"><option value="TINYINT(1)">
+    <option value="SMALLINT"><option value="MEDIUMINT"><option value="BIGINT"><option value="BIGINT UNSIGNED">
+    <option value="FLOAT"><option value="DOUBLE"><option value="DECIMAL(10,2)"><option value="DECIMAL(15,2)">
+    <option value="VARCHAR(50)"><option value="VARCHAR(100)"><option value="VARCHAR(150)"><option value="VARCHAR(255)">
+    <option value="CHAR(1)"><option value="CHAR(36)">
+    <option value="TEXT"><option value="TINYTEXT"><option value="MEDIUMTEXT"><option value="LONGTEXT">
+    <option value="BLOB"><option value="MEDIUMBLOB"><option value="LONGBLOB">
+    <option value="DATE"><option value="DATETIME"><option value="TIMESTAMP"><option value="TIME"><option value="YEAR">
+    <option value="BOOLEAN"><option value="ENUM('')"><option value="SET('')"><option value="JSON">
+    <option value="BINARY(16)"><option value="VARBINARY(255)">
+</datalist>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('create-table-form');
+    var btn = document.getElementById('create-table-btn');
+    if (!form || !btn) return;
+
+    var db = '<?= addslashes($currentDb) ?>';
+    var csrf = DBForge.getCsrfToken();
+    var colIndex = 0;
+
+    // Toggle form
+    btn.addEventListener('click', function() {
+        form.style.display = '';
+        btn.style.display = 'none';
+        if (!document.querySelectorAll('#ct-columns-body tr').length) {
+            addColumnRow(true); // First column: id, INT, PK, AI
+            addColumnRow();
+        }
+        document.getElementById('ct-name').focus();
+    });
+    document.getElementById('ct-cancel').addEventListener('click', function() {
+        form.style.display = 'none';
+        btn.style.display = '';
+    });
+
+    // Add column
+    document.getElementById('ct-add-col').addEventListener('click', function() { addColumnRow(); });
+
+    function addColumnRow(isFirst) {
+        var idx = colIndex++;
+        var tr = document.createElement('tr');
+        tr.dataset.idx = idx;
+        tr.innerHTML =
+            '<td><input type="text" class="ct-input ct-col-name" data-idx="'+idx+'" placeholder="column_name" value="'+(isFirst?'id':'')+'"></td>' +
+            '<td><input type="text" class="ct-input ct-col-type" data-idx="'+idx+'" list="ct-types" placeholder="VARCHAR(255)" value="'+(isFirst?'INT UNSIGNED':'')+'"></td>' +
+            '<td style="text-align:center;"><input type="checkbox" class="ct-col-null" data-idx="'+idx+'"'+(isFirst?'':' checked')+'></td>' +
+            '<td><input type="text" class="ct-input ct-col-default" data-idx="'+idx+'" placeholder="NULL" style="font-size:11px;"></td>' +
+            '<td style="text-align:center;"><input type="checkbox" class="ct-col-pk" data-idx="'+idx+'"'+(isFirst?' checked':'')+'></td>' +
+            '<td style="text-align:center;"><input type="checkbox" class="ct-col-ai" data-idx="'+idx+'"'+(isFirst?' checked':'')+'></td>' +
+            '<td style="text-align:center;"><input type="checkbox" class="ct-col-uq" data-idx="'+idx+'"></td>' +
+            '<td style="text-align:center;"><input type="checkbox" class="ct-col-idx" data-idx="'+idx+'"></td>' +
+            '<td style="text-align:center;"><button type="button" class="btn btn-danger btn-sm ct-remove-col" style="padding:1px 5px;">×</button></td>';
+        document.getElementById('ct-columns-body').appendChild(tr);
+
+        tr.querySelector('.ct-remove-col').addEventListener('click', function() {
+            tr.remove();
+            updatePreview();
+        });
+
+        // Auto-uncheck null when PK is checked
+        tr.querySelector('.ct-col-pk').addEventListener('change', function() {
+            if (this.checked) tr.querySelector('.ct-col-null').checked = false;
+            updatePreview();
+        });
+        // Auto-check PK when AI is checked
+        tr.querySelector('.ct-col-ai').addEventListener('change', function() {
+            if (this.checked) {
+                tr.querySelector('.ct-col-pk').checked = true;
+                tr.querySelector('.ct-col-null').checked = false;
+            }
+            updatePreview();
+        });
+
+        // Update preview on any change
+        tr.querySelectorAll('input').forEach(function(inp) {
+            inp.addEventListener('input', updatePreview);
+            inp.addEventListener('change', updatePreview);
+        });
+
+        updatePreview();
+    }
+
+    // Build SQL preview
+    function buildSql() {
+        var name = document.getElementById('ct-name').value.trim();
+        var engine = document.getElementById('ct-engine').value;
+        var collation = document.getElementById('ct-collation').value;
+        var comment = document.getElementById('ct-comment').value.trim();
+
+        if (!name) return '-- Enter a table name';
+
+        var rows = document.querySelectorAll('#ct-columns-body tr');
+        if (!rows.length) return '-- Add at least one column';
+
+        var cols = [];
+        var pks = [];
+        var uqs = [];
+        var idxs = [];
+
+        rows.forEach(function(row) {
+            var cName = row.querySelector('.ct-col-name').value.trim();
+            var cType = row.querySelector('.ct-col-type').value.trim();
+            if (!cName || !cType) return;
+
+            var nullable = row.querySelector('.ct-col-null').checked;
+            var def = row.querySelector('.ct-col-default').value.trim();
+            var pk = row.querySelector('.ct-col-pk').checked;
+            var ai = row.querySelector('.ct-col-ai').checked;
+            var uq = row.querySelector('.ct-col-uq').checked;
+            var idx = row.querySelector('.ct-col-idx').checked;
+
+            var line = '  `' + cName + '` ' + cType;
+            line += nullable ? ' NULL' : ' NOT NULL';
+            if (ai) line += ' AUTO_INCREMENT';
+            else if (def && def.toUpperCase() !== 'NULL') {
+                if (def.toUpperCase() === 'CURRENT_TIMESTAMP') line += ' DEFAULT CURRENT_TIMESTAMP';
+                else line += " DEFAULT '" + def.replace(/'/g, "\\'") + "'";
+            } else if (nullable && !def) {
+                line += ' DEFAULT NULL';
+            }
+            cols.push(line);
+
+            if (pk) pks.push('`' + cName + '`');
+            if (uq) uqs.push(cName);
+            if (idx) idxs.push(cName);
+        });
+
+        if (!cols.length) return '-- Define at least one column';
+
+        if (pks.length) cols.push('  PRIMARY KEY (' + pks.join(', ') + ')');
+        uqs.forEach(function(c) { cols.push('  UNIQUE KEY `uq_' + c + '` (`' + c + '`)'); });
+        idxs.forEach(function(c) { cols.push('  KEY `idx_' + c + '` (`' + c + '`)'); });
+
+        var sql = 'CREATE TABLE `' + name + '` (\n' + cols.join(',\n') + '\n)';
+        sql += ' ENGINE=' + engine;
+        sql += ' DEFAULT CHARSET=' + collation.split('_')[0];
+        sql += ' COLLATE=' + collation;
+        if (comment) sql += " COMMENT='" + comment.replace(/'/g, "\\'") + "'";
+        sql += ';';
+        return sql;
+    }
+
+    function updatePreview() {
+        var el = document.getElementById('ct-sql-preview');
+        var sql = buildSql();
+        // Use tokenizer if available
+        if (typeof DBForge !== 'undefined' && DBForge.tokenize) {
+            var tokens = DBForge.tokenize(sql);
+            tokens = DBForge.resolveTableNames(tokens);
+            el.innerHTML = '<code>' + DBForge.renderTokens(tokens) + '</code>';
+        } else {
+            el.textContent = sql;
+        }
+    }
+
+    // Watch table options for preview updates
+    ['ct-name','ct-engine','ct-collation','ct-comment'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.addEventListener('input', updatePreview); el.addEventListener('change', updatePreview); }
+    });
+
+    // Submit
+    document.getElementById('ct-submit').addEventListener('click', function() {
+        var sql = buildSql();
+        if (sql.startsWith('--')) {
+            DBForge.setStatus(sql.replace('-- ', ''));
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('action', 'execute_sql');
+        formData.append('db', db);
+        formData.append('sql', sql);
+        formData.append('_csrf_token', csrf);
+
+        fetch('ajax.php', { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.error) {
+                    DBForge.setStatus('Error: ' + data.error);
+                    return;
+                }
+                var tblName = document.getElementById('ct-name').value.trim();
+                DBForge.setStatus('Table "' + tblName + '" created.');
+                window.location.href = '?db=' + encodeURIComponent(db) + '&table=' + encodeURIComponent(tblName) + '&tab=structure';
+            })
+            .catch(function(err) { DBForge.setStatus('Network error: ' + err.message); });
+    });
+
+    // Enter on table name focuses first column name
+    document.getElementById('ct-name').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            var first = document.querySelector('#ct-columns-body .ct-col-name');
+            if (first) first.focus();
+        }
+    });
+});
+</script>
+<?php endif; ?>
 
 <!-- Table List -->
 <div class="table-toolbar">
@@ -283,6 +625,11 @@ foreach ($columns as $col) {
         <span>Page <?= $page ?>/<?= max(1, $totalPages) ?></span>
     </div>
     <div class="toolbar-actions">
+        <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+        <button type="button" class="btn btn-primary btn-sm" id="insert-row-btn">
+            <?= icon('plus', 13) ?> Insert Row
+        </button>
+        <?php endif; ?>
         <button type="button" class="btn btn-ghost btn-sm" id="toggle-col-types" onclick="DBForge.toggleColTypes()" title="Toggle column types">
             <?= icon('eye', 13) ?> Types
         </button>
@@ -297,6 +644,237 @@ foreach ($columns as $col) {
     if ($col['Key'] === 'PRI') { $pkCol = $col['Field']; break; }
 }
 ?>
+
+<!-- Insert Row Form (hidden by default) -->
+<?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+<div id="insert-row-form" style="display:none;" class="insert-row-form">
+    <div class="insert-row-card">
+        <div class="insert-row-header">
+            <?= icon('plus', 16) ?>
+            <span>Insert Row into <strong><?= h($currentTable) ?></strong></span>
+            <button type="button" class="btn btn-ghost btn-sm" id="insert-row-cancel" style="margin-left:auto;"><?= icon('x', 12) ?> Close</button>
+        </div>
+        <div class="insert-row-body">
+            <?php foreach ($columns as $col):
+                $field = $col['Field'];
+                $type = strtolower($col['Type']);
+                $isAI = stripos($col['Extra'], 'auto_increment') !== false;
+                $isNullable = $col['Null'] === 'YES';
+                $hasDefault = $col['Default'] !== null;
+                $defaultVal = $col['Default'] ?? '';
+                $isPK = $col['Key'] === 'PRI';
+
+                // Determine input type
+                $inputType = 'text';
+                $isTextarea = false;
+                $placeholder = $type;
+                if (preg_match('/^(text|mediumtext|longtext|tinytext|blob|mediumblob|longblob|json)/', $type)) {
+                    $isTextarea = true;
+                } elseif (preg_match('/^(int|smallint|mediumint|bigint|tinyint)/', $type)) {
+                    $inputType = 'number';
+                    $placeholder = $isAI ? 'AUTO' : '0';
+                } elseif (preg_match('/^(float|double|decimal|numeric)/', $type)) {
+                    $inputType = 'number';
+                    $placeholder = '0.00';
+                } elseif (preg_match('/^date$/', $type)) {
+                    $inputType = 'date';
+                    $placeholder = 'YYYY-MM-DD';
+                } elseif (preg_match('/^datetime|^timestamp/', $type)) {
+                    $inputType = 'datetime-local';
+                    $placeholder = 'YYYY-MM-DD HH:MM:SS';
+                } elseif (preg_match('/^time$/', $type)) {
+                    $inputType = 'time';
+                    $placeholder = 'HH:MM:SS';
+                } elseif (preg_match('/^year/', $type)) {
+                    $inputType = 'number';
+                    $placeholder = date('Y');
+                } elseif (preg_match('/^enum\((.+)\)/', $type, $enumMatch)) {
+                    $inputType = 'enum';
+                }
+            ?>
+            <div class="insert-field" data-col="<?= h($field) ?>">
+                <div class="insert-field-label">
+                    <span class="insert-field-name"><?= h($field) ?></span>
+                    <span class="insert-field-type"><?= h($col['Type']) ?></span>
+                    <?php if ($isPK): ?><span class="key-badge key-badge-pk" style="font-size:9px;padding:0 4px;"><?= icon('key', 9) ?> PK</span><?php endif; ?>
+                    <?php if ($isAI): ?><span class="insert-field-ai"><?= icon('zap', 10) ?> AI</span><?php endif; ?>
+                </div>
+                <div class="insert-field-input">
+                    <?php if ($inputType === 'enum'):
+                        // Parse enum values
+                        preg_match_all("/'([^']+)'/", $col['Type'], $enumVals);
+                    ?>
+                    <select class="insert-input" data-col="<?= h($field) ?>" <?= $isAI ? 'disabled' : '' ?>>
+                        <?php if ($isNullable): ?><option value="__NULL__">NULL</option><?php endif; ?>
+                        <?php foreach ($enumVals[1] ?? [] as $ev): ?>
+                        <option value="<?= h($ev) ?>" <?= $defaultVal === $ev ? 'selected' : '' ?>><?= h($ev) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php elseif ($isTextarea): ?>
+                    <textarea class="insert-input insert-input-large" data-col="<?= h($field) ?>"
+                              placeholder="<?= h($placeholder) ?>" <?= $isAI ? 'disabled' : '' ?>><?= $hasDefault ? h($defaultVal) : '' ?></textarea>
+                    <?php else: ?>
+                    <input type="<?= $inputType ?>" class="insert-input" data-col="<?= h($field) ?>"
+                           placeholder="<?= h($placeholder) ?>"
+                           value="<?= $hasDefault && !$isAI ? h($defaultVal) : '' ?>"
+                           <?= $isAI ? 'disabled' : '' ?>
+                           <?= $inputType === 'number' ? 'step="any"' : '' ?>>
+                    <?php endif; ?>
+
+                    <div class="insert-field-options">
+                        <?php if ($isAI): ?>
+                        <label class="insert-field-check" title="Auto-generated. Check to set manually.">
+                            <input type="checkbox" class="insert-ai-override" data-col="<?= h($field) ?>">
+                            <span>Manual</span>
+                        </label>
+                        <?php endif; ?>
+                        <?php if ($isNullable && $inputType !== 'enum'): ?>
+                        <label class="insert-field-check">
+                            <input type="checkbox" class="insert-null-check" data-col="<?= h($field) ?>" <?= (!$hasDefault && !$isAI) ? 'checked' : '' ?>>
+                            <span>NULL</span>
+                        </label>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <div class="insert-row-footer">
+            <button type="button" class="btn btn-primary" id="insert-row-submit">
+                <?= icon('plus', 14) ?> Insert Row
+            </button>
+            <label class="insert-field-check">
+                <input type="checkbox" id="insert-another" checked>
+                <span>Insert another after</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var formEl = document.getElementById('insert-row-form');
+    var btn = document.getElementById('insert-row-btn');
+    if (!formEl || !btn) return;
+
+    var db = '<?= addslashes($currentDb) ?>';
+    var table = '<?= addslashes($currentTable) ?>';
+    var csrf = DBForge.getCsrfToken();
+
+    // Toggle
+    btn.addEventListener('click', function() {
+        formEl.style.display = '';
+        btn.style.display = 'none';
+        var firstInput = formEl.querySelector('.insert-input:not([disabled])');
+        if (firstInput) firstInput.focus();
+    });
+    document.getElementById('insert-row-cancel').addEventListener('click', function() {
+        formEl.style.display = 'none';
+        btn.style.display = '';
+    });
+
+    // AI override toggles
+    formEl.querySelectorAll('.insert-ai-override').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var col = cb.dataset.col;
+            var input = formEl.querySelector('.insert-input[data-col="' + col + '"]');
+            if (input) {
+                input.disabled = !cb.checked;
+                if (!cb.checked) input.value = '';
+            }
+        });
+    });
+
+    // NULL checkbox toggles
+    formEl.querySelectorAll('.insert-null-check').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            var col = cb.dataset.col;
+            var input = formEl.querySelector('.insert-input[data-col="' + col + '"]');
+            if (input) {
+                input.disabled = cb.checked;
+                if (cb.checked) { if (input.tagName === 'TEXTAREA') input.value = ''; else input.value = ''; }
+                else input.focus();
+            }
+        });
+        // Apply initial state
+        if (cb.checked) {
+            var col = cb.dataset.col;
+            var input = formEl.querySelector('.insert-input[data-col="' + col + '"]');
+            if (input) input.disabled = true;
+        }
+    });
+
+    // Submit
+    document.getElementById('insert-row-submit').addEventListener('click', function() {
+        var data = {};
+        var fields = formEl.querySelectorAll('.insert-field');
+
+        fields.forEach(function(f) {
+            var col = f.dataset.col;
+            var input = f.querySelector('.insert-input');
+            var nullCb = f.querySelector('.insert-null-check');
+            var aiCb = f.querySelector('.insert-ai-override');
+            var isAI = !!aiCb;
+
+            // Skip AI columns unless manually set
+            if (isAI && !aiCb.checked) return;
+            // NULL
+            if (nullCb && nullCb.checked) { data[col] = null; return; }
+            // Disabled (shouldn't happen outside AI)
+            if (input.disabled) return;
+
+            var val = input.value;
+            // Enum NULL option
+            if (input.tagName === 'SELECT' && val === '__NULL__') { data[col] = null; return; }
+
+            data[col] = val;
+        });
+
+        var formData = new FormData();
+        formData.append('action', 'insert_row');
+        formData.append('db', db);
+        formData.append('table', table);
+        formData.append('data', JSON.stringify(data));
+        formData.append('_csrf_token', csrf);
+
+        fetch('ajax.php', { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.error) {
+                    DBForge.setStatus('Insert error: ' + result.error);
+                    return;
+                }
+                DBForge.setStatus('Row inserted' + (result.insert_id ? ' (ID: ' + result.insert_id + ')' : '') + '.');
+
+                if (document.getElementById('insert-another').checked) {
+                    // Clear non-default, non-AI fields
+                    fields.forEach(function(f) {
+                        var input = f.querySelector('.insert-input');
+                        var aiCb = f.querySelector('.insert-ai-override');
+                        if (aiCb || input.disabled) return;
+                        if (input.tagName === 'SELECT') return;
+                        if (input.dataset.hasDefault) return;
+                        input.value = '';
+                    });
+                    var firstInput = formEl.querySelector('.insert-input:not([disabled])');
+                    if (firstInput) firstInput.focus();
+                } else {
+                    window.location.reload();
+                }
+            })
+            .catch(function(err) { DBForge.setStatus('Network error: ' + err.message); });
+    });
+
+    // Enter key submits (except in textarea)
+    formEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            document.getElementById('insert-row-submit').click();
+        }
+    });
+});
+</script>
+<?php endif; ?>
 
 <!-- Bulk Actions Bar (hidden until rows selected) -->
 <?php if ($pkCol && !empty($rows)): ?>

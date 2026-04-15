@@ -126,12 +126,7 @@
     <div class="login-card">
         <div class="login-header">
             <div class="login-logo">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent);">
-                    <rect x="3" y="1" width="18" height="22" rx="2"/>
-                    <ellipse cx="12" cy="7" rx="6" ry="3"/>
-                    <path d="M6 7v5c0 1.66 2.69 3 6 3s6-1.34 6-3V7"/>
-                    <path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/>
-                </svg>
+                <?= dbforge_logo(30, 'var(--accent)') ?>
                 <span class="login-logo-text"><?= h($appName) ?></span>
             </div>
             <div class="login-subtitle">Sign in to manage your databases</div>

@@ -122,10 +122,15 @@ try {
 }
 
 // ── Routing ────────────────────────────────────────────
-$currentDb    = input('db');
-$currentTable = input('table');
+$currentDb    = input('db') ?: null;
+$currentTable = input('table') ?: null;
 $activeTab    = input('tab', 'browse');
 $action       = input('action');
+
+// Reset tabs that require context
+if (!$currentTable && in_array($activeTab, ['structure', 'info'])) {
+    $activeTab = 'browse';
+}
 
 // Block access to hidden databases
 if ($currentDb && $auth->isDatabaseHidden($currentDb)) {
@@ -232,8 +237,10 @@ if ($activeTab === 'settings') {
     $contentTemplate = __DIR__ . '/templates/structure.php';
 } elseif ($activeTab === 'info' && $currentTable) {
     $contentTemplate = __DIR__ . '/templates/info.php';
-} elseif ($activeTab === 'export' && ($currentTable || $currentDb)) {
+} elseif ($activeTab === 'export') {
     $contentTemplate = __DIR__ . '/templates/export.php';
+} elseif ($activeTab === 'import') {
+    $contentTemplate = __DIR__ . '/templates/import.php';
 } else {
     $contentTemplate = __DIR__ . '/templates/browse.php';
 }

@@ -392,8 +392,223 @@ class Database
         return true;
     }
 
+    /**
+     * Create a new database
+     */
+    public function createDatabase(string $name, string $charset = 'utf8mb4', string $collation = 'utf8mb4_general_ci'): bool
+    {
+        $pdo = $this->connect();
+        $sql = 'CREATE DATABASE `' . $this->escapeIdentifier($name) . '`'
+            . ' CHARACTER SET ' . preg_replace('/[^a-zA-Z0-9_]/', '', $charset)
+            . ' COLLATE ' . preg_replace('/[^a-zA-Z0-9_]/', '', $collation);
+        $pdo->exec($sql);
+        return true;
+    }
+
+    /**
+     * Drop a database
+     */
+    public function dropDatabase(string $name): bool
+    {
+        $pdo = $this->connect();
+        $pdo->exec('DROP DATABASE `' . $this->escapeIdentifier($name) . '`');
+        return true;
+    }
+
     private function escapeIdentifier(string $identifier): string
     {
         return str_replace('`', '``', $identifier);
     }
+
+    /**
+     * Execute a SQL dump — splits by statement delimiter and runs each one.
+     * Returns array of results per statement.
+     */
+    public function executeSqlDump(?string $database, string $sql): array
+    {
+        $pdo = $this->connect($database);
+        $results = [];
+        $statements = $this->splitSqlStatements($sql);
+
+        foreach ($statements as $i => $stmt) {
+            $stmt = trim($stmt);
+            if (empty($stmt)) continue;
+
+            $start = microtime(true);
+            try {
+                $affected = $pdo->exec($stmt);
+                $elapsed = microtime(true) - $start;
+                $results[] = [
+                    'success' => true,
+                    'sql'     => mb_substr($stmt, 0, 120) . (mb_strlen($stmt) > 120 ? '…' : ''),
+                    'rows'    => $affected !== false ? $affected : 0,
+                    'time'    => $elapsed,
+                ];
+            } catch (\PDOException $e) {
+                $elapsed = microtime(true) - $start;
+                $results[] = [
+                    'success' => false,
+                    'sql'     => mb_substr($stmt, 0, 120) . (mb_strlen($stmt) > 120 ? '…' : ''),
+                    'error'   => $e->getMessage(),
+                    'time'    => $elapsed,
+                ];
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Split SQL dump into individual statements, respecting strings and delimiters.
+     */
+    private function splitSqlStatements(string $sql): array
+    {
+        $statements = [];
+        $current = '';
+        $len = strlen($sql);
+        $i = 0;
+        $inSingleQuote = false;
+        $inDoubleQuote = false;
+
+        while ($i < $len) {
+            $ch = $sql[$i];
+
+            // Skip escaped characters inside strings
+            if ($ch === '\\' && ($inSingleQuote || $inDoubleQuote)) {
+                $current .= $ch . ($sql[$i + 1] ?? '');
+                $i += 2;
+                continue;
+            }
+
+            // Track string state
+            if ($ch === "'" && !$inDoubleQuote) {
+                $inSingleQuote = !$inSingleQuote;
+            } elseif ($ch === '"' && !$inSingleQuote) {
+                $inDoubleQuote = !$inDoubleQuote;
+            }
+
+            // Statement delimiter (only outside strings)
+            if ($ch === ';' && !$inSingleQuote && !$inDoubleQuote) {
+                $trimmed = trim($current);
+                if (!empty($trimmed)) {
+                    $statements[] = $trimmed;
+                }
+                $current = '';
+                $i++;
+                continue;
+            }
+
+            // Skip single-line comments
+            if (!$inSingleQuote && !$inDoubleQuote && $ch === '-' && ($sql[$i + 1] ?? '') === '-') {
+                $eol = strpos($sql, "\n", $i);
+                $i = $eol === false ? $len : $eol + 1;
+                continue;
+            }
+
+            // Skip block comments
+            if (!$inSingleQuote && !$inDoubleQuote && $ch === '/' && ($sql[$i + 1] ?? '') === '*') {
+                $end = strpos($sql, '*/', $i + 2);
+                $i = $end === false ? $len : $end + 2;
+                continue;
+            }
+
+            $current .= $ch;
+            $i++;
+        }
+
+        $trimmed = trim($current);
+        if (!empty($trimmed)) {
+            $statements[] = $trimmed;
+        }
+
+        return $statements;
+    }
+
+    /**
+     * Import CSV data into a table.
+     * Returns [inserted, skipped, errors].
+     */
+    public function importCsv(string $database, string $table, string $csvContent, array $options = []): array
+    {
+        $delimiter  = $options['delimiter'] ?? ',';
+        $enclosure  = $options['enclosure'] ?? '"';
+        $hasHeader  = $options['has_header'] ?? true;
+        $skipErrors = $options['skip_errors'] ?? true;
+
+        $pdo = $this->connect($database);
+        $lines = str_getcsv_rows($csvContent, $delimiter, $enclosure);
+
+        if (empty($lines)) {
+            return ['inserted' => 0, 'skipped' => 0, 'errors' => ['File is empty or unreadable.']];
+        }
+
+        // Get column names
+        $columns = [];
+        $startRow = 0;
+        if ($hasHeader) {
+            $columns = $lines[0];
+            $startRow = 1;
+        } else {
+            // Use table column names
+            $tableCols = $this->getColumns($database, $table);
+            $columns = array_map(fn($c) => $c['Field'], $tableCols);
+            // Limit to number of CSV columns
+            $columns = array_slice($columns, 0, count($lines[0] ?? []));
+        }
+
+        if (empty($columns)) {
+            return ['inserted' => 0, 'skipped' => 0, 'errors' => ['No columns detected.']];
+        }
+
+        // Build prepared statement
+        $escapedCols = array_map(fn($c) => '`' . $this->escapeIdentifier(trim($c)) . '`', $columns);
+        $placeholders = implode(',', array_fill(0, count($columns), '?'));
+        $sql = "INSERT INTO `{$this->escapeIdentifier($table)}` (" . implode(',', $escapedCols) . ") VALUES ({$placeholders})";
+        $stmt = $pdo->prepare($sql);
+
+        $inserted = 0;
+        $skipped = 0;
+        $errors = [];
+
+        for ($i = $startRow; $i < count($lines); $i++) {
+            $row = $lines[$i];
+            if (empty($row) || (count($row) === 1 && trim($row[0]) === '')) continue;
+
+            // Pad or trim to match column count
+            while (count($row) < count($columns)) $row[] = null;
+            $row = array_slice($row, 0, count($columns));
+
+            // Convert empty strings to null for nullable columns
+            $row = array_map(fn($v) => ($v === '' || $v === 'NULL') ? null : $v, $row);
+
+            try {
+                $stmt->execute($row);
+                $inserted++;
+            } catch (\PDOException $e) {
+                $skipped++;
+                if (count($errors) < 20) {
+                    $errors[] = "Row " . ($i + 1) . ": " . $e->getMessage();
+                }
+                if (!$skipErrors) break;
+            }
+        }
+
+        return ['inserted' => $inserted, 'skipped' => $skipped, 'errors' => $errors];
+    }
+}
+
+/**
+ * Parse CSV content into rows (handles multiline fields properly).
+ */
+function str_getcsv_rows(string $content, string $delimiter = ',', string $enclosure = '"'): array
+{
+    $rows = [];
+    $stream = fopen('php://temp', 'r+');
+    fwrite($stream, $content);
+    rewind($stream);
+    while (($row = fgetcsv($stream, 0, $delimiter, $enclosure)) !== false) {
+        $rows[] = $row;
+    }
+    fclose($stream);
+    return $rows;
 }

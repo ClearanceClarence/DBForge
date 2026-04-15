@@ -1,334 +1,290 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.x-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP">
-  <img src="https://img.shields.io/badge/MySQL-5.7+-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL">
-  <img src="https://img.shields.io/badge/MariaDB-10.3+-003545?style=flat-square&logo=mariadb&logoColor=white" alt="MariaDB">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
-  <img src="https://img.shields.io/badge/Version-1.2.0-blue?style=flat-square" alt="Version">
+  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/main/assets/logo.svg" alt="DBForge" width="80">
 </p>
 
 <h1 align="center">DBForge</h1>
 
 <p align="center">
-  <strong>A lightweight, production-ready database management tool.</strong>
-  <br>
-  Modern alternative to phpMyAdmin — zero dependencies, drop-in install, 10 themes, full auth system.
+  <strong>The database tool phpMyAdmin should have been.</strong>
 </p>
 
 <p align="center">
-  <a href="#-installation">Installation</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-themes">Themes</a> •
-  <a href="#-sql-editor">SQL Editor</a> •
-  <a href="#-security">Security</a> •
-  <a href="#-custom-themes">Custom Themes</a> •
+  <img src="https://img.shields.io/badge/Version-1.3.0-4ade80?style=flat-square" alt="Version 1.3.0">
+  <img src="https://img.shields.io/badge/PHP-7.4+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/MySQL-5.7+-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/MariaDB-10.3+-003545?style=flat-square&logo=mariadb&logoColor=white" alt="MariaDB">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="MIT License">
+  <img src="https://img.shields.io/badge/Dependencies-Zero-orange?style=flat-square" alt="Zero Dependencies">
+</p>
+
+<p align="center">
+  <em>Drop a folder into your web server. Run the installer. Manage your databases.<br>No Composer. No npm. No build step. No framework. Just PHP.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <a href="#-why-dbforge">Why DBForge?</a> · 
+  <a href="#-get-started-in-60-seconds">Get Started</a> · 
+  <a href="#-features">Features</a> · 
+  <a href="#-security">Security</a> · 
+  <a href="#-theming">Theming</a> · 
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 ---
 
-## ⚡ Installation
+## 💡 Why DBForge?
 
-**No Composer. No npm. No build step.** Drop and go.
+phpMyAdmin is everywhere, but it hasn't evolved. The UI is cluttered, the SQL editor is barebones, and deploying it securely is a chore. We've all used it because there was nothing better that was just as easy to install.
+
+**DBForge changes that.**
+
+| | phpMyAdmin | DBForge |
+|:-|:-----------|:--------|
+| **Install** | Config files, blowfish secret, download + extract | Drop folder, open browser, 3-step wizard |
+| **SQL Editor** | Syntax coloring only | Real-time highlighting, autocomplete, alias tracking |
+| **Edit Data** | Full page reloads | Click any cell → edit inline → AJAX save |
+| **Auth** | HTTP Basic or cookie | Bcrypt passwords, brute force protection, IP whitelist, CSRF |
+| **Themes** | 3 color options | 10 polished themes, custom theme API, per-zone font control |
+| **Bulk Operations** | One row at a time | Checkbox select → bulk delete with `WHERE IN` |
+| **Table Management** | Forms scattered across pages | Visual Create Table, structure editor, FK visualization — all inline |
+| **Import** | Works, but ugly | Drag-and-drop SQL/CSV with live results, target mode selector |
+| **Dependencies** | Requires Composer on newer versions | Zero. Pure PHP + vanilla JS |
+
+---
+
+## 🚀 Get Started in 60 Seconds
 
 ```bash
-git clone https://github.com/ClearanceClarence/DBForge.git /path/to/htdocs/dbforge
+git clone https://github.com/ClearanceClarence/DBForge.git
 ```
 
-1. Make sure **Apache** and **MySQL/MariaDB** are running
-2. Open `http://localhost/dbforge/`
-3. The **setup wizard** runs automatically on first visit:
-   - **Step 1** — Database connection (tests the connection before proceeding)
-   - **Step 2** — Admin account (username + password, bcrypt hashed, no defaults)
-   - **Step 3** — Done. `config.php` is generated, you're redirected to login
+Copy the `dbforge/` folder to your web root and open it in a browser.
 
-No default credentials. No config file to edit manually. The installer handles everything.
+**Step 1** — Enter your database credentials (auto-tests the connection)  
+**Step 2** — Create an admin account (bcrypt-hashed, no defaults)  
+**Step 3** — You're in  
+
+Works with **XAMPP**, **WAMP**, **MAMP**, **Laragon**, or any Apache + PHP + MySQL stack.
 
 ---
 
 ## ✨ Features
 
-### 📊 Browse & Edit Data
+### SQL Editor — Not a Textarea
 
-- Paginated data grid with **search**, **sort by any column**, and type-aware cell styling
-- **Inline editing** — click any cell to edit, Enter to save, Tab to next cell, Escape to cancel
-- NULL value support with a dedicated checkbox in the edit popover
-- AJAX saves — no page reload, green flash on success, red on error
-- **Bulk selection** — checkbox column with select-all (indeterminate state), bulk action bar shows count, "Delete Selected" sends a single `DELETE ... WHERE IN` query
-- **Column type toggle** — hide/show column types under headers, persisted to cookie
-- **Row delete** with themed confirmation modals (no native browser dialogs)
+A real code editor built from scratch. Custom tokenizer with 12 token types. Context-aware autocomplete that knows your tables, columns, and aliases. Two-pass analysis tracks `FROM`/`JOIN` aliases throughout the query and highlights them everywhere they appear.
 
-### 🏗️ Table Structure
+| Token | Styled As | Example |
+|:------|:----------|:--------|
+| `keyword` | Bold | `SELECT`, `FROM`, `WHERE`, `JOIN` |
+| `function` | Colored | `COUNT()`, `COALESCE()`, `NOW()` |
+| `type` | Italic | `INT`, `VARCHAR`, `JSON` |
+| `table` | Underlined | `users`, `u` (auto-detected aliases) |
+| `string` | Green | `'hello world'` |
+| `number` | Cyan | `42`, `3.14`, `0xFF` |
+| `comment` | Dimmed | `-- note`, `/* block */` |
 
-- **Editable columns** — click pencil to edit name, type, nullable, default, extra, and comment inline. Save runs `ALTER TABLE ... CHANGE`
-- **Searchable type dropdown** — native datalist with 35+ common MySQL types (INT, VARCHAR(255), DECIMAL(10,2), JSON, ENUM, etc.) — type to filter or pick from suggestions
-- **Add/drop columns** — add with name, type, null, default, comment, and position (FIRST / AFTER x / end). Drop with confirmation modal
-- **AUTO_INCREMENT** — shows current next-ID value with Set (any value) and Reset (MAX+1) buttons
-- **Primary key indicators** — gold left border + key icon on PK rows
-- **Foreign key visualization** — blue left border + link icon on FK rows, clickable badges linking to referenced table
-- **Foreign Keys table** — constraint name, local column → referenced table.column, ON DELETE/ON UPDATE with color-coded badges (CASCADE=red, RESTRICT=gray, SET NULL=amber)
-- **Referenced By table** — reverse FK lookup showing which tables reference this one
-- **Syntax-highlighted CREATE statement** — tokenized with the same engine as the SQL editor
-- Index viewer with key names, cardinality, type, and uniqueness
+Autocomplete is context-aware: tables after `FROM`, scoped columns after `WHERE`, dot-notation resolution for `u.email` when there's a `FROM users u`. Keyboard: `↑↓` to navigate, `Tab` to accept, `Ctrl+Enter` to execute.
 
-### 🖥️ SQL Editor
+### Browse & Edit — No Page Reloads
 
-- **Real-time syntax highlighting** with a custom tokenizer (12 token types)
-- **Context-aware autocomplete** — tables after `FROM`, scoped columns after `WHERE`, dot-notation alias resolution
-- **Table/alias recognition** — two-pass analysis tracks `FROM`/`JOIN` aliases throughout the query
-- Line numbers, auto-closing brackets/quotes, Tab indent/Shift+Tab dedent
-- Keyboard shortcuts: `Ctrl+Enter` execute, `Ctrl+Shift+S` focus editor
-- Query results render inline with the same data grid
-- Quick query links auto-execute via `&run=1` (URL cleaned after load)
+Click any cell to edit. Enter saves via AJAX. Tab moves to the next cell. NULL checkbox. Green flash on success, red on error. The page never reloads.
 
-### 📋 Server & Database Overview
+Large text? The editor auto-detects content over 60 characters and switches from `<input>` to a resizable `<textarea>`. `Ctrl+Enter` saves in textarea mode.
 
-- **Home page dashboard** — phpMyAdmin-style server overview with all databases in a table (table count, rows, data/index/total size, collation, per-row actions)
-- **Database overview** — when a DB is selected but no table, shows all tables with stats and quick actions
-- **Server page** — grouped sections: MySQL Server (version, hostname, charset, data dir), Performance (uptime, connections, queries, InnoDB buffer, traffic), PHP Environment (version, OS, SAPI, PDO drivers, limits)
+**Bulk operations:** checkbox column with select-all (indeterminate state). Select 5 rows, click "Delete Selected" — one `DELETE ... WHERE IN (?,?,?,?,?)` query. Confirmation modal, not a native `confirm()`.
 
-### 📤 Export
+### Insert Rows — Without Writing SQL
 
-- **Table export** — SQL dump (CREATE + INSERT) or CSV with column headers
-- **Database export** — full SQL dump of all tables with CREATE DATABASE + USE statements
-- **Export page** — shows file size estimates, row counts, and per-table export buttons for the whole database
-- Works with or without a table selected
+Click "Insert Row" on any table. The form auto-generates from your column definitions:
 
-### ℹ️ Table Info
+- `INT` → number input
+- `DATE` → date picker
+- `DATETIME` → datetime-local picker
+- `ENUM('a','b','c')` → dropdown with parsed values
+- `TEXT` / `JSON` / `BLOB` → textarea
+- `AUTO_INCREMENT` → skipped (with "Manual" override)
 
-- Header card with table name, engine, collation, and key stats (rows, columns, indexes, total size)
-- Grouped sections: Properties, Storage, Timestamps
-- Quick query links
-- **Danger Zone** — Truncate and Drop with full descriptions, exact row count in confirmation, and prominent buttons
+NULL checkbox per nullable column. "Insert another" keeps the form open for batch entry.
 
-### ⚙️ Settings
+### Structure Editor — Visual DDL
 
-- **Full config editor** — database connection, default theme, rows per page, export toggle
-- **Auth controls** — require login, CSRF, force HTTPS, read-only mode, query logging
-- **User management** — add/remove users, change passwords (bcrypt), minimum length enforcement
-- **Access control** — IP whitelist (CIDR support), hidden databases
-- All changes write directly to `config.php`
+Edit any column inline: rename, change type (searchable dropdown of 35+ MySQL types), toggle nullable, set default, change comment. Save runs `ALTER TABLE ... CHANGE`.
 
-### 🎨 10 Built-in Themes
+Add columns with position control (FIRST / AFTER / end). Drop with confirmation.
 
-Switch instantly via the header dropdown — saved to cookie.
+**Foreign key visualization:** gold/blue left borders on PK/FK rows, clickable badges linking to referenced tables, dedicated FK and Referenced-By tables with color-coded ON DELETE/ON UPDATE badges (CASCADE = red, RESTRICT = gray).
 
----
+**AUTO_INCREMENT controls:** shows current next-ID with Set (any value) and Reset (MAX+1) buttons.
 
-## 🎨 Themes
+**CREATE statement** with full syntax highlighting — same tokenizer as the SQL editor.
 
-### Light Themes
+### Create Tables & Databases — Visually
 
-| Theme | Description |
-|:------|:------------|
-| **Clean** *(default)* | Crisp white with blue accents |
-| **Forge** | White with green accents |
-| **Sand** | Warm beige with amber accents |
-| **Lavender** | Soft gray-purple with violet accents |
-| **Solarized Light** | Classic Solarized palette |
+**Create Table:** define columns with name, type, nullable, default, PK, AI, unique, and index checkboxes. Live SQL preview with syntax highlighting updates as you type. Engine, collation, and comment options.
 
-### Dark Themes
+**Create Database:** form with name, character set, collation. Also accessible from the sidebar "+" button on any page (opens a modal without leaving your current view).
 
-| Theme | Description |
-|:------|:------------|
-| **Dark Industrial** | Deep black with neon green |
-| **Midnight Teal** | Ocean blue with teal highlights |
-| **Carbon** | Charcoal gray with VS Code-style blue |
-| **Nord** | Arctic blues from the Nord palette |
-| **Solarized Dark** | Classic Solarized dark |
+### Import & Export — Both Directions
 
----
+**Import SQL:** upload `.sql` dumps. Custom parser splits on `;` respecting strings and comments. Choose "Into existing database" or "New database from file" for full dumps with `CREATE DATABASE`. Per-statement results with error details.
 
-## 🖥️ SQL Editor
+**Import CSV:** upload into any table with configurable delimiter, enclosure, header detection. Database and table dropdowns with dynamic AJAX loading.
 
-### Token Types
+**Export:** single table as SQL or CSV, or full database dump. Per-table export buttons. File size estimates on every download link.
 
-| Token | Example | Description |
-|:------|:--------|:------------|
-| `keyword` | `SELECT`, `FROM`, `WHERE` | SQL keywords (bold) |
-| `function` | `COUNT()`, `COALESCE()` | Built-in functions |
-| `type` | `INT`, `VARCHAR`, `JSON` | Data types (italic) |
-| `table` | `users`, `u` | Table names & aliases (underlined) |
-| `string` | `'hello'` | Quoted strings |
-| `number` | `42`, `3.14`, `0xFF` | Numeric literals |
-| `comment` | `-- note`, `/* block */` | Comments |
-| `operator` | `=`, `!=`, `>=` | Operators |
-| `identifier` | `column_name` | Column names |
-| `backtick` | `` `table` `` | Backtick-quoted identifiers |
-| `variable` | `@var`, `@@global` | User and system variables |
-| `constant` | `NULL`, `TRUE` | SQL constants |
+**Drag-and-drop** on all file uploads.
 
-### Autocomplete
+### Settings — Everything in One Place
 
-- After `FROM` / `JOIN` → table names
-- After `WHERE` / `AND` / `ORDER BY` → columns scoped to query tables
-- After `table.` → columns for that table (alias-resolved)
-- After `USE` → database names
-- Keyboard: `↑↓` navigate, `Tab`/`Enter` accept, `Esc` dismiss
+Database connection, default theme, rows per page, export toggle. Auth controls: require login, CSRF, HTTPS, read-only mode, query logging. User management with bcrypt passwords. IP whitelist with CIDR. Hidden databases.
+
+**Font customization** across 5 zones: General UI, Headings, Sidebar, Table Data, SQL/Code. Curated catalog of 28 fonts (16 sans, 12 mono) with live preview. Google Fonts loaded on demand.
+
+All changes write to `config.php`. No manual file editing needed.
 
 ---
 
 ## 🔒 Security
 
-Full production security stack. Everything is opt-in — local dev works with zero config.
+Not an afterthought. DBForge ships with an 11-step security chain — all opt-in so local dev stays frictionless.
 
-| # | Feature | Config |
-|:--|:--------|:-------|
-| 1 | **Security headers** — X-Content-Type-Options, X-Frame-Options, XSS, HSTS | Always on |
-| 2 | **HTTPS enforcement** — 301 redirect | `force_https` |
-| 3 | **IP whitelist** — CIDR support | `ip_whitelist` |
-| 4 | **Session hardening** — httponly + secure + samesite, ID regeneration, timeout | `session_lifetime` |
-| 5 | **Authentication** — themed login page, multi-user, bcrypt | `require_auth` |
-| 6 | **Brute force protection** — IP lockout after N attempts | `max_login_attempts` |
-| 7 | **CSRF tokens** — all forms and AJAX | `csrf_enabled` |
-| 8 | **Read-only mode** — blocks all write queries | `read_only` |
-| 9 | **Hidden databases** — filtered everywhere | `hidden_databases` |
-| 10 | **Query logging** — timestamp, user, DB, IP, duration | `query_log` |
-| 11 | **`.htaccess`** — blocks config.php, includes/, logs/ | Always on |
+| # | Layer | What It Does |
+|:--|:------|:-------------|
+| 1 | **Security headers** | X-Content-Type-Options, X-Frame-Options, HSTS, Permissions-Policy |
+| 2 | **HTTPS enforcement** | 301 redirect from HTTP |
+| 3 | **IP whitelist** | Block by IP or CIDR range before anything loads |
+| 4 | **Session hardening** | httponly + secure + samesite cookies, periodic ID rotation, idle timeout |
+| 5 | **Authentication** | Themed login page, multi-user, bcrypt hashes |
+| 6 | **Brute force** | IP lockout after N failed attempts |
+| 7 | **CSRF tokens** | Every form, every AJAX request |
+| 8 | **Read-only mode** | Blocks all writes at the query level |
+| 9 | **Hidden databases** | Filtered from sidebar, autocomplete, and URL access |
+| 10 | **Query logging** | Every query → timestamp, user, database, IP, duration |
+| 11 | **`.htaccess`** | Blocks config.php, includes/, logs/ from the web |
 
-### Production Setup
+**First-run installer** means no default `admin/admin` ever exists. Passwords are bcrypt-hashed from the start.
 
 ```php
+// Production config example
 'security' => [
     'require_auth'    => true,
-    'users' => [
-        // php -r "echo password_hash('mypassword', PASSWORD_BCRYPT);"
-        'admin' => '$2y$10$your_bcrypt_hash_here',
-    ],
-    'force_https'      => true,
-    'ip_whitelist'     => ['192.168.1.0/24'],
-    'hidden_databases' => ['information_schema', 'performance_schema', 'mysql', 'sys'],
-    'query_log'        => true,
+    'users'           => ['admin' => '$2y$10$...your_bcrypt_hash...'],
+    'force_https'     => true,
+    'ip_whitelist'    => ['192.168.1.0/24'],
+    'hidden_databases'=> ['information_schema', 'performance_schema', 'mysql', 'sys'],
+    'query_log'       => true,
 ],
 ```
 
 ---
 
-## 🎨 Custom Themes
+## 🎨 Theming
 
-### 1. Create directory
+### 10 Built-In Themes
+
+| Light | Dark |
+|:------|:-----|
+| **Clean** — crisp white, blue accents *(default)* | **Dark Industrial** — deep black, neon green |
+| **Forge** — white, green accents | **Midnight Teal** — ocean blue, teal |
+| **Sand** — warm beige, amber | **Carbon** — charcoal, VS Code blue |
+| **Lavender** — soft purple, violet | **Nord** — arctic blues |
+| **Solarized Light** | **Solarized Dark** |
+
+Every theme covers: surfaces, text, borders, all 12 SQL token types, editor chrome, autocomplete, inline editing states, scrollbars, badges, modals, data cell variants, and form inputs.
+
+### Custom Themes
 
 ```
 themes/my-theme/
-├── theme.json
-└── style.css
+├── theme.json    # Name, author, type (dark/light)
+└── style.css     # Override CSS variables — that's it
 ```
 
-### 2. `theme.json`
+Drop a folder, refresh the page, it appears in the dropdown. See any existing theme for the variable reference.
 
-```json
-{
-    "name": "My Theme",
-    "author": "Your Name",
-    "description": "A brief description.",
-    "version": "1.0.0",
-    "type": "dark"
-}
-```
+### Font Control
 
-### 3. `style.css`
-
-Override CSS custom properties from `dark-industrial`. You only need to set variables that differ. See any existing theme for reference.
-
-### 4. Refresh
-
-Your theme auto-registers and appears in the dropdown.
+5 independently configurable font zones. 28 curated fonts. Live preview in settings. Google Fonts auto-loaded. System font fallbacks included.
 
 ---
 
 ## ⌨️ Keyboard Shortcuts
 
-| Shortcut | Context | Action |
-|:---------|:--------|:-------|
-| `Ctrl+Enter` | SQL Editor | Execute query |
-| `Tab` | SQL Editor | Insert 4 spaces |
-| `Shift+Tab` | SQL Editor | Remove indent |
-| `Ctrl+Shift+S` | Anywhere | Focus SQL editor |
-| `Enter` | Autocomplete | Accept suggestion |
-| `Tab` | Autocomplete | Accept & move next |
-| `↑` `↓` | Autocomplete | Navigate suggestions |
-| `Esc` | Autocomplete / Modal | Dismiss |
-| `Enter` | Inline edit / Modal | Save / Confirm |
-| `Esc` | Inline edit | Cancel edit |
-| `Tab` | Inline edit | Save & edit next cell |
+| Key | Action |
+|:----|:-------|
+| `Ctrl+Enter` | Execute SQL query |
+| `Tab` / `Shift+Tab` | Indent / dedent in SQL editor |
+| `Ctrl+Shift+S` | Focus SQL editor from anywhere |
+| `Enter` | Save inline edit / confirm modal |
+| `Esc` | Cancel edit / dismiss modal / close autocomplete |
+| `Tab` | Accept autocomplete / save & next cell |
+| `↑` `↓` | Navigate autocomplete suggestions |
 
 ---
 
-## 📁 Project Structure
+## 📁 What's in the Box
 
 ```
 dbforge/
-├── index.php                    # Router with security chain
-├── config.template.php          # Template used by installer
-├── install.php                  # First-run setup wizard
-├── ajax.php                     # AJAX endpoint (auth + CSRF protected)
-├── .htaccess                    # Apache security rules
-│
+├── index.php               # Router + 11-step security chain
+├── install.php             # First-run setup wizard
+├── ajax.php                # All AJAX endpoints (auth + CSRF)
+├── .htaccess               # Apache security rules
 ├── includes/
-│   ├── Database.php             # PDO wrapper, FK queries, exact counts
-│   ├── Auth.php                 # Auth, CSRF, IP whitelist, rate limiting
-│   ├── helpers.php              # Theme loader, formatters
-│   └── icons.php                # 30+ inline SVG icons
-│
-├── templates/
-│   ├── layout.php               # HTML shell, header, sidebar, tab bar
-│   ├── login.php                # Themed login page
-│   ├── sidebar.php              # Database/table tree
-│   ├── browse.php               # Data grid, server/DB overview, bulk select
-│   ├── structure.php            # Editable columns, FK viz, CREATE highlight
-│   ├── sql.php                  # SQL editor with highlighting & autocomplete
-│   ├── info.php                 # Table info, danger zone
-│   ├── export.php               # SQL/CSV export
-│   ├── server_info.php          # Server & PHP stats
-│   ├── settings.php             # Full config editor
-│   └── connection_error.php     # Shown when MySQL is down
-│
-├── js/dbforge.js                # Tokenizer, highlighter, autocomplete,
-│                                # inline edit, bulk select, modals, CSRF
-│
-├── logs/                        # Query audit logs (web-blocked)
-│
-└── themes/                      # 10 themes (5 light + 5 dark)
-    ├── light-clean/             # Default
-    └── ...9 more
+│   ├── Database.php        # PDO wrapper, FK queries, import/export
+│   ├── Auth.php            # Auth, CSRF, IP whitelist, rate limiting
+│   ├── helpers.php         # Themes, fonts, formatters
+│   └── icons.php           # 30+ inline SVG icons + logo
+├── templates/              # 12 PHP templates
+├── js/dbforge.js           # ~1800 lines: tokenizer, autocomplete,
+│                           # inline edit, bulk select, modals, CSRF
+├── themes/                 # 10 themes (5 light + 5 dark)
+├── assets/logo.svg         # Project logo
+└── logs/                   # Query audit logs (web-blocked)
 ```
+
+**Zero external dependencies.** No jQuery, no React, no Bootstrap, no Tailwind, no Composer, no npm. Every line is in the repo.
 
 ---
 
 ## 📋 Requirements
 
-| Dependency | Minimum | Recommended |
-|:-----------|:--------|:------------|
-| PHP | 7.4 | 8.2+ |
-| MySQL | 5.7 | 8.0+ |
-| MariaDB | 10.3 | 10.11+ |
-| Web Server | Apache 2.4 | Apache 2.4 |
+| | Minimum | Recommended |
+|:--|:--------|:------------|
+| **PHP** | 7.4 | 8.2+ |
+| **MySQL** | 5.7 | 8.0+ |
+| **MariaDB** | 10.3 | 10.11+ |
+| **Web Server** | Apache 2.4 | Apache 2.4 |
 
-Works with **XAMPP**, **WAMP**, **MAMP**, **Laragon**, or any Apache+PHP+MySQL stack.
+Also works with Nginx (see [Security docs](#-security) for config).
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Commit your changes (`git commit -am 'Add my feature'`)
-4. Push to the branch (`git push origin feature/my-feature`)
-5. Open a Pull Request
-
-Community themes are welcome — submit a PR with your `themes/my-theme/` folder.
+1. Fork → branch → commit → PR
+2. **Theme contributions** welcome — just add a `themes/my-theme/` folder
+3. Bug reports and feature requests via Issues
 
 ---
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+[MIT](LICENSE) — use it anywhere, modify it freely.
 
 ## 📝 Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for version history.
+See [CHANGELOG.md](CHANGELOG.md) for the full version history.
 
 ---
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/main/assets/logo.svg" alt="DBForge" width="28">
+  <br>
   <sub>Built with PHP, vanilla JS, and zero external dependencies.</sub>
+  <br>
+  <sub>By developers, for developers.</sub>
 </p>

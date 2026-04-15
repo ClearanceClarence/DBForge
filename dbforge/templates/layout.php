@@ -6,11 +6,20 @@
     <title><?= h($appName) ?> — <?= h($currentDb ?? 'Server') ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <?php
+    // Load custom fonts
+    $fontConfig = $config['app']['fonts'] ?? [];
+    $fontStyles = dbforge_font_styles($fontConfig);
+    if ($fontStyles['link']) echo $fontStyles['link'] . "\n";
+    ?>
     <!-- Base theme (always loaded first) -->
     <link rel="stylesheet" href="themes/dark-industrial/style.css" id="base-theme">
     <?php if ($activeTheme !== 'dark-industrial'): ?>
     <!-- Active theme overrides -->
     <link rel="stylesheet" href="themes/<?= h($activeTheme) ?>/style.css" id="active-theme">
+    <?php endif; ?>
+    <?php if ($fontStyles['css']): ?>
+    <style id="font-overrides"><?= $fontStyles['css'] ?></style>
     <?php endif; ?>
     <?php if (isset($auth)): ?>
     <?= $auth->csrfMeta() ?>
@@ -23,12 +32,7 @@
     <header class="app-header">
         <div class="header-left">
             <a href="?" class="logo">
-                <svg class="logo-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="1" width="18" height="22" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                    <ellipse cx="12" cy="7" rx="6" ry="3" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M6 7v5c0 1.66 2.69 3 6 3s6-1.34 6-3V7" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5" stroke="currentColor" stroke-width="1.5"/>
-                </svg>
+                <?= dbforge_logo(22, 'var(--accent)') ?>
                 <span class="logo-text"><?= h($appName) ?></span>
                 <span class="logo-version">v<?= h($appVersion) ?></span>
             </a>
@@ -70,18 +74,29 @@
             <div class="tab-bar">
                 <div class="tab-group">
                     <?php
-                    $tabs = [
+                    // Table-level tabs (only show when a table is selected)
+                    $tableTabs = [
                         'browse'    => ['icon' => 'table', 'label' => 'Browse'],
                         'structure' => ['icon' => 'columns', 'label' => 'Structure'],
                         'sql'       => ['icon' => 'terminal', 'label' => 'SQL'],
                         'info'      => ['icon' => 'info', 'label' => 'Info'],
                         'export'    => ['icon' => 'download', 'label' => 'Export'],
+                        'import'    => ['icon' => 'upload', 'label' => 'Import'],
                     ];
-                    foreach ($tabs as $tabId => $tab):
+                    foreach ($tableTabs as $tabId => $tab):
                         $isActive = ($activeTab === $tabId);
-                        $href = "?db=" . urlencode($currentDb ?? '') . "&table=" . urlencode($currentTable ?? '') . "&tab={$tabId}";
+
+                        // Structure + Info require a table
+                        if (in_array($tabId, ['structure', 'info']) && !$currentTable) continue;
+
                         if ($tabId === 'sql') {
-                            $href = "?db=" . urlencode($currentDb ?? '') . "&tab=sql";
+                            $href = $currentDb ? "?db=" . urlencode($currentDb) . "&tab=sql" : "?tab=sql";
+                        } elseif (in_array($tabId, ['export', 'import'])) {
+                            $href = "?tab={$tabId}";
+                            if ($currentDb) $href .= "&db=" . urlencode($currentDb);
+                            if ($currentTable) $href .= "&table=" . urlencode($currentTable);
+                        } else {
+                            $href = "?db=" . urlencode($currentDb ?? '') . "&table=" . urlencode($currentTable ?? '') . "&tab={$tabId}";
                         }
                     ?>
                     <a href="<?= $href ?>" class="tab-btn <?= $isActive ? 'active' : '' ?>">
