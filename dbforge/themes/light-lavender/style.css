@@ -6,6 +6,8 @@
     --bg-hover:       #e8e4f0;
     --bg-active:      #e0d8f0;
     --bg-selected:    #dcd4ec;
+    --row-odd:        transparent;
+    --row-even:       rgba(0, 0, 0, 0.02);
     --border:         #d4cee0;
     --border-light:   #c4bcd4;
     --border-focus:   #7c5cbf;

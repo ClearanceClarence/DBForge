@@ -111,6 +111,7 @@ $csrfToken = isset($auth) ? $auth->generateCsrfToken() : '';
                 <th>Key</th>
                 <th>Default</th>
                 <th>Extra</th>
+                <th>Collation</th>
                 <th>Comment</th>
                 <?php if (!$isReadOnly): ?>
                 <th style="width:80px;text-align:center;">Actions</th>
@@ -225,6 +226,11 @@ $csrfToken = isset($auth) ? $auth->generateCsrfToken() : '';
                         <option value="on update CURRENT_TIMESTAMP" <?= str_contains($col['Extra'], 'on update') ? 'selected' : '' ?>>ON UPDATE CURRENT_TIMESTAMP</option>
                     </select>
                     <?php endif; ?>
+                </td>
+
+                <!-- Collation -->
+                <td style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--text-muted);">
+                    <?= h($col['Collation'] ?? '') ?: '<span style="opacity:0.3">—</span>' ?>
                 </td>
 
                 <!-- Comment -->

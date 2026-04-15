@@ -410,6 +410,170 @@ switch ($action) {
         }
         break;
 
+    // ── ER diagram data (GET) ──
+    case 'er_data':
+        if (!$db) {
+            echo json_encode(['error' => 'No database selected.']);
+            break;
+        }
+        try {
+            $tables = $dbInstance->getTables($db);
+            $erTables = [];
+            $erRelations = [];
+
+            foreach ($tables as $t) {
+                $name = $t['Name'];
+                $cols = $dbInstance->getColumns($db, $name);
+                $columns = [];
+                foreach ($cols as $c) {
+                    $columns[] = [
+                        'name'  => $c['Field'],
+                        'type'  => $c['Type'],
+                        'key'   => $c['Key'],
+                        'null'  => $c['Null'],
+                        'extra' => $c['Extra'],
+                    ];
+                }
+                $erTables[] = [
+                    'name'    => $name,
+                    'columns' => $columns,
+                    'rows'    => (int)($t['Rows'] ?? 0),
+                    'engine'  => $t['Engine'] ?? '',
+                ];
+
+                // FK relationships
+                try {
+                    $fks = $dbInstance->getForeignKeys($db, $name);
+                    foreach ($fks as $fk) {
+                        $erRelations[] = [
+                            'from_table'  => $name,
+                            'from_col'    => $fk['COLUMN_NAME'],
+                            'to_table'    => $fk['REFERENCED_TABLE_NAME'],
+                            'to_col'      => $fk['REFERENCED_COLUMN_NAME'],
+                            'constraint'  => $fk['CONSTRAINT_NAME'] ?? '',
+                            'on_delete'   => $fk['DELETE_RULE'] ?? '',
+                            'on_update'   => $fk['UPDATE_RULE'] ?? '',
+                        ];
+                    }
+                } catch (Exception $e) {}
+            }
+
+            echo json_encode(['tables' => $erTables, 'relations' => $erRelations]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Rename a table (POST, write) ──
+    case 'rename_table':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $oldName = trim($_POST['old_name'] ?? '');
+        $newName = trim($_POST['new_name'] ?? '');
+        if (!$db || !$oldName || !$newName) {
+            echo json_encode(['error' => 'Database, old name, and new name are required.']);
+            break;
+        }
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $newName)) {
+            echo json_encode(['error' => 'Table name can only contain letters, numbers, and underscores.']);
+            break;
+        }
+        try {
+            $dbInstance->renameTable($db, $oldName, $newName);
+            $auth->logActivity("Renamed table: {$db}.{$oldName} → {$newName}");
+            echo json_encode(['success' => true, 'new_name' => $newName]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Copy a table (POST, write) ──
+    case 'copy_table':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $source = trim($_POST['source'] ?? '');
+        $dest = trim($_POST['destination'] ?? '');
+        $withData = isset($_POST['with_data']);
+        if (!$db || !$source || !$dest) {
+            echo json_encode(['error' => 'Database, source table, and destination name are required.']);
+            break;
+        }
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $dest)) {
+            echo json_encode(['error' => 'Table name can only contain letters, numbers, and underscores.']);
+            break;
+        }
+        try {
+            $dbInstance->copyTable($db, $source, $dest, $withData);
+            $label = $withData ? 'with data' : 'structure only';
+            $auth->logActivity("Copied table: {$db}.{$source} → {$dest} ({$label})");
+            echo json_encode(['success' => true, 'destination' => $dest]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Drop a table (POST, write) ──
+    case 'drop_table':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $tableName = trim($_POST['name'] ?? '');
+        if (!$db || !$tableName) {
+            echo json_encode(['error' => 'Database and table name are required.']);
+            break;
+        }
+        try {
+            $dbInstance->dropTable($db, $tableName);
+            $auth->logActivity("Dropped table: {$db}.{$tableName}");
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Search across tables (GET) ──
+    case 'search_tables':
+        $searchTerm = trim($_GET['term'] ?? '');
+        if (!$db) {
+            echo json_encode(['error' => 'No database selected.']);
+            break;
+        }
+        if (strlen($searchTerm) < 1) {
+            echo json_encode(['error' => 'Search term is required.']);
+            break;
+        }
+
+        try {
+            $maxPerTable = min(10, max(1, (int)($_GET['limit'] ?? 5)));
+            $results = $dbInstance->searchAcrossTables($db, $searchTerm, $maxPerTable);
+            echo json_encode($results);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Clear query history (POST) ──
+    case 'clear_history':
+        $_SESSION['dbforge_query_history'] = [];
+        echo json_encode(['success' => true]);
+        break;
+
+    // ── Delete single history item (POST) ──
+    case 'delete_history_item':
+        $idx = (int)($_POST['idx'] ?? -1);
+        if (isset($_SESSION['dbforge_query_history'][$idx])) {
+            array_splice($_SESSION['dbforge_query_history'], $idx, 1);
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['error' => 'Invalid index.']);
+        }
+        break;
+
     // ── Insert a row (POST, write) ──
     case 'insert_row':
         if ($auth->isReadOnly()) {

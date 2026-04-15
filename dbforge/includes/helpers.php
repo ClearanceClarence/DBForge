@@ -107,6 +107,20 @@ function input(string $key, $default = null)
 }
 
 /**
+ * Human-readable time ago
+ */
+function dbforge_time_ago(int $timestamp): string
+{
+    $diff = time() - $timestamp;
+    if ($diff < 5) return 'just now';
+    if ($diff < 60) return $diff . 's ago';
+    if ($diff < 3600) return floor($diff / 60) . 'm ago';
+    if ($diff < 86400) return floor($diff / 3600) . 'h ago';
+    if ($diff < 604800) return floor($diff / 86400) . 'd ago';
+    return date('M j', $timestamp);
+}
+
+/**
  * Font catalog — curated fonts grouped by type.
  * 'google' = true means it needs Google Fonts loading.
  */

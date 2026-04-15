@@ -114,11 +114,26 @@ try {
     $databases = $auth->filterDatabases($databases);
     $serverVersion = $dbInstance->getPdo()->getAttribute(PDO::ATTR_SERVER_VERSION);
     $connected = true;
+
+    // Quick stats for header
+    try {
+        $pdo = $dbInstance->getPdo();
+        $uptime = (int)$pdo->query("SHOW STATUS LIKE 'Uptime'")->fetch()['Value'] ?? 0;
+        $charset = $pdo->query("SELECT @@character_set_server")->fetchColumn() ?: '?';
+        $totalQueries = (int)($pdo->query("SHOW STATUS LIKE 'Queries'")->fetch()['Value'] ?? 0);
+    } catch (Exception $e) {
+        $uptime = 0;
+        $charset = '?';
+        $totalQueries = 0;
+    }
 } catch (PDOException $e) {
     $connected = false;
     $databases = [];
     $serverVersion = '?';
     $connectionError = $e->getMessage();
+    $uptime = 0;
+    $charset = '?';
+    $totalQueries = 0;
 }
 
 // ── Routing ────────────────────────────────────────────
@@ -241,6 +256,10 @@ if ($activeTab === 'settings') {
     $contentTemplate = __DIR__ . '/templates/export.php';
 } elseif ($activeTab === 'import') {
     $contentTemplate = __DIR__ . '/templates/import.php';
+} elseif ($activeTab === 'search') {
+    $contentTemplate = __DIR__ . '/templates/search.php';
+} elseif ($activeTab === 'er') {
+    $contentTemplate = __DIR__ . '/templates/er.php';
 } else {
     $contentTemplate = __DIR__ . '/templates/browse.php';
 }

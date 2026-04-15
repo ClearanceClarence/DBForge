@@ -174,6 +174,7 @@
 
 <?php if ($currentDb && !$currentTable):
     // ── Database Overview ──
+    $isReadOnly = isset($auth) && $auth->isReadOnly();
     try {
         $allTables = $dbInstance->getTables($currentDb);
     } catch (Exception $e) {
@@ -572,8 +573,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="display:flex;gap:4px;">
                         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=browse" class="btn btn-ghost btn-sm" title="Browse"><?= icon('table', 13) ?></a>
                         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=structure" class="btn btn-ghost btn-sm" title="Structure"><?= icon('columns', 13) ?></a>
-                        <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=sql&run=1&sql=<?= urlencode("SELECT * FROM `{$tName}` LIMIT 25") ?>" class="btn btn-ghost btn-sm" title="SQL"><?= icon('terminal', 13) ?></a>
                         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=export" class="btn btn-ghost btn-sm" title="Export"><?= icon('download', 13) ?></a>
+                        <?php if (!$isReadOnly): ?>
+                        <button type="button" class="btn btn-ghost btn-sm tbl-rename-btn" data-table="<?= h($tName) ?>" title="Rename"><?= icon('edit', 13) ?></button>
+                        <button type="button" class="btn btn-ghost btn-sm tbl-copy-btn" data-table="<?= h($tName) ?>" title="Copy"><?= icon('copy', 13) ?></button>
+                        <button type="button" class="btn btn-danger btn-sm tbl-drop-btn" data-table="<?= h($tName) ?>" data-rows="<?= $tRows ?>" title="Drop" style="padding:2px 6px;"><?= icon('trash', 12) ?></button>
+                        <?php endif; ?>
                     </div>
                 </td>
             </tr>
@@ -581,6 +586,172 @@ document.addEventListener('DOMContentLoaded', function() {
         </tbody>
     </table>
 </div>
+
+<?php if (!$isReadOnly): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var db = '<?= addslashes($currentDb) ?>';
+    var csrf = DBForge.getCsrfToken();
+
+    // ── Rename ──
+    document.querySelectorAll('.tbl-rename-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var oldName = btn.dataset.table;
+            DBForge.closeModal();
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.id = 'dbforge-modal';
+            overlay.innerHTML =
+                '<div class="modal-box" style="max-width:420px;">' +
+                    '<div class="modal-header"><span class="modal-title">Rename Table</span><button class="modal-close" data-action="cancel">&times;</button></div>' +
+                    '<div class="modal-body">' +
+                        '<div class="settings-field"><label class="settings-label">Current name</label>' +
+                        '<input type="text" class="settings-input" value="' + oldName + '" disabled style="opacity:0.5;"></div>' +
+                        '<div class="settings-field" style="margin-top:10px;"><label class="settings-label">New name</label>' +
+                        '<input type="text" id="modal-rename-input" class="settings-input" value="' + oldName + '" style="background:var(--bg-input);"></div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button class="btn btn-ghost modal-btn" data-action="cancel">Cancel</button>' +
+                        '<button class="btn btn-primary modal-btn" id="modal-rename-ok">Rename</button>' +
+                    '</div>' +
+                '</div>';
+            document.body.appendChild(overlay);
+            requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+            var inp = overlay.querySelector('#modal-rename-input');
+            inp.focus();
+            inp.select();
+
+            function doRename() {
+                var newName = inp.value.trim();
+                if (!newName || newName === oldName) return;
+                var fd = new FormData();
+                fd.append('action', 'rename_table');
+                fd.append('db', db);
+                fd.append('old_name', oldName);
+                fd.append('new_name', newName);
+                fd.append('_csrf_token', csrf);
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) { DBForge.setStatus('Error: ' + data.error); return; }
+                        close();
+                        DBForge.setStatus('Table renamed to "' + newName + '".');
+                        window.location.href = '?db=' + encodeURIComponent(db);
+                    });
+            }
+
+            overlay.querySelector('#modal-rename-ok').addEventListener('click', doRename);
+            inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') doRename(); });
+
+            function close() {
+                overlay.classList.remove('modal-visible');
+                setTimeout(function() { overlay.remove(); }, 150);
+            }
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay || e.target.dataset.action === 'cancel' || (e.target.closest && e.target.closest('[data-action="cancel"]'))) close();
+            });
+        });
+    });
+
+    // ── Copy ──
+    document.querySelectorAll('.tbl-copy-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var source = btn.dataset.table;
+            DBForge.closeModal();
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.id = 'dbforge-modal';
+            overlay.innerHTML =
+                '<div class="modal-box" style="max-width:420px;">' +
+                    '<div class="modal-header"><span class="modal-title">Copy Table</span><button class="modal-close" data-action="cancel">&times;</button></div>' +
+                    '<div class="modal-body">' +
+                        '<div class="settings-field"><label class="settings-label">Source</label>' +
+                        '<input type="text" class="settings-input" value="' + source + '" disabled style="opacity:0.5;"></div>' +
+                        '<div class="settings-field" style="margin-top:10px;"><label class="settings-label">New table name</label>' +
+                        '<input type="text" id="modal-copy-input" class="settings-input" value="' + source + '_copy" style="background:var(--bg-input);"></div>' +
+                        '<div style="margin-top:12px;display:flex;gap:16px;">' +
+                            '<label class="settings-check" style="cursor:pointer;"><input type="radio" name="copy_mode" value="data" checked> Structure + Data</label>' +
+                            '<label class="settings-check" style="cursor:pointer;"><input type="radio" name="copy_mode" value="structure"> Structure only</label>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button class="btn btn-ghost modal-btn" data-action="cancel">Cancel</button>' +
+                        '<button class="btn btn-primary modal-btn" id="modal-copy-ok">Copy</button>' +
+                    '</div>' +
+                '</div>';
+            document.body.appendChild(overlay);
+            requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+            var inp = overlay.querySelector('#modal-copy-input');
+            inp.focus();
+            inp.select();
+
+            function doCopy() {
+                var dest = inp.value.trim();
+                if (!dest) return;
+                var withData = overlay.querySelector('input[name="copy_mode"]:checked').value === 'data';
+                var fd = new FormData();
+                fd.append('action', 'copy_table');
+                fd.append('db', db);
+                fd.append('source', source);
+                fd.append('destination', dest);
+                if (withData) fd.append('with_data', '1');
+                fd.append('_csrf_token', csrf);
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) { DBForge.setStatus('Error: ' + data.error); return; }
+                        close();
+                        DBForge.setStatus('Table copied to "' + dest + '".');
+                        window.location.href = '?db=' + encodeURIComponent(db);
+                    });
+            }
+
+            overlay.querySelector('#modal-copy-ok').addEventListener('click', doCopy);
+            inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') doCopy(); });
+
+            function close() {
+                overlay.classList.remove('modal-visible');
+                setTimeout(function() { overlay.remove(); }, 150);
+            }
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay || e.target.dataset.action === 'cancel' || (e.target.closest && e.target.closest('[data-action="cancel"]'))) close();
+            });
+        });
+    });
+
+    // ── Drop ──
+    document.querySelectorAll('.tbl-drop-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var tableName = btn.dataset.table;
+            var rows = btn.dataset.rows;
+            DBForge.confirm({
+                title: 'Drop Table',
+                message: 'DROP TABLE `' + tableName + '`?\n\nThis will permanently delete the table structure and all ' + Number(rows).toLocaleString() + ' rows. This cannot be undone.',
+                confirmText: 'Drop Table',
+                cancelText: 'Cancel',
+                danger: true,
+            }).then(function(ok) {
+                if (!ok) return;
+                var fd = new FormData();
+                fd.append('action', 'drop_table');
+                fd.append('db', db);
+                fd.append('name', tableName);
+                fd.append('_csrf_token', csrf);
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) { DBForge.setStatus('Error: ' + data.error); return; }
+                        DBForge.setStatus('Table "' + tableName + '" dropped.');
+                        window.location.href = '?db=' + encodeURIComponent(db);
+                    });
+            });
+        });
+    });
+});
+</script>
+<?php endif; ?>
 
 <?php return; endif; ?>
 
@@ -602,6 +773,7 @@ try {
 $rows       = $result['rows'];
 $total      = $result['total'];
 $totalPages = $result['total_pages'];
+$browseSql  = $result['sql'] ?? '';
 
 // Build column lookup for key info
 $colInfo = [];
@@ -609,6 +781,22 @@ foreach ($columns as $col) {
     $colInfo[$col['Field']] = $col;
 }
 ?>
+
+<!-- Current Query -->
+<div class="browse-query">
+    <code class="browse-query-sql" id="browse-query-sql"><?= h($browseSql) ?></code>
+    <a href="?db=<?= urlencode($currentDb) ?>&tab=sql&sql=<?= urlencode($browseSql) ?>&run=1" class="browse-query-edit" title="Edit in SQL tab"><?= icon('edit', 11) ?> Edit</a>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    var el = document.getElementById('browse-query-sql');
+    if (el && typeof DBForge !== 'undefined' && DBForge.tokenize) {
+        var tokens = DBForge.tokenize(el.textContent);
+        tokens = DBForge.resolveTableNames(tokens);
+        el.innerHTML = DBForge.renderTokens(tokens);
+    }
+});
+</script>
 
 <!-- Toolbar -->
 <div class="table-toolbar">
@@ -933,8 +1121,22 @@ document.addEventListener('DOMContentLoaded', function() {
         <tbody>
             <?php if (empty($rows)): ?>
             <tr>
-                <td colspan="<?= count($columns) + ($pkCol ? 2 : 0) ?>" style="text-align:center;padding:30px;color:var(--text-muted);">
-                    <?= $search ? 'No rows match your filter.' : 'Table is empty.' ?>
+                <td colspan="<?= count($columns) + ($pkCol ? 2 : 0) ?>">
+                    <div class="empty-state">
+                        <?php if ($search): ?>
+                            <?= icon('search', 28) ?>
+                            <div class="empty-state-title">No results</div>
+                            <div class="empty-state-desc">No rows match "<strong><?= h($search) ?></strong>" in this table.</div>
+                            <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($currentTable) ?>&tab=browse" class="btn btn-ghost btn-sm" style="margin-top:8px;"><?= icon('x', 12) ?> Clear filter</a>
+                        <?php else: ?>
+                            <?= icon('table', 28) ?>
+                            <div class="empty-state-title">This table is empty</div>
+                            <div class="empty-state-desc"><?= h($currentTable) ?> has no rows yet.</div>
+                            <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+                            <button type="button" class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="document.getElementById('insert-row-btn')?.click();"><?= icon('plus', 12) ?> Insert first row</button>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
                 </td>
             </tr>
             <?php else: ?>

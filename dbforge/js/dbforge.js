@@ -8,61 +8,167 @@ const DBForge = {
     // ── SQL Token Definitions ────────────────────────────
 
     SQL_KEYWORDS: new Set([
+        // DML
         'SELECT','FROM','WHERE','AND','OR','NOT','IN','IS','NULL','AS','ON',
-        'JOIN','INNER','LEFT','RIGHT','OUTER','CROSS','FULL','NATURAL',
-        'ORDER','BY','GROUP','HAVING','LIMIT','OFFSET','UNION','ALL',
-        'INSERT','INTO','VALUES','UPDATE','SET','DELETE','REPLACE',
-        'CREATE','ALTER','DROP','TRUNCATE','RENAME',
-        'TABLE','DATABASE','SCHEMA','INDEX','VIEW','TRIGGER','PROCEDURE','FUNCTION',
+        'JOIN','INNER','LEFT','RIGHT','OUTER','CROSS','FULL','NATURAL','STRAIGHT_JOIN',
+        'ORDER','BY','GROUP','HAVING','LIMIT','OFFSET','UNION','ALL','INTERSECT','EXCEPT',
+        'INSERT','INTO','VALUES','VALUE','UPDATE','SET','DELETE','REPLACE','MERGE',
+        'DISTINCT','DISTINCTROW','TOP','SQL_CALC_FOUND_ROWS','HIGH_PRIORITY','LOW_PRIORITY',
+        'DELAYED','IGNORE','SQL_NO_CACHE','SQL_CACHE','FOR','SHARE','NOWAIT','SKIP','LOCKED',
+
+        // DDL
+        'CREATE','ALTER','DROP','TRUNCATE','RENAME','PURGE',
+        'TABLE','DATABASE','SCHEMA','INDEX','VIEW','TRIGGER','PROCEDURE','FUNCTION','EVENT',
+        'TABLESPACE','SERVER','LOGFILE','SEQUENCE',
         'IF','EXISTS','DEFAULT','AUTO_INCREMENT','PRIMARY','KEY',
-        'FOREIGN','REFERENCES','UNIQUE','CHECK','CONSTRAINT',
-        'ADD','COLUMN','MODIFY','CHANGE','AFTER','FIRST',
-        'SHOW','DESCRIBE','DESC','EXPLAIN','USE','GRANT','REVOKE',
-        'BEGIN','COMMIT','ROLLBACK','SAVEPOINT','TRANSACTION',
-        'CASE','WHEN','THEN','ELSE','END',
-        'LIKE','BETWEEN','ANY','SOME','DISTINCT','TOP',
-        'ASC','FETCH','NEXT','ROWS','ONLY','PERCENT',
+        'FOREIGN','REFERENCES','UNIQUE','CHECK','CONSTRAINT','SPATIAL','FULLTEXT',
+        'ADD','COLUMN','MODIFY','CHANGE','AFTER','FIRST','ALGORITHM','INPLACE','COPY',
+        'GENERATED','ALWAYS','STORED','VIRTUAL','INVISIBLE','VISIBLE',
+
+        // DCL / Admin
+        'SHOW','DESCRIBE','DESC','EXPLAIN','ANALYZE','USE','GRANT','REVOKE',
+        'FLUSH','RESET','OPTIMIZE','REPAIR','CHECK','CHECKSUM',
+        'PREPARE','EXECUTE','DEALLOCATE','HANDLER',
+        'LOAD','DATA','INFILE','OUTFILE','DUMPFILE','LINES','FIELDS','TERMINATED','ENCLOSED','ESCAPED',
+        'KILL','SHUTDOWN',
+
+        // Transaction
+        'BEGIN','COMMIT','ROLLBACK','SAVEPOINT','TRANSACTION','START','RELEASE','WORK',
+        'XA','CHAIN','NO',
+
+        // Control flow
+        'CASE','WHEN','THEN','ELSE','END','IF','ELSEIF','WHILE','DO','LOOP','REPEAT','UNTIL',
+        'LEAVE','ITERATE','RETURN','SIGNAL','RESIGNAL','DECLARE','CONDITION','CURSOR','CONTINUE',
+        'OPEN','FETCH','CLOSE',
+
+        // Operators / predicates
+        'LIKE','RLIKE','REGEXP','SOUNDS','BETWEEN','ANY','SOME','EXISTS',
+        'ASC','FETCH','NEXT','ROWS','ONLY','PERCENT','PRECEDING','FOLLOWING','UNBOUNDED','CURRENT','ROW',
+        'MATCH','AGAINST','BOOLEAN','MODE','EXPANSION',
+
+        // Table / index options
         'WITH','RECURSIVE','TEMPORARY','TEMP',
-        'LOCK','UNLOCK','TABLES','ENGINE','CHARSET','COLLATE',
-        'CHARACTER','COMMENT','UNSIGNED','SIGNED','ZEROFILL',
-        'CASCADE','RESTRICT','NO','ACTION',
+        'LOCK','UNLOCK','TABLES','ENGINE','CHARSET','COLLATE','CHARACTER',
+        'COMMENT','UNSIGNED','SIGNED','ZEROFILL',
+        'CASCADE','RESTRICT','ACTION',
+        'ROW_FORMAT','DYNAMIC','FIXED','COMPRESSED','REDUNDANT','COMPACT',
+        'PARTITION','PARTITIONS','SUBPARTITION','RANGE','LIST','HASH','LINEAR',
+        'STORAGE','DISK','MEMORY','USING','BTREE','HASH',
+        'DEFINER','INVOKER','SECURITY','SQL','DETERMINISTIC','READS','MODIFIES','CONTAINS',
+        'RETURNS','LANGUAGE','NO','EACH','BEFORE','AFTER','FOLLOWS','PRECEDES',
+
+        // Misc
+        'DUAL','OUTFILE','DUMPFILE','LOCAL','GLOBAL','SESSION','STATUS','VARIABLES',
+        'PROCESSLIST','GRANTS','PRIVILEGES','WARNINGS','ERRORS','PROFILES',
+        'BINARY','COLLATION','COLUMNS','DATABASES','ENGINES','EVENTS','TRIGGERS','PLUGINS',
+        'MASTER','SLAVE','REPLICATION','RELAY','BINLOG','GTID',
+        'IDENTIFIED','PASSWORD','REQUIRE','CIPHER','ISSUER','SUBJECT',
+        'MAX_QUERIES_PER_HOUR','MAX_UPDATES_PER_HOUR','MAX_CONNECTIONS_PER_HOUR','MAX_USER_CONNECTIONS',
+        'ENABLE','DISABLE','ON','COMPLETION','PRESERVE',
     ]),
 
     SQL_FUNCTIONS: new Set([
-        'COUNT','SUM','AVG','MIN','MAX','ABS','CEIL','CEILING','FLOOR','ROUND',
-        'CONCAT','CONCAT_WS','SUBSTRING','SUBSTR','TRIM','LTRIM',
-        'RTRIM','UPPER','UCASE','LOWER','LCASE','LENGTH','CHAR_LENGTH',
-        'REPLACE','REVERSE','REPEAT','SPACE','LPAD','RPAD','INSTR','LOCATE',
-        'POSITION','FORMAT','FIELD','FIND_IN_SET',
-        'NOW','CURDATE','CURTIME','DATE','TIME','YEAR','MONTH','DAY',
-        'HOUR','MINUTE','SECOND','DATEDIFF','DATE_ADD','DATE_SUB',
-        'DATE_FORMAT','STR_TO_DATE','TIMESTAMPDIFF','TIMESTAMP','UNIX_TIMESTAMP',
-        'FROM_UNIXTIME','CURRENT_TIMESTAMP','CURRENT_DATE','CURRENT_TIME',
-        'IFNULL','NULLIF','COALESCE','GREATEST','LEAST',
+        // Aggregate
+        'COUNT','SUM','AVG','MIN','MAX','BIT_AND','BIT_OR','BIT_XOR',
+        'GROUP_CONCAT','JSON_ARRAYAGG','JSON_OBJECTAGG','STD','STDDEV','STDDEV_POP','STDDEV_SAMP',
+        'VAR_POP','VAR_SAMP','VARIANCE',
+
+        // Math
+        'ABS','CEIL','CEILING','FLOOR','ROUND','TRUNCATE','MOD','POWER','POW','SQRT','EXP','LOG','LOG2','LOG10',
+        'PI','RADIANS','DEGREES','SIN','COS','TAN','ASIN','ACOS','ATAN','ATAN2','COT',
+        'RAND','SIGN','CRC32','CONV',
+
+        // String
+        'CONCAT','CONCAT_WS','SUBSTRING','SUBSTR','MID','TRIM','LTRIM','RTRIM',
+        'UPPER','UCASE','LOWER','LCASE','LENGTH','CHAR_LENGTH','CHARACTER_LENGTH','OCTET_LENGTH','BIT_LENGTH',
+        'REPLACE','REVERSE','REPEAT','SPACE','LPAD','RPAD','INSTR','LOCATE','POSITION','FIND_IN_SET',
+        'FORMAT','FIELD','ELT','EXPORT_SET','MAKE_SET',
+        'INSERT','LEFT','RIGHT','SUBSTRING_INDEX',
+        'ASCII','ORD','CHAR','HEX','UNHEX','BIN','OCT',
+        'QUOTE','SOUNDEX','WEIGHT_STRING','FROM_BASE64','TO_BASE64',
+        'REGEXP_REPLACE','REGEXP_INSTR','REGEXP_LIKE','REGEXP_SUBSTR',
+
+        // Date / Time
+        'NOW','CURDATE','CURTIME','SYSDATE','UTC_DATE','UTC_TIME','UTC_TIMESTAMP','LOCALTIME','LOCALTIMESTAMP',
+        'DATE','TIME','YEAR','MONTH','DAY','HOUR','MINUTE','SECOND','MICROSECOND',
+        'DAYNAME','DAYOFMONTH','DAYOFWEEK','DAYOFYEAR','MONTHNAME','QUARTER','WEEK','WEEKDAY','WEEKOFYEAR','YEARWEEK',
+        'DATEDIFF','TIMEDIFF','TIMESTAMPDIFF','TIMESTAMPADD',
+        'DATE_ADD','DATE_SUB','ADDDATE','SUBDATE','ADDTIME','SUBTIME','PERIOD_ADD','PERIOD_DIFF',
+        'DATE_FORMAT','TIME_FORMAT','STR_TO_DATE','GET_FORMAT',
+        'MAKEDATE','MAKETIME','SEC_TO_TIME','TIME_TO_SEC','TO_DAYS','TO_SECONDS','FROM_DAYS',
+        'LAST_DAY','EXTRACT',
+        'TIMESTAMP','UNIX_TIMESTAMP','FROM_UNIXTIME',
+        'CONVERT_TZ',
+        'CURRENT_TIMESTAMP','CURRENT_DATE','CURRENT_TIME',
+
+        // Control flow
+        'IF','IFNULL','NULLIF','COALESCE','GREATEST','LEAST',
+        'ISNULL','INTERVAL',
+
+        // Cast / convert
         'CAST','CONVERT','BINARY',
-        'GROUP_CONCAT','JSON_EXTRACT','JSON_OBJECT','JSON_ARRAY',
-        'JSON_UNQUOTE','JSON_SET','JSON_REPLACE','JSON_REMOVE',
-        'ROW_NUMBER','RANK','DENSE_RANK','NTILE','LAG','LEAD',
-        'FIRST_VALUE','LAST_VALUE','NTH_VALUE','OVER','PARTITION',
-        'MD5','SHA1','SHA2','UUID','RAND','SLEEP',
-        'VERSION','USER','CURRENT_USER','LAST_INSERT_ID',
-        'FOUND_ROWS','ROW_COUNT',
+
+        // JSON
+        'JSON_EXTRACT','JSON_OBJECT','JSON_ARRAY','JSON_UNQUOTE','JSON_QUOTE',
+        'JSON_SET','JSON_INSERT','JSON_REPLACE','JSON_REMOVE','JSON_MERGE','JSON_MERGE_PATCH','JSON_MERGE_PRESERVE',
+        'JSON_CONTAINS','JSON_CONTAINS_PATH','JSON_DEPTH','JSON_LENGTH','JSON_TYPE','JSON_VALID',
+        'JSON_KEYS','JSON_SEARCH','JSON_VALUE','JSON_TABLE','JSON_PRETTY','JSON_STORAGE_SIZE','JSON_STORAGE_FREE',
+
+        // Window
+        'ROW_NUMBER','RANK','DENSE_RANK','NTILE','PERCENT_RANK','CUME_DIST',
+        'LAG','LEAD','FIRST_VALUE','LAST_VALUE','NTH_VALUE',
+        'OVER','PARTITION','WINDOW',
+
+        // Encryption / hash
+        'MD5','SHA1','SHA2','SHA','AES_ENCRYPT','AES_DECRYPT','DES_ENCRYPT','DES_DECRYPT',
+        'ENCRYPT','COMPRESS','UNCOMPRESS','UNCOMPRESSED_LENGTH',
+        'RANDOM_BYTES','STATEMENT_DIGEST','STATEMENT_DIGEST_TEXT',
+
+        // Info
+        'VERSION','USER','CURRENT_USER','SYSTEM_USER','SESSION_USER',
+        'DATABASE','SCHEMA','CONNECTION_ID','LAST_INSERT_ID',
+        'FOUND_ROWS','ROW_COUNT','BENCHMARK','CHARSET','COERCIBILITY','COLLATION',
+
+        // Misc
+        'UUID','UUID_SHORT','UUID_TO_BIN','BIN_TO_UUID',
+        'RAND','SLEEP','GET_LOCK','RELEASE_LOCK','IS_FREE_LOCK','IS_USED_LOCK',
+        'INET_ATON','INET_NTOA','INET6_ATON','INET6_NTOA','IS_IPV4','IS_IPV6',
+        'NAME_CONST','VALUES','DEFAULT',
+        'ANY_VALUE','BIT_COUNT',
+
+        // Geometry
+        'ST_ASTEXT','ST_ASWKB','ST_GEOMFROMTEXT','ST_GEOMFROMWKB',
+        'ST_DISTANCE','ST_WITHIN','ST_CONTAINS','ST_INTERSECTS','ST_BUFFER',
+        'ST_AREA','ST_LENGTH','ST_CENTROID','ST_UNION','ST_SRID',
+        'POINT','LINESTRING','POLYGON','MULTIPOINT','GEOMETRYCOLLECTION',
     ]),
 
     SQL_TYPES: new Set([
+        // Numeric
         'INT','INTEGER','TINYINT','SMALLINT','MEDIUMINT','BIGINT',
-        'FLOAT','DOUBLE','DECIMAL','NUMERIC','REAL',
+        'FLOAT','DOUBLE','DECIMAL','NUMERIC','REAL','DEC','FIXED',
+        'BIT','SERIAL',
+
+        // String
         'CHAR','VARCHAR','TEXT','TINYTEXT','MEDIUMTEXT','LONGTEXT',
         'BLOB','TINYBLOB','MEDIUMBLOB','LONGBLOB',
+        'BINARY','VARBINARY',
+        'ENUM','SET',
+
+        // Date / Time
         'DATE','DATETIME','TIMESTAMP','TIME','YEAR',
-        'BOOLEAN','BOOL','BIT',
-        'ENUM','SET','JSON','BINARY','VARBINARY',
-        'SERIAL','GEOMETRY','POINT','LINESTRING','POLYGON',
+
+        // Other
+        'BOOLEAN','BOOL','JSON',
+        'GEOMETRY','POINT','LINESTRING','POLYGON','MULTIPOINT','MULTILINESTRING','MULTIPOLYGON','GEOMETRYCOLLECTION',
+        'UUID',
     ]),
 
     SQL_CONSTANTS: new Set([
-        'TRUE','FALSE','NULL','CURRENT_TIMESTAMP','CURRENT_DATE',
-        'CURRENT_TIME','CURRENT_USER',
+        'TRUE','FALSE','NULL',
+        'CURRENT_TIMESTAMP','CURRENT_DATE','CURRENT_TIME','CURRENT_USER',
+        'LOCALTIME','LOCALTIMESTAMP','UTC_DATE','UTC_TIME','UTC_TIMESTAMP',
+        'PI','MAXVALUE',
     ]),
 
     SQL_OPERATORS: /^(!=|<>|>=|<=|:=|=>|\|\||&&|<<|>>|<=>|[+\-*/%&|^~<>=!])/,
@@ -1508,8 +1614,8 @@ const DBForge = {
         const table = document.getElementById('browse-table');
         if (!table) return;
         const cookie = document.cookie.split(';').find(c => c.trim().startsWith('dbforge_hide_types='));
-        const hidden = cookie && cookie.trim().split('=')[1] === '1';
-        if (hidden) {
+        const show = cookie && cookie.trim().split('=')[1] === '0';
+        if (!show) {
             table.classList.add('hide-col-types');
             const btn = document.getElementById('toggle-col-types');
             if (btn) btn.classList.add('btn-toggled-off');
@@ -1866,6 +1972,102 @@ const DBForge = {
                     window.location.search = params.toString();
                 }
             }
+
+            // ? → Shortcut overlay (only when not typing in an input)
+            if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                const tag = (e.target.tagName || '').toLowerCase();
+                if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
+                e.preventDefault();
+                this.showShortcutOverlay();
+            }
+
+            // Escape → close shortcut overlay
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('shortcut-overlay');
+                if (overlay) { overlay.remove(); e.preventDefault(); }
+            }
+        });
+    },
+
+    // ── Shortcut Overlay ─────────────────────────────────
+
+    showShortcutOverlay() {
+        if (document.getElementById('shortcut-overlay')) {
+            document.getElementById('shortcut-overlay').remove();
+            return;
+        }
+
+        const shortcuts = [
+            { section: 'General', items: [
+                ['?', 'Show this overlay'],
+                ['Esc', 'Close overlay / cancel edit / dismiss modal'],
+                ['Ctrl + Shift + S', 'Focus SQL editor'],
+            ]},
+            { section: 'SQL Editor', items: [
+                ['Ctrl + Enter', 'Execute query'],
+                ['Tab', 'Insert 4 spaces'],
+                ['Shift + Tab', 'Remove indent'],
+                ['↑ ↓', 'Navigate autocomplete'],
+                ['Tab / Enter', 'Accept autocomplete suggestion'],
+                ['Esc', 'Close autocomplete'],
+            ]},
+            { section: 'Data Browsing', items: [
+                ['Click cell', 'Edit inline'],
+                ['Enter', 'Save cell edit'],
+                ['Tab', 'Save & edit next cell'],
+                ['Esc', 'Cancel cell edit'],
+                ['Ctrl + Enter', 'Save textarea edit'],
+            ]},
+            { section: 'Modals & Forms', items: [
+                ['Enter', 'Confirm / submit'],
+                ['Esc', 'Cancel / close'],
+            ]},
+        ];
+
+        const overlay = document.createElement('div');
+        overlay.id = 'shortcut-overlay';
+        overlay.className = 'shortcut-overlay';
+
+        let html = '<div class="shortcut-box">';
+        html += '<div class="shortcut-header">';
+        html += '<span class="shortcut-title">Keyboard Shortcuts</span>';
+        html += '<button class="shortcut-close" id="shortcut-close">&times;</button>';
+        html += '</div>';
+        html += '<div class="shortcut-body">';
+
+        shortcuts.forEach(group => {
+            html += '<div class="shortcut-section">';
+            html += '<div class="shortcut-section-title">' + group.section + '</div>';
+            group.items.forEach(item => {
+                html += '<div class="shortcut-row">';
+                html += '<span class="shortcut-keys">';
+                item[0].split(' + ').forEach((k, i) => {
+                    if (i > 0) html += ' <span class="shortcut-plus">+</span> ';
+                    // Handle special display for arrow keys etc
+                    if (k === '/' || k === '↑ ↓') {
+                        html += '<kbd>' + k + '</kbd>';
+                    } else {
+                        html += '<kbd>' + k + '</kbd>';
+                    }
+                });
+                html += '</span>';
+                html += '<span class="shortcut-desc">' + item[1] + '</span>';
+                html += '</div>';
+            });
+            html += '</div>';
+        });
+
+        html += '</div>';
+        html += '<div class="shortcut-footer">Press <kbd>?</kbd> or <kbd>Esc</kbd> to close</div>';
+        html += '</div>';
+
+        overlay.innerHTML = html;
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('shortcut-visible'));
+
+        // Close handlers
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay || e.target.id === 'shortcut-close') overlay.remove();
         });
     },
 

@@ -37,9 +37,13 @@
                 <span class="logo-version">v<?= h($appVersion) ?></span>
             </a>
             <div class="header-meta">
-                <span class="header-chip"><?= icon('server', 11) ?> <?= h($serverHost) ?></span>
-                <span class="header-chip"><?= icon('database', 11) ?> MySQL <?= h($serverVersion) ?></span>
-                <span class="header-chip"><?= icon('layers', 11) ?> <?= count($databases) ?> databases</span>
+                <span class="header-chip"><?= icon('server', 11) ?> <?= h($serverHost) ?>:<?= h($config['db']['port'] ?? '3306') ?></span>
+                <span class="header-chip"><?= icon('database', 11) ?> <?= h($serverVersion) ?> · <?= h($charset) ?></span>
+                <span class="header-chip"><?= icon('layers', 11) ?> <?= count($databases) ?> db<?= count($databases) !== 1 ? 's' : '' ?></span>
+                <?php if ($uptime): ?>
+                <span class="header-chip"><?= icon('clock', 11) ?> <?= format_uptime($uptime) ?></span>
+                <?php endif; ?>
+                <span class="header-chip dim"><?= icon('code', 11) ?> PHP <?= PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION ?></span>
             </div>
         </div>
         <div class="header-right">
@@ -79,6 +83,8 @@
                         'browse'    => ['icon' => 'table', 'label' => 'Browse'],
                         'structure' => ['icon' => 'columns', 'label' => 'Structure'],
                         'sql'       => ['icon' => 'terminal', 'label' => 'SQL'],
+                        'search'    => ['icon' => 'search', 'label' => 'Search'],
+                        'er'        => ['icon' => 'share', 'label' => 'ER Diagram'],
                         'info'      => ['icon' => 'info', 'label' => 'Info'],
                         'export'    => ['icon' => 'download', 'label' => 'Export'],
                         'import'    => ['icon' => 'upload', 'label' => 'Import'],
@@ -88,6 +94,8 @@
 
                         // Structure + Info require a table
                         if (in_array($tabId, ['structure', 'info']) && !$currentTable) continue;
+                        // Search + ER require a database
+                        if (in_array($tabId, ['search', 'er']) && !$currentDb) continue;
 
                         if ($tabId === 'sql') {
                             $href = $currentDb ? "?db=" . urlencode($currentDb) . "&tab=sql" : "?tab=sql";
@@ -95,19 +103,23 @@
                             $href = "?tab={$tabId}";
                             if ($currentDb) $href .= "&db=" . urlencode($currentDb);
                             if ($currentTable) $href .= "&table=" . urlencode($currentTable);
+                        } elseif ($tabId === 'search') {
+                            $href = "?db=" . urlencode($currentDb) . "&tab=search";
+                        } elseif ($tabId === 'er') {
+                            $href = "?db=" . urlencode($currentDb) . "&tab=er";
                         } else {
                             $href = "?db=" . urlencode($currentDb ?? '') . "&table=" . urlencode($currentTable ?? '') . "&tab={$tabId}";
                         }
                     ?>
-                    <a href="<?= $href ?>" class="tab-btn <?= $isActive ? 'active' : '' ?>">
+                    <a href="<?= $href ?>" class="tab-btn <?= $isActive ? 'active' : '' ?>" data-tab="<?= $tabId ?>">
                         <?= icon($tab['icon'], 14) ?>
                         <?= $tab['label'] ?>
                     </a>
                     <?php endforeach; ?>
-                    <a href="?tab=server" class="tab-btn <?= $activeTab === 'server' ? 'active' : '' ?>">
+                    <a href="?tab=server" class="tab-btn <?= $activeTab === 'server' ? 'active' : '' ?>" data-tab="server">
                         <?= icon('server', 14) ?> Server
                     </a>
-                    <a href="?tab=settings" class="tab-btn <?= $activeTab === 'settings' ? 'active' : '' ?>">
+                    <a href="?tab=settings" class="tab-btn <?= $activeTab === 'settings' ? 'active' : '' ?>" data-tab="settings">
                         <?= icon('settings', 14) ?> Settings
                     </a>
                 </div>

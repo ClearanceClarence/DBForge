@@ -222,6 +222,7 @@ class Database
             'page'       => $page,
             'per_page'   => $perPage,
             'total_pages' => (int) ceil($total / $perPage),
+            'sql'        => $sql,
         ];
     }
 
@@ -393,6 +394,36 @@ class Database
     }
 
     /**
+     * Rename a table
+     */
+    public function renameTable(string $database, string $oldName, string $newName): bool
+    {
+        $pdo = $this->connect($database);
+        $pdo->exec('RENAME TABLE `' . $this->escapeIdentifier($oldName) . '` TO `' . $this->escapeIdentifier($newName) . '`');
+        return true;
+    }
+
+    /**
+     * Copy a table (structure only or with data)
+     */
+    public function copyTable(string $database, string $source, string $destination, bool $withData = true): bool
+    {
+        $pdo = $this->connect($database);
+        $srcSafe = '`' . $this->escapeIdentifier($source) . '`';
+        $dstSafe = '`' . $this->escapeIdentifier($destination) . '`';
+
+        // Create structure
+        $pdo->exec("CREATE TABLE {$dstSafe} LIKE {$srcSafe}");
+
+        // Copy data if requested
+        if ($withData) {
+            $pdo->exec("INSERT INTO {$dstSafe} SELECT * FROM {$srcSafe}");
+        }
+
+        return true;
+    }
+
+    /**
      * Create a new database
      */
     public function createDatabase(string $name, string $charset = 'utf8mb4', string $collation = 'utf8mb4_general_ci'): bool
@@ -418,6 +449,97 @@ class Database
     private function escapeIdentifier(string $identifier): string
     {
         return str_replace('`', '``', $identifier);
+    }
+
+    /**
+     * Search for a value across all tables in a database.
+     * Returns matches grouped by table.
+     */
+    public function searchAcrossTables(string $database, string $searchTerm, int $maxPerTable = 5): array
+    {
+        $pdo = $this->connect($database);
+        $tables = $this->getTables($database);
+        $results = [];
+        $tablesSearched = 0;
+        $totalMatches = 0;
+
+        foreach ($tables as $table) {
+            $tableName = $table['Name'];
+            $columns = $this->getColumns($database, $tableName);
+
+            // Build searchable columns (skip BLOB/BINARY)
+            $searchCols = [];
+            foreach ($columns as $col) {
+                $type = strtolower($col['Type']);
+                if (preg_match('/blob|binary|geometry|point|linestring|polygon/i', $type)) continue;
+                $searchCols[] = $col['Field'];
+            }
+            if (empty($searchCols)) continue;
+
+            // Build WHERE clause
+            $whereParts = [];
+            $params = [];
+            foreach ($searchCols as $i => $colName) {
+                $paramKey = 's' . $i;
+                $whereParts[] = '`' . $this->escapeIdentifier($colName) . '` LIKE :' . $paramKey;
+                $params[$paramKey] = '%' . $searchTerm . '%';
+            }
+
+            $sql = 'SELECT * FROM `' . $this->escapeIdentifier($tableName) . '` WHERE '
+                . implode(' OR ', $whereParts) . ' LIMIT ' . ($maxPerTable + 1);
+
+            $tablesSearched++;
+
+            try {
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
+                $rows = $stmt->fetchAll();
+
+                if (empty($rows)) continue;
+
+                $hasMore = count($rows) > $maxPerTable;
+                if ($hasMore) $rows = array_slice($rows, 0, $maxPerTable);
+
+                // Find which columns matched
+                $matchedCols = [];
+                foreach ($rows as $row) {
+                    foreach ($searchCols as $colName) {
+                        $val = $row[$colName] ?? '';
+                        if ($val !== null && stripos((string)$val, $searchTerm) !== false) {
+                            $matchedCols[$colName] = true;
+                        }
+                    }
+                }
+
+                // Get PK column
+                $pkCol = null;
+                foreach ($columns as $col) {
+                    if ($col['Key'] === 'PRI') { $pkCol = $col['Field']; break; }
+                }
+
+                $totalMatches += count($rows);
+                $results[] = [
+                    'table'       => $tableName,
+                    'columns'     => array_keys($matchedCols),
+                    'pk'          => $pkCol,
+                    'rows'        => $rows,
+                    'has_more'    => $hasMore,
+                    'match_count' => count($rows),
+                ];
+
+            } catch (\PDOException $e) {
+                // Skip tables that error (e.g. views with missing deps)
+                continue;
+            }
+        }
+
+        return [
+            'results'         => $results,
+            'tables_searched' => $tablesSearched,
+            'tables_matched'  => count($results),
+            'total_matches'   => $totalMatches,
+            'search_term'     => $searchTerm,
+        ];
     }
 
     /**

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg" alt="DBForge" width="40">
+  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/main/assets/logo.svg" alt="DBForge" width="40">
 </p>
 
 # Changelog
@@ -8,46 +8,94 @@ All notable changes to [DBForge](https://github.com/ClearanceClarence/DBForge) a
 
 ---
 
+## [1.4.0] — 2026-04-15
+
+> Query history, search across tables, ER diagram, table operations, keyboard overlay, expanded tokenizer, and a full UI refresh.
+
+### Query History
+- **Session-stored history** — every query executed from the SQL tab is recorded with SQL text, target database, execution time, row count, success/error status, and timestamp. Capped at `max_query_history` (default 50).
+- **Syntax-highlighted entries** — each history item runs through the tokenizer so keywords, tables, and functions are colored.
+- **Click to load** — click any entry to paste the SQL into the editor with highlighting applied.
+- **Delete individual items** — × button on hover removes a single entry with fade-out animation via AJAX.
+- **Search/filter** — text input in the header filters entries in real-time by SQL content.
+- **Clear all** — trash button with confirmation modal wipes the session history.
+- **Duplicate suppression** — re-running the same query updates the existing entry instead of creating a duplicate.
+
+### Search Across Tables
+- **Global search** — new Search tab (purple, appears when a database is selected). Enter any value and it scans every table in the database.
+- **Smart column selection** — searches all VARCHAR, TEXT, CHAR, INT, DECIMAL, DATE, ENUM, and SET columns. Skips BLOB and BINARY.
+- **Results by table** — each matching table shown as a card with table name, matched column badges, row count, and a Browse link.
+- **Inline highlighting** — search term highlighted in purple within every matching cell.
+- **"View all" links** — tables with 5+ matches link to the Browse tab with the search filter pre-filled.
+- **Loading state** — animated sliding progress bar while scanning.
+
+### ER Diagram
+- **Interactive SVG** — new ER Diagram tab (gold, appears when a database is selected). Renders every table with columns, PK/FK badges, types, and row counts.
+- **FK relationships** — orthogonal (right-angle) lines from FK column to referenced PK column. Edge slot offsets prevent overlap when multiple lines leave the same side.
+- **Drag tables** — click and drag any table to reposition. Lines redraw in real time.
+- **Pan and zoom** — scroll wheel zooms centered on cursor. Click empty space to pan. `+`/`−` buttons and zoom percentage display.
+- **Force-directed auto-layout** — "Auto Layout" button runs 300 iterations of a physics simulation: repulsion between all tables, attraction along FK edges, gravity toward center, cooling, damping, and overlap resolution. Connected tables cluster together.
+- **Hover highlighting** — hover a table to brighten its FK lines and dim all others.
+- **Fit to view** — auto-fits all tables into the viewport. Runs on initial load.
+- **Double-click navigation** — double-click a table to open its Structure tab.
+- **Dot-grid background** — theme-aware canvas with dot pattern.
+
+### Table Operations
+- **Rename table** — pencil button on each table row in the database overview. Modal with current name and new name input. Runs `RENAME TABLE` via AJAX.
+- **Copy table** — copy button with modal. Radio toggle for "Structure + Data" or "Structure only". Runs `CREATE TABLE LIKE` + optional `INSERT SELECT`.
+- **Drop table** — red trash button with danger confirmation modal showing table name and exact row count.
+- All operations are CSRF-protected, read-only aware, and activity-logged.
+
+### Keyboard Shortcut Overlay
+- Press `?` anywhere (except in inputs) to open a two-column modal listing all keyboard shortcuts.
+- Grouped by: General, SQL Editor, Data Browsing, Modals & Forms.
+- Press `?` again or `Esc` to close. Click backdrop to dismiss.
+
+### SQL Tokenizer
+- **Expanded from ~120 to 612 tokens** — keywords (286), functions (266), types (46), constants (14).
+- Covers: MySQL/MariaDB DDL, DML, DCL, transactions, window functions, JSON functions (full set), spatial functions, regex functions, replication keywords, partition syntax, LOAD DATA INFILE, prepared statements, event scheduler, and more.
+
+### UI Polish
+- **Browse query bar** — shows the exact SQL being executed with syntax highlighting via the JS tokenizer. "Edit" link opens it in the SQL tab with auto-execute.
+- **Zebra striping** — alternating row backgrounds on all data tables. Theme-configurable via `--row-odd` and `--row-even` CSS variables. Added to all 10 themes.
+- **Tab redesign** — clean pill-style tabs with per-category colors: green (data), amber (SQL), purple (search), gold (ER), blue (IO), gray (system). No borders.
+- **Empty table state** — large icon, title, description, and "Insert first row" button. Search filter shows matched term with "Clear filter" button.
+- **Column headers** — removed forced `text-transform: uppercase`. Names display as stored in the database.
+- **Column types hidden by default** — Types toggle button shows them on demand. Cookie-persisted.
+- **Header chips** — now show host:port, server version + charset, database count, uptime, and PHP version.
+- **Structure tab** — added Collation column between Extra and Comment.
+
+---
+
 ## [1.3.0] — 2026-04-15
 
 > Import system, create table UI, insert row form, font control, sidebar improvements.
 
 ### Import System
-- **SQL import** — Upload `.sql` files and execute every statement sequentially. Custom parser splits on `;` while respecting quoted strings, `--` comments, and `/* */` blocks. Results show success/error counts, rows affected, and timing per statement. Failed statements listed in a collapsible detail section.
-- **CSV import** — Upload `.csv` into any existing table. Configurable delimiter (comma, semicolon, tab, pipe), enclosure character, and header row toggle. Columns matched by header name. Empty strings and `NULL` auto-convert to null.
-- **Import target mode** — Radio selector: "Into existing database" (dropdown) or "New database from file" (for full dumps with `CREATE DATABASE`). SQL import works without any database pre-selected.
-- **Drag-and-drop** — All file upload zones support click-to-browse and drag-and-drop with visual hover feedback.
-- **Dynamic table loader** — CSV import has its own database dropdown that loads tables via AJAX when changed.
+- **SQL import** — upload `.sql` files with custom statement parser respecting strings and comments. "Into existing database" or "New database from file" target modes.
+- **CSV import** — upload into any table with configurable delimiter, enclosure, header toggle. Dynamic AJAX table loader.
+- **Drag-and-drop** — all file upload zones support click-to-browse and drag-and-drop.
 
 ### Create & Drop
-- **Create table** — Visual form: table name, engine (InnoDB/MyISAM/MEMORY/ARCHIVE), collation, comment. Dynamic column rows with name, type (searchable datalist, 35+ types), nullable, default, PK, AI, unique, index. Live syntax-highlighted SQL preview. AI auto-checks PK and unchecks nullable. First column pre-filled as `id INT UNSIGNED`.
-- **Create database** — Form with name, charset, collation. Available on home page and via sidebar "+" button (modal on any page). Name validated to `[a-zA-Z0-9_-]`.
-- **Drop database** — Per-row trash button on the home page. System databases protected. Confirmation modal.
+- **Create table** — visual form with dynamic columns, type datalist, PK/AI/UQ/IDX checkboxes, live SQL preview.
+- **Create database** — form with name, charset, collation. Sidebar "+" modal on any page.
+- **Drop database** — per-row trash button. System databases protected.
 
 ### Insert Row
-- **Auto-generated form** — Click "Insert Row" on any table. Inputs adapt to column types: `number` for INT, `date` for DATE, `datetime-local` for DATETIME, `textarea` for TEXT/JSON, `select` for ENUM. 
-- **Auto-increment skip** — AI columns disabled by default with "Manual" override checkbox.
-- **NULL support** — Checkbox per nullable column, checked by default when no default value exists.
-- **Batch entry** — "Insert another" keeps the form open, clears fields, focuses first input after each insert.
+- **Auto-generated form** — inputs adapt to column types. AI skip with manual override. NULL checkboxes. "Insert another" batch mode.
 
 ### Fonts
-- **5 font zones** — General UI, Headings, Sidebar, Table Data, SQL/Code — each independently configurable in Settings.
-- **28 curated fonts** — 16 sans-serif (DM Sans, Inter, Poppins, Work Sans, IBM Plex Sans, Outfit, Sora, etc.) + 12 monospace (JetBrains Mono, Fira Code, Source Code Pro, IBM Plex Mono, etc.) + system fallbacks.
-- **Live preview** — Each zone shows a preview panel that updates as you select.
-- **Google Fonts auto-loading** — Selected fonts loaded on demand, no manual setup.
-- **CSS variables** — `--font-body`, `--font-heading`, `--font-sidebar`, `--font-data`, `--font-mono`.
+- **5 font zones** — General UI, Headings, Sidebar, Table Data, SQL/Code. 28 curated fonts with live preview. Google Fonts auto-loading.
 
 ### Sidebar
-- **Collapsible toggle** — Chevron on expanded database toggles the table list via JS without page reload. Click the database name to navigate, click the chevron to collapse.
-- **Spacing control** — Gear icon reveals Compact / Normal / Expanded modes. Compact hides icons and tightens padding. Cookie-persisted.
-- **Hide row counts** — Toggle checkbox hides the numbers next to table names.
+- **Collapsible toggle** — chevron collapses table list via JS without page reload.
+- **Spacing control** — Compact/Normal/Expanded modes. Hide row counts toggle. Cookie-persisted.
 
-### Editor & UI
-- **Auto-sizing inline editor** — Cells with >60 chars or newlines open a resizable textarea (60–300px). `Ctrl+Enter` saves, plain `Enter` inserts newlines.
-- **Project logo** — SVG "square brackets + database cylinder" mark. Used in header, login, installer, README.
-- **Export without database** — Export tab shows all databases with sizes and download buttons when no database is selected.
-- **Context-aware tabs** — Structure and Info only appear when a table is selected. No more empty-parameter URL duplicates.
-- **Tab routing fix** — Empty `db`/`table` params normalized to null.
+### Other
+- Auto-sizing inline editor for large text cells.
+- Project logo (8E square brackets + cylinder).
+- Export works without database selected.
+- Context-aware tabs. Tab routing normalization.
 
 ---
 
@@ -56,46 +104,22 @@ All notable changes to [DBForge](https://github.com/ClearanceClarence/DBForge) a
 > Production security, installer, settings, structure editor, FK visualization, icons, modals.
 
 ### Security — 11-Step Chain
-1. **Security headers** — X-Content-Type-Options, X-Frame-Options, XSS Protection, HSTS, Permissions-Policy.
-2. **HTTPS enforcement** — Optional 301 redirect.
-3. **IP whitelist** — CIDR support, blocks before page load.
-4. **Session hardening** — httponly + secure + samesite cookies, periodic ID regeneration, idle timeout.
-5. **Authentication** — Themed login page, multi-user, bcrypt password hashing.
-6. **Brute force protection** — IP-based lockout after configurable failed attempts.
-7. **CSRF tokens** — On all POST forms and AJAX requests.
-8. **Read-only mode** — Blocks INSERT, UPDATE, DELETE, DROP, ALTER at both UI and API level.
-9. **Hidden databases** — Filtered from sidebar, autocomplete, and direct URL access.
-10. **Query audit logging** — Timestamp, username, database, IP, duration per query.
-11. **`.htaccess` rules** — Blocks config.php, includes/, logs/, hidden files. Disables directory listing.
+1. Security headers  2. HTTPS enforcement  3. IP whitelist  4. Session hardening  5. Authentication (bcrypt)  6. Brute force protection  7. CSRF tokens  8. Read-only mode  9. Hidden databases  10. Query audit logging  11. `.htaccess` rules
 
 ### Installer & Settings
-- **First-run wizard** — 3 steps: test database connection → create admin account (bcrypt, min 6 chars, weak password rejection) → writes `config.php`. No default credentials ever exist.
-- **Settings page** — Full config editor: database connection, default theme, rows per page, all auth toggles, user management (add/remove/change passwords), IP whitelist, hidden databases. All changes write to `config.php`.
+- 3-step first-run wizard. Full settings page writing to `config.php`.
 
 ### Structure Editor
-- **Inline column editing** — Pencil icon → edit name, type (searchable datalist), nullable, default, extra, comment. Save runs `ALTER TABLE ... CHANGE`.
-- **Add/drop columns** — Add with position control (FIRST / AFTER / end). Drop with confirmation modal.
-- **AUTO_INCREMENT** — Shows current next-ID with Set (custom value) and Reset (MAX+1) buttons.
-- **FK visualization** — Gold/blue left borders on PK/FK rows. Clickable FK badges linking to referenced tables. Dedicated Foreign Keys and Referenced By tables with ON DELETE/ON UPDATE color-coded badges.
-- **Syntax-highlighted CREATE** — `SHOW CREATE TABLE` output tokenized with the same engine as the SQL editor.
+- Inline column editing. Add/drop columns. AUTO_INCREMENT controls. FK visualization with color-coded badges. Syntax-highlighted CREATE statement.
 
 ### Browse & Data
-- **Bulk selection** — Checkbox column with select-all (indeterminate state). Bulk action bar with "Delete Selected". Single `DELETE ... WHERE IN (?)` query.
-- **Column type toggle** — Button to hide/show type labels under column headers. Cookie-persisted.
+- Bulk selection and delete. Column type toggle.
 
 ### Redesigned Pages
-- **Home page** — Server overview dashboard with all databases in a table: table count, rows, data/index/total size, collation, per-row actions.
-- **Info page** — Header card with key stats, grouped sections (Properties, Storage, Timestamps), prominent Danger Zone with exact row counts.
-- **Server page** — Grouped sections: MySQL Server, Performance, PHP Environment.
-- **Export page** — Cards with row counts, size estimates, filename on download buttons. Per-table export list.
+- Home (server overview), Info (grouped sections + danger zone), Server (performance stats), Export (cards with sizes).
 
 ### Icons & Modals
-- **30+ inline SVG icons** — Lucide-style, via `icon()` PHP helper. Used everywhere. No CDN.
-- **Custom modal dialogs** — `DBForge.confirm()` / `DBForge.alert()` replace all native browser dialogs. Themed, animated, keyboard-navigable, backdrop blur.
-
-### Changed
-- Config generated by installer, not shipped as a file.
-- Auth always enabled for new installs.
+- 30+ inline SVG icons. Custom `DBForge.confirm()` / `DBForge.alert()` replacing native dialogs.
 
 ---
 
@@ -103,31 +127,9 @@ All notable changes to [DBForge](https://github.com/ClearanceClarence/DBForge) a
 
 > Initial release. Core database management tool.
 
-### SQL Editor
-- Custom tokenizer with 12 token types (keyword, function, type, table, string, number, comment, operator, identifier, backtick, variable, constant).
-- Transparent textarea overlay for real-time syntax highlighting.
-- Context-aware autocomplete: tables after `FROM`, scoped columns after `WHERE`, dot-notation alias resolution.
-- Two-pass table/alias recognition across entire queries.
-- Line numbers, auto-closing brackets/quotes, Tab indent/dedent.
-- `Ctrl+Enter` execute, `Ctrl+Shift+S` focus editor.
-
-### Data Browsing
-- Paginated data grid with search, sort by column, type-aware cell styling.
-- Inline cell editing with AJAX saves, NULL support, Enter/Tab/Escape shortcuts.
-
-### Database Management
-- Structure tab with column definitions and index viewer.
-- Info tab with table metadata.
-- Export as SQL (CREATE + INSERT) or CSV. Full database dump.
-- Server info with MySQL version, uptime, connections, PHP environment.
+- SQL editor with custom tokenizer, context-aware autocomplete, two-pass alias tracking.
+- Paginated data grid with inline cell editing, search, sort.
+- Structure tab, Info tab, Export (SQL/CSV), Server info.
+- 10 built-in themes with cookie persistence.
 - Database sidebar with exact `COUNT(*)` row counts.
-
-### Theming
-- 10 built-in themes: 5 light (Clean, Forge, Sand, Lavender, Solarized Light) + 5 dark (Dark Industrial, Midnight Teal, Carbon, Nord, Solarized Dark).
-- Theme auto-discovery from `themes/` directory.
-- Cookie-persisted theme selection.
-
-### Architecture
-- Pure PHP + vanilla JS. Zero external dependencies.
-- Drop-in install on XAMPP / WAMP / MAMP / Laragon.
-- PDO prepared statements throughout. `htmlspecialchars()` on all output.
+- Pure PHP + vanilla JS. Zero external dependencies. Drop-in install.

@@ -11,6 +11,8 @@
     --bg-hover:       #122030;
     --bg-active:      #0c2028;
     --bg-selected:    #0e1e2e;
+    --row-odd:        transparent;
+    --row-even:       rgba(255, 255, 255, 0.015);
 
     --border:         #162636;
     --border-light:   #1e3040;
