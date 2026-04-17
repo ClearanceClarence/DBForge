@@ -798,3 +798,397 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<?php
+// ── Partitions & Information panels ──
+$tableStatus = null;
+$partitions = [];
+$panelError = null;
+try {
+    $tableStatus = $dbInstance->getTableStatus($currentDb, $currentTable);
+    $partitions = $dbInstance->getPartitions($currentDb, $currentTable);
+} catch (Exception $e) {
+    $panelError = $e->getMessage();
+}
+?>
+
+<?php if ($panelError): ?>
+<div class="error-box" style="margin-top:24px;">
+    <strong>Could not load table info:</strong> <?= h($panelError) ?>
+</div>
+<?php endif; ?>
+
+<?php if ($tableStatus): ?>
+
+<!-- ── Partitions Panel ── -->
+<div class="panel-section" style="margin-top:24px;">
+    <div class="panel-section-header">
+        <?= icon('layers', 14) ?> Partitions
+    </div>
+    <div class="panel-section-body">
+        <?php if (empty($partitions)): ?>
+        <div class="panel-empty">
+            <?= icon('alert-triangle', 14) ?>
+            <span>No partitioning defined.</span>
+        </div>
+        <?php else: ?>
+        <table class="data-table" style="margin:0;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Method</th>
+                    <th>Expression</th>
+                    <th>Description</th>
+                    <th class="cell-number">Rows</th>
+                    <th>Data</th>
+                    <th>Index</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($partitions as $p): ?>
+                <tr>
+                    <td><?= (int)$p['PARTITION_ORDINAL_POSITION'] ?></td>
+                    <td style="color:var(--warning);font-family:var(--font-mono);"><?= h($p['PARTITION_NAME']) ?></td>
+                    <td style="color:var(--purple);font-family:var(--font-mono);"><?= h($p['PARTITION_METHOD'] ?? '—') ?></td>
+                    <td style="color:var(--text-secondary);font-family:var(--font-mono);"><?= h($p['PARTITION_EXPRESSION'] ?? '—') ?></td>
+                    <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:var(--font-size-xs);"><?= h($p['PARTITION_DESCRIPTION'] ?? '—') ?></td>
+                    <td class="cell-number"><?= format_number((int)($p['TABLE_ROWS'] ?? 0)) ?></td>
+                    <td style="color:var(--text-secondary);"><?= format_bytes((int)($p['DATA_LENGTH'] ?? 0)) ?></td>
+                    <td style="color:var(--text-secondary);"><?= format_bytes((int)($p['INDEX_LENGTH'] ?? 0)) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- ── Information Panels ── -->
+<?php
+$dataLen   = (int)($tableStatus['Data_length'] ?? 0);
+$indexLen  = (int)($tableStatus['Index_length'] ?? 0);
+$overhead  = (int)($tableStatus['Data_free'] ?? 0);
+$effective = $dataLen + $indexLen;
+$total     = $effective + $overhead;
+
+$fmtDate = function ($d) {
+    if (!$d) return '—';
+    $t = strtotime($d);
+    return $t ? date('M d, Y \a\t h:i A', $t) : $d;
+};
+?>
+
+<div class="info-grid-pair" style="margin-top:16px;">
+    <div class="panel-section">
+        <div class="panel-section-header">
+            <?= icon('database', 14) ?> Space Usage
+        </div>
+        <div class="panel-section-body">
+            <table class="info-kv-table">
+                <tr><td>Data</td><td class="cell-number"><?= format_bytes($dataLen) ?></td></tr>
+                <tr><td>Index</td><td class="cell-number"><?= format_bytes($indexLen) ?></td></tr>
+                <tr>
+                    <td>Overhead</td>
+                    <td class="cell-number" style="<?= $overhead > 0 ? 'color:var(--warning);' : '' ?>">
+                        <?= format_bytes($overhead) ?>
+                    </td>
+                </tr>
+                <tr><td><strong>Effective</strong></td><td class="cell-number"><strong><?= format_bytes($effective) ?></strong></td></tr>
+                <tr><td><strong>Total</strong></td><td class="cell-number"><strong><?= format_bytes($total) ?></strong></td></tr>
+            </table>
+            <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
+                        id="optimize-table-btn"
+                        data-db="<?= h($currentDb) ?>"
+                        data-table="<?= h($currentTable) ?>"
+                        <?= $overhead > 0 ? 'style="color:var(--warning);"' : '' ?>>
+                    <?= icon('zap', 12) ?> Optimize table
+                </button>
+                <?php if ($overhead > 0): ?>
+                <span style="font-size:var(--font-size-xs);color:var(--text-muted);margin-left:8px;">
+                    Reclaim <?= format_bytes($overhead) ?>
+                </span>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="panel-section">
+        <div class="panel-section-header">
+            <?= icon('info', 14) ?> Row Statistics
+        </div>
+        <div class="panel-section-body">
+            <table class="info-kv-table">
+                <tr><td>Format</td><td><?= h(strtolower($tableStatus['Row_format'] ?? '—')) ?></td></tr>
+                <tr><td>Collation</td><td style="font-family:var(--font-mono);font-size:var(--font-size-xs);"><?= h($tableStatus['Collation'] ?? '—') ?></td></tr>
+                <tr><td>Engine</td><td style="color:var(--purple);font-family:var(--font-mono);"><?= h($tableStatus['Engine'] ?? '—') ?></td></tr>
+                <tr><td>Next autoindex</td><td class="cell-number"><?= $tableStatus['Auto_increment'] !== null ? format_number((int)$tableStatus['Auto_increment']) : '—' ?></td></tr>
+                <tr><td>Creation</td><td style="font-size:var(--font-size-xs);"><?= h($fmtDate($tableStatus['Create_time'] ?? null)) ?></td></tr>
+                <tr><td>Last update</td><td style="font-size:var(--font-size-xs);"><?= h($fmtDate($tableStatus['Update_time'] ?? null)) ?></td></tr>
+                <tr><td>Last check</td><td style="font-size:var(--font-size-xs);"><?= h($fmtDate($tableStatus['Check_time'] ?? null)) ?></td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var btn = document.getElementById('optimize-table-btn');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+        var db = btn.dataset.db, table = btn.dataset.table;
+        DBForge.confirm({
+            title: 'Optimize table',
+            message: 'Run OPTIMIZE TABLE on `' + table + '`? This rebuilds the table to reclaim unused space and can take a while on large tables.',
+            confirmText: 'Optimize',
+            cancelText: 'Cancel',
+        }).then(function(ok) {
+            if (!ok) return;
+            btn.disabled = true;
+            btn.textContent = 'Optimizing…';
+            var fd = new FormData();
+            fd.append('action', 'optimize_table');
+            fd.append('db', db);
+            fd.append('table', table);
+            fd.append('_csrf_token', DBForge.getCsrfToken());
+            fetch('ajax.php', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) {
+                        DBForge.setStatus('Error: ' + data.error);
+                        btn.disabled = false;
+                        btn.innerHTML = '<?= str_replace("'", "\\'", icon('zap', 12)) ?> Optimize table';
+                        return;
+                    }
+                    DBForge.setStatus('Table optimized. ' + (data.result || ''));
+                    setTimeout(function() { window.location.reload(); }, 800);
+                });
+        });
+    });
+})();
+</script>
+
+<!-- ── Triggers Panel ── -->
+<?php
+$triggers = [];
+$triggersError = null;
+try {
+    $triggers = $dbInstance->getTriggers($currentDb, $currentTable);
+} catch (Exception $e) {
+    $triggersError = $e->getMessage();
+}
+?>
+
+<div class="panel-section" style="margin-top:16px;" id="triggers-panel" data-db="<?= h($currentDb) ?>" data-table="<?= h($currentTable) ?>">
+    <div class="panel-section-header" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><?= icon('zap', 14) ?> Triggers</span>
+        <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+        <button type="button" class="btn btn-ghost btn-sm" id="trigger-add-btn" style="padding:2px 8px;font-size:var(--font-size-xs);">
+            <?= icon('plus', 12) ?> Add trigger
+        </button>
+        <?php endif; ?>
+    </div>
+    <div class="panel-section-body" style="padding:0;">
+        <?php if ($triggersError): ?>
+        <div class="panel-empty" style="margin:14px 16px;">
+            <?= icon('alert-triangle', 14) ?>
+            <span>Could not load triggers: <?= h($triggersError) ?></span>
+        </div>
+        <?php elseif (empty($triggers)): ?>
+        <div class="panel-empty" style="margin:14px 16px;">
+            <?= icon('info', 14) ?>
+            <span>No triggers defined on this table.</span>
+        </div>
+        <?php else: ?>
+        <div class="trigger-list">
+            <?php foreach ($triggers as $t): ?>
+            <div class="trigger-item" data-name="<?= h($t['name']) ?>" data-timing="<?= h($t['timing']) ?>" data-event="<?= h($t['event']) ?>" data-body="<?= h($t['body']) ?>">
+                <div class="trigger-item-head">
+                    <span class="trigger-badge trigger-timing-<?= strtolower($t['timing']) ?>"><?= h($t['timing']) ?></span>
+                    <span class="trigger-badge trigger-event-<?= strtolower($t['event']) ?>"><?= h($t['event']) ?></span>
+                    <span class="trigger-name"><?= h($t['name']) ?></span>
+                    <span class="trigger-definer"><?= h($t['definer']) ?></span>
+                    <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+                    <div class="trigger-actions">
+                        <button type="button" class="btn btn-ghost btn-sm trigger-edit-btn" title="Edit"><?= icon('edit', 12) ?></button>
+                        <button type="button" class="btn btn-danger btn-sm trigger-drop-btn" title="Drop" style="padding:2px 6px;"><?= icon('trash', 12) ?></button>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <pre class="trigger-body"><?= h($t['body']) ?></pre>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+(function() {
+    var panel = document.getElementById('triggers-panel');
+    if (!panel) return;
+    var db = panel.dataset.db;
+    var table = panel.dataset.table;
+
+    function openTriggerModal(mode, data) {
+        // mode: 'create' or 'edit'
+        DBForge.closeModal();
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'dbforge-modal';
+        overlay.innerHTML =
+            '<div class="modal-box" style="max-width:640px;">' +
+                '<div class="modal-header">' +
+                    '<span class="modal-title">' + (mode === 'create' ? 'Create trigger' : 'Edit trigger') + '</span>' +
+                    '<button class="modal-close" data-action="cancel">&times;</button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="settings-field">' +
+                        '<label class="settings-label">Name</label>' +
+                        '<input type="text" id="trg-name" class="settings-input" placeholder="e.g. tbl_after_insert" style="font-family:var(--font-mono);">' +
+                    '</div>' +
+                    '<div class="ops-grid-2" style="margin-top:10px;">' +
+                        '<div class="settings-field">' +
+                            '<label class="settings-label">Timing</label>' +
+                            '<select id="trg-timing" class="settings-input">' +
+                                '<option value="BEFORE">BEFORE</option>' +
+                                '<option value="AFTER">AFTER</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div class="settings-field">' +
+                            '<label class="settings-label">Event</label>' +
+                            '<select id="trg-event" class="settings-input">' +
+                                '<option value="INSERT">INSERT</option>' +
+                                '<option value="UPDATE">UPDATE</option>' +
+                                '<option value="DELETE">DELETE</option>' +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="settings-field" style="margin-top:10px;">' +
+                        '<label class="settings-label">Body <span style="color:var(--text-muted);font-weight:normal;">(SQL, typically a BEGIN … END block)</span></label>' +
+                        '<textarea id="trg-body" class="settings-textarea" rows="10" style="font-family:var(--font-mono);font-size:var(--font-size-xs);line-height:1.5;" spellcheck="false" placeholder="BEGIN\n    -- Reference new values with NEW.column_name\n    -- Reference old values with OLD.column_name\nEND"></textarea>' +
+                        '<div class="settings-hint">References: <code>NEW.col</code> for new values, <code>OLD.col</code> for old. Wrap multi-statement bodies in <code>BEGIN … END</code>.</div>' +
+                    '</div>' +
+                    '<div id="trg-err" class="error-box" style="margin-top:10px;display:none;font-size:var(--font-size-xs);padding:8px 12px;"></div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button class="btn btn-ghost modal-btn" data-action="cancel">Cancel</button>' +
+                    '<button class="btn btn-primary modal-btn" id="trg-save">' + (mode === 'create' ? 'Create' : 'Save') + '</button>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+        var nameEl = overlay.querySelector('#trg-name');
+        var timingEl = overlay.querySelector('#trg-timing');
+        var eventEl = overlay.querySelector('#trg-event');
+        var bodyEl = overlay.querySelector('#trg-body');
+        var errEl = overlay.querySelector('#trg-err');
+
+        // Attach syntax highlighting
+        if (bodyEl && typeof DBForge !== 'undefined' && DBForge.attachHighlighter) {
+            DBForge.attachHighlighter(bodyEl);
+        }
+
+        if (mode === 'edit' && data) {
+            nameEl.value = data.name;
+            timingEl.value = data.timing;
+            eventEl.value = data.event;
+            bodyEl.value = data.body;
+        } else {
+            bodyEl.value = 'BEGIN\n    \nEND';
+        }
+        nameEl.focus();
+
+        function close() {
+            overlay.classList.remove('modal-visible');
+            setTimeout(function() { overlay.remove(); }, 150);
+        }
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay || (e.target.closest && e.target.closest('[data-action="cancel"]'))) close();
+        });
+
+        overlay.querySelector('#trg-save').addEventListener('click', function() {
+            errEl.style.display = 'none';
+            var name = nameEl.value.trim();
+            var body = bodyEl.value.trim();
+            if (!name || !body) {
+                errEl.textContent = 'Name and body are required.';
+                errEl.style.display = '';
+                return;
+            }
+
+            var fd = new FormData();
+            fd.append('action', mode === 'create' ? 'create_trigger' : 'replace_trigger');
+            fd.append('db', db);
+            fd.append('table', table);
+            fd.append('name', name);
+            fd.append('timing', timingEl.value);
+            fd.append('event', eventEl.value);
+            fd.append('body', body);
+            fd.append('_csrf_token', DBForge.getCsrfToken());
+            if (mode === 'edit') fd.append('orig_name', data.name);
+
+            fetch('ajax.php', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(resp) {
+                    if (resp.error) {
+                        errEl.textContent = resp.error;
+                        errEl.style.display = '';
+                        return;
+                    }
+                    DBForge.setStatus('Trigger ' + (mode === 'create' ? 'created' : 'updated') + '.');
+                    close();
+                    window.location.reload();
+                });
+        });
+    }
+
+    var addBtn = document.getElementById('trigger-add-btn');
+    if (addBtn) addBtn.addEventListener('click', function() { openTriggerModal('create'); });
+
+    panel.querySelectorAll('.trigger-item').forEach(function(item) {
+        var editBtn = item.querySelector('.trigger-edit-btn');
+        var dropBtn = item.querySelector('.trigger-drop-btn');
+
+        if (editBtn) editBtn.addEventListener('click', function() {
+            openTriggerModal('edit', {
+                name:   item.dataset.name,
+                timing: item.dataset.timing,
+                event:  item.dataset.event,
+                body:   item.dataset.body,
+            });
+        });
+
+        if (dropBtn) dropBtn.addEventListener('click', function() {
+            var name = item.dataset.name;
+            DBForge.confirm({
+                title: 'Drop trigger',
+                message: 'Permanently delete trigger `' + name + '`?',
+                confirmText: 'Drop',
+                danger: true,
+            }).then(function(ok) {
+                if (!ok) return;
+                var fd = new FormData();
+                fd.append('action', 'drop_trigger');
+                fd.append('db', db);
+                fd.append('name', name);
+                fd.append('_csrf_token', DBForge.getCsrfToken());
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(resp) {
+                        if (resp.error) { DBForge.setStatus('Error: ' + resp.error); return; }
+                        DBForge.setStatus('Trigger dropped.');
+                        window.location.reload();
+                    });
+            });
+        });
+    });
+})();
+</script>
+
+<?php endif; ?>

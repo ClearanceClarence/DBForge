@@ -74,6 +74,109 @@ class Database
     }
 
     /**
+     * Get all views in a database
+     */
+    public function getViews(string $database): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare('
+            SELECT TABLE_NAME AS name, VIEW_DEFINITION AS definition, DEFINER AS definer,
+                   SECURITY_TYPE AS security, CHECK_OPTION AS check_option
+            FROM information_schema.VIEWS
+            WHERE TABLE_SCHEMA = ?
+            ORDER BY TABLE_NAME
+        ');
+        $stmt->execute([$database]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get a single view's definition
+     */
+    public function getViewDefinition(string $database, string $view): ?string
+    {
+        $pdo = $this->connect($database);
+        $stmt = $pdo->query('SHOW CREATE VIEW `' . $this->escapeIdentifier($view) . '`');
+        $row = $stmt->fetch();
+        return $row['Create View'] ?? null;
+    }
+
+    /**
+     * Create or replace a view
+     */
+    public function createView(string $database, string $name, string $definition, bool $replace = false): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+            throw new \InvalidArgumentException('View name must be alphanumeric + underscores.');
+        }
+        $pdo = $this->connect($database);
+        $prefix = $replace ? 'CREATE OR REPLACE' : 'CREATE';
+        $pdo->exec("{$prefix} VIEW `" . $this->escapeIdentifier($name) . "` AS {$definition}");
+        return true;
+    }
+
+    /**
+     * Drop a view
+     */
+    public function dropView(string $database, string $name): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+            throw new \InvalidArgumentException('Invalid view name.');
+        }
+        $pdo = $this->connect($database);
+        $pdo->exec('DROP VIEW IF EXISTS `' . $this->escapeIdentifier($name) . '`');
+        return true;
+    }
+
+    /**
+     * Get a single table's status row (for Info/Structure panels)
+     */
+    public function getTableStatus(string $database, string $table): ?array
+    {
+        $pdo = $this->connect($database);
+        // SHOW TABLE STATUS LIKE doesn't accept prepared statement placeholders
+        // on some MySQL versions. Escape the identifier into the query.
+        $escaped = str_replace(['\\', "'", '_', '%'], ['\\\\', "\\'", '\\_', '\\%'], $table);
+        $stmt = $pdo->query("SHOW TABLE STATUS LIKE '" . $escaped . "'");
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    /**
+     * Get partitioning info for a table
+     */
+    public function getPartitions(string $database, string $table): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare('
+            SELECT
+                PARTITION_NAME,
+                PARTITION_METHOD,
+                PARTITION_EXPRESSION,
+                PARTITION_DESCRIPTION,
+                TABLE_ROWS,
+                DATA_LENGTH,
+                INDEX_LENGTH,
+                PARTITION_ORDINAL_POSITION
+            FROM information_schema.PARTITIONS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND PARTITION_NAME IS NOT NULL
+            ORDER BY PARTITION_ORDINAL_POSITION
+        ');
+        $stmt->execute([$database, $table]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Run OPTIMIZE TABLE
+     */
+    public function optimizeTable(string $database, string $table): array
+    {
+        $pdo = $this->connect($database);
+        $stmt = $pdo->query('OPTIMIZE TABLE `' . $this->escapeIdentifier($table) . '`');
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Get exact row count for a table (InnoDB estimates are unreliable)
      */
     public function getExactRowCount(string $database, string $table): int
@@ -173,7 +276,7 @@ class Database
     /**
      * Browse rows with pagination
      */
-    public function browseTable(string $database, string $table, int $page = 1, int $perPage = 50, ?string $orderBy = null, string $orderDir = 'ASC', ?string $search = null): array
+    public function browseTable(string $database, string $table, int $page = 1, int $perPage = 50, ?string $orderBy = null, string $orderDir = 'ASC', ?string $search = null, ?string $fkCol = null, ?string $fkVal = null): array
     {
         $pdo = $this->connect($database);
         $tableSafe = '`' . $this->escapeIdentifier($table) . '`';
@@ -182,9 +285,13 @@ class Database
         $countSql = "SELECT COUNT(*) FROM {$tableSafe}";
         $params = [];
 
-        // Search filter
+        // FK exact-match filter (takes priority over search)
         $whereClauses = [];
-        if ($search) {
+        if ($fkCol !== null && $fkVal !== null) {
+            $whereClauses[] = '`' . $this->escapeIdentifier($fkCol) . '` = :fk_val';
+            $params['fk_val'] = $fkVal;
+        } elseif ($search) {
+            // Search filter
             $columns = $this->getColumns($database, $table);
             foreach ($columns as $col) {
                 $whereClauses[] = '`' . $this->escapeIdentifier($col['Field']) . '` LIKE :search_' . $col['Field'];
@@ -192,8 +299,13 @@ class Database
             }
         }
 
+        $where = '';
         if (!empty($whereClauses)) {
-            $where = ' WHERE ' . implode(' OR ', $whereClauses);
+            if ($fkCol !== null) {
+                $where = ' WHERE ' . implode(' AND ', $whereClauses);
+            } else {
+                $where = ' WHERE ' . implode(' OR ', $whereClauses);
+            }
             $countSql .= $where;
         }
 
@@ -216,13 +328,20 @@ class Database
         $stmt->execute($params);
         $rows = $stmt->fetchAll();
 
+        // Build display SQL with params substituted
+        $displaySql = $sql;
+        foreach ($params as $key => $val) {
+            $quoted = $pdo->quote($val);
+            $displaySql = str_replace(':' . $key, $quoted, $displaySql);
+        }
+
         return [
             'rows'       => $rows,
             'total'      => $total,
             'page'       => $page,
             'per_page'   => $perPage,
             'total_pages' => (int) ceil($total / $perPage),
-            'sql'        => $sql,
+            'sql'        => $displaySql,
         ];
     }
 
@@ -406,11 +525,12 @@ class Database
     /**
      * Copy a table (structure only or with data)
      */
-    public function copyTable(string $database, string $source, string $destination, bool $withData = true): bool
+    public function copyTable(string $database, string $source, string $destination, bool $withData = true, ?string $destDatabase = null): bool
     {
         $pdo = $this->connect($database);
-        $srcSafe = '`' . $this->escapeIdentifier($source) . '`';
-        $dstSafe = '`' . $this->escapeIdentifier($destination) . '`';
+        $srcSafe = '`' . $this->escapeIdentifier($database) . '`.`' . $this->escapeIdentifier($source) . '`';
+        $destDb = $destDatabase ?: $database;
+        $dstSafe = '`' . $this->escapeIdentifier($destDb) . '`.`' . $this->escapeIdentifier($destination) . '`';
 
         // Create structure
         $pdo->exec("CREATE TABLE {$dstSafe} LIKE {$srcSafe}");
@@ -420,6 +540,159 @@ class Database
             $pdo->exec("INSERT INTO {$dstSafe} SELECT * FROM {$srcSafe}");
         }
 
+        return true;
+    }
+
+    /**
+     * Move a table to a different database (RENAME TABLE across databases)
+     */
+    public function moveTableToDatabase(string $sourceDb, string $table, string $targetDb): bool
+    {
+        $pdo = $this->connect();
+        $src = '`' . $this->escapeIdentifier($sourceDb) . '`.`' . $this->escapeIdentifier($table) . '`';
+        $dst = '`' . $this->escapeIdentifier($targetDb) . '`.`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("RENAME TABLE {$src} TO {$dst}");
+        return true;
+    }
+
+    /**
+     * Alter table options (engine, collation, row_format, comment)
+     */
+    public function alterTableOptions(string $database, string $table, array $options): bool
+    {
+        $parts = [];
+        if (!empty($options['engine'])) {
+            $parts[] = 'ENGINE = ' . preg_replace('/[^a-zA-Z0-9_]/', '', $options['engine']);
+        }
+        if (!empty($options['collation'])) {
+            $coll = preg_replace('/[^a-zA-Z0-9_]/', '', $options['collation']);
+            // Derive charset from collation (charset is everything before the first underscore)
+            $charset = explode('_', $coll)[0];
+            $parts[] = "CONVERT TO CHARACTER SET {$charset} COLLATE {$coll}";
+        }
+        if (!empty($options['row_format'])) {
+            $parts[] = 'ROW_FORMAT = ' . preg_replace('/[^a-zA-Z0-9_]/', '', $options['row_format']);
+        }
+        if (array_key_exists('comment', $options)) {
+            $pdo = $this->connect($database);
+            $parts[] = 'COMMENT = ' . $pdo->quote($options['comment']);
+        }
+        if (empty($parts)) return false;
+
+        $pdo = $this->connect($database);
+        $tableSafe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$tableSafe} " . implode(', ', $parts));
+        return true;
+    }
+
+    public function analyzeTable(string $database, string $table): array
+    {
+        $pdo = $this->connect($database);
+        $stmt = $pdo->query('ANALYZE TABLE `' . $this->escapeIdentifier($table) . '`');
+        return $stmt->fetchAll();
+    }
+
+    public function checkTable(string $database, string $table): array
+    {
+        $pdo = $this->connect($database);
+        $stmt = $pdo->query('CHECK TABLE `' . $this->escapeIdentifier($table) . '`');
+        return $stmt->fetchAll();
+    }
+
+    public function repairTable(string $database, string $table): array
+    {
+        $pdo = $this->connect($database);
+        $stmt = $pdo->query('REPAIR TABLE `' . $this->escapeIdentifier($table) . '`');
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Get available storage engines
+     */
+    public function getEngines(): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->query('SHOW ENGINES');
+        $rows = $stmt->fetchAll();
+        $engines = [];
+        foreach ($rows as $row) {
+            if (($row['Support'] ?? '') === 'YES' || ($row['Support'] ?? '') === 'DEFAULT') {
+                $engines[] = $row['Engine'];
+            }
+        }
+        return $engines;
+    }
+
+    /**
+     * Get available collations
+     */
+    public function getCollations(): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->query('SHOW COLLATION');
+        $rows = $stmt->fetchAll();
+        return array_map(fn($r) => $r['Collation'], $rows);
+    }
+
+    /**
+     * Get all triggers defined on a table
+     */
+    public function getTriggers(string $database, string $table): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare('
+            SELECT
+                TRIGGER_NAME       AS name,
+                ACTION_TIMING      AS timing,
+                EVENT_MANIPULATION AS event,
+                ACTION_STATEMENT   AS body,
+                ACTION_ORIENTATION AS orientation,
+                DEFINER            AS definer,
+                CREATED            AS created
+            FROM information_schema.TRIGGERS
+            WHERE EVENT_OBJECT_SCHEMA = ?
+              AND EVENT_OBJECT_TABLE = ?
+            ORDER BY ACTION_TIMING, EVENT_MANIPULATION, TRIGGER_NAME
+        ');
+        $stmt->execute([$database, $table]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Create a trigger
+     */
+    public function createTrigger(
+        string $database,
+        string $name,
+        string $timing,
+        string $event,
+        string $table,
+        string $body
+    ): bool {
+        $timing = strtoupper($timing);
+        $event  = strtoupper($event);
+        if (!in_array($timing, ['BEFORE', 'AFTER']))              throw new InvalidArgumentException('Invalid timing.');
+        if (!in_array($event, ['INSERT', 'UPDATE', 'DELETE']))    throw new InvalidArgumentException('Invalid event.');
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name))              throw new InvalidArgumentException('Trigger name must be alphanumeric + underscores.');
+
+        $pdo = $this->connect($database);
+        $nameSafe  = '`' . $this->escapeIdentifier($name) . '`';
+        $tableSafe = '`' . $this->escapeIdentifier($table) . '`';
+        $sql = "CREATE TRIGGER {$nameSafe} {$timing} {$event} ON {$tableSafe} FOR EACH ROW {$body}";
+        $pdo->exec($sql);
+        return true;
+    }
+
+    /**
+     * Drop a trigger
+     */
+    public function dropTrigger(string $database, string $name): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+            throw new InvalidArgumentException('Invalid trigger name.');
+        }
+        $pdo = $this->connect($database);
+        $pdo->exec('DROP TRIGGER IF EXISTS `' . $this->escapeIdentifier($name) . '`');
         return true;
     }
 

@@ -1,0 +1,39 @@
+/* Dracula — https://draculatheme.com */
+:root {
+    --bg-root: #282a36; --bg-panel: #21222c; --bg-panel-alt: #2d2f3d;
+    --bg-input: #1e1f29; --bg-hover: #343746; --bg-active: #2d3350;
+    --bg-selected: #2d3350; --bg-sidebar: #21222c;
+    --row-odd: transparent; --row-even: rgba(255,255,255,0.02);
+    --border: #343746; --border-light: #3e4152; --border-focus: #bd93f9;
+    --text-primary: #f8f8f2; --text-secondary: #bfbfbf; --text-muted: #6272a4;
+    --text-inverse: #282a36;
+    --accent: #bd93f9; --accent-dim: #6a5acd; --accent-bg: rgba(189,147,249,0.1);
+    --warning: #ffb86c; --warning-bg: rgba(255,184,108,0.1);
+    --info: #8be9fd; --info-bg: rgba(139,233,253,0.1);
+    --purple: #bd93f9; --purple-bg: rgba(189,147,249,0.1);
+    --danger: #ff5555; --danger-bg: rgba(255,85,85,0.1);
+    --gold: #f1fa8c; --gold-bg: rgba(241,250,140,0.1);
+    --font-heading: var(--font-body); --font-size-xxl: 1.35rem;
+    --scrollbar-track: #1e1f29; --scrollbar-thumb: #454858;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.4); --shadow-md: 0 4px 12px rgba(0,0,0,0.5); --shadow-lg: 0 8px 24px rgba(0,0,0,0.6);
+}
+.logo-text { color: var(--accent); }
+.btn-primary { background: rgba(189,147,249,0.15); border-color: #6a5acd; color: #bd93f9; }
+.btn-primary:hover { background: rgba(189,147,249,0.25); }
+.btn-danger { background: #ff5555; border-color: #ff5555; color: #f8f8f2; }
+.btn-danger:hover { background: #ff3333; }
+.cell-number { color: #bd93f9; } .cell-date { color: #8be9fd; } .cell-primary { color: #f1fa8c; }
+.fk-link { color: #8be9fd; } .fk-link:hover { color: #50fa7b; }
+.sql-keyword { color: #ff79c6; font-weight: 600; } .sql-function { color: #8be9fd; }
+.sql-type { color: #ffb86c; font-style: italic; } .sql-string { color: #f1fa8c; }
+.sql-number { color: #bd93f9; } .sql-comment { color: #6272a4; font-style: italic; }
+.sql-operator { color: #ff79c6; } .sql-punctuation { color: #bfbfbf; }
+.sql-identifier { color: #f8f8f2; } .sql-backtick { color: #50fa7b; background: rgba(80,250,123,0.08); }
+.sql-variable { color: #ffb86c; font-style: italic; } .sql-constant { color: #bd93f9; font-weight: 600; }
+.sql-table { color: #50fa7b; text-decoration: underline; text-decoration-color: rgba(80,250,123,0.3); text-underline-offset: 2px; }
+.data-table th { background: #2d2f3d; } .data-table td { border-color: #343746; }
+.editor-line-numbers { background: #2d2f3d; border-right-color: #343746; color: #6272a4; }
+.editor-footer { background: #2d2f3d; border-color: #343746; }
+.editor-hint kbd { background: #1e1f29; border-color: #343746; color: #6272a4; }
+.settings-input, .settings-textarea { background: #1e1f29; border-color: #343746; color: #f8f8f2; }
+.modal-box { background: #21222c; border-color: #343746; }

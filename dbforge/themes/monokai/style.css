@@ -1,0 +1,36 @@
+/* Monokai Pro inspired */
+:root {
+    --bg-root: #2d2a2e; --bg-panel: #353236; --bg-panel-alt: #3a373e;
+    --bg-input: #272428; --bg-hover: #403d42; --bg-active: #3d3a40;
+    --bg-selected: #49464d; --bg-sidebar: #2d2a2e;
+    --row-odd: transparent; --row-even: rgba(255,255,255,0.02);
+    --border: #4a474e; --border-light: #565358; --border-focus: #a9dc76;
+    --text-primary: #fcfcfa; --text-secondary: #c1c0c0; --text-muted: #727072;
+    --text-inverse: #2d2a2e;
+    --accent: #a9dc76; --accent-dim: #6a9040; --accent-bg: rgba(169,220,118,0.1);
+    --warning: #fc9867; --warning-bg: rgba(252,152,103,0.1);
+    --info: #78dce8; --info-bg: rgba(120,220,232,0.1);
+    --purple: #ab9df2; --purple-bg: rgba(171,157,242,0.1);
+    --danger: #ff6188; --danger-bg: rgba(255,97,136,0.1);
+    --gold: #ffd866; --gold-bg: rgba(255,216,102,0.1);
+    --font-heading: var(--font-body); --font-size-xxl: 1.35rem;
+    --scrollbar-track: #272428; --scrollbar-thumb: #565358;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.4); --shadow-md: 0 4px 12px rgba(0,0,0,0.5); --shadow-lg: 0 8px 24px rgba(0,0,0,0.6);
+}
+.logo-text { color: var(--accent); }
+.btn-primary { background: rgba(169,220,118,0.15); border-color: #6a9040; color: #a9dc76; }
+.btn-primary:hover { background: rgba(169,220,118,0.25); }
+.btn-danger { background: #ff6188; border-color: #ff6188; color: #fcfcfa; }
+.btn-danger:hover { background: #ff4070; }
+.cell-number { color: #ab9df2; } .cell-date { color: #78dce8; } .cell-primary { color: #ffd866; }
+.fk-link { color: #78dce8; } .fk-link:hover { color: #a9dc76; }
+.sql-keyword { color: #ff6188; font-weight: 600; } .sql-function { color: #78dce8; }
+.sql-type { color: #fc9867; font-style: italic; } .sql-string { color: #ffd866; }
+.sql-number { color: #ab9df2; } .sql-comment { color: #727072; font-style: italic; }
+.sql-operator { color: #ff6188; } .sql-punctuation { color: #c1c0c0; }
+.sql-identifier { color: #fcfcfa; } .sql-backtick { color: #a9dc76; background: rgba(169,220,118,0.08); }
+.sql-variable { color: #fc9867; font-style: italic; } .sql-constant { color: #ab9df2; font-weight: 600; }
+.sql-table { color: #ffd866; text-decoration: underline; text-decoration-color: rgba(255,216,102,0.3); text-underline-offset: 2px; }
+.data-table th { background: #3a373e; } .editor-line-numbers { background: #3a373e; color: #727072; }
+.settings-input, .settings-textarea { background: #272428; border-color: #4a474e; color: #fcfcfa; }
+.modal-box { background: #353236; border-color: #4a474e; }

@@ -1,0 +1,35 @@
+/* Gruvbox Light */
+:root {
+    --bg-root: #fbf1c7; --bg-panel: #f9f5d7; --bg-panel-alt: #f2e5bc;
+    --bg-input: #fbf1c7; --bg-hover: #ebdbb2; --bg-active: #d5c4a1;
+    --bg-selected: #d5c4a1; --bg-sidebar: #f2e5bc;
+    --row-odd: transparent; --row-even: rgba(0,0,0,0.02);
+    --border: #d5c4a1; --border-light: #bdae93; --border-focus: #79740e;
+    --text-primary: #3c3836; --text-secondary: #504945; --text-muted: #928374;
+    --text-inverse: #fbf1c7;
+    --accent: #79740e; --accent-dim: #b8bb26; --accent-bg: rgba(121,116,14,0.08);
+    --warning: #d65d0e; --warning-bg: #fef3c7; --info: #076678; --info-bg: #d5e8f0;
+    --purple: #8f3f71; --purple-bg: #f3e0ef; --danger: #cc241d; --danger-bg: #fde8e8;
+    --gold: #b57614; --gold-bg: #fef3c7;
+    --font-heading: var(--font-body); --font-size-xxl: 1.35rem;
+    --scrollbar-track: #f2e5bc; --scrollbar-thumb: #bdae93;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.06); --shadow-md: 0 4px 12px rgba(0,0,0,0.08); --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+}
+.logo-text { color: #79740e; }
+.btn-primary { background: #79740e; border-color: #79740e; color: #fbf1c7; }
+.btn-primary:hover { background: #5d5a0a; }
+.btn-danger { background: #cc241d; border-color: #cc241d; color: #fbf1c7; }
+.btn-danger:hover { background: #9d0006; }
+.cell-number { color: #8f3f71; } .cell-date { color: #076678; } .cell-primary { color: #b57614; }
+.fk-link { color: #076678; } .fk-link:hover { color: #79740e; }
+.sql-keyword { color: #cc241d; font-weight: 600; } .sql-function { color: #076678; }
+.sql-type { color: #b57614; font-style: italic; } .sql-string { color: #79740e; }
+.sql-number { color: #8f3f71; } .sql-comment { color: #928374; font-style: italic; }
+.sql-operator { color: #d65d0e; } .sql-punctuation { color: #504945; }
+.sql-identifier { color: #3c3836; } .sql-backtick { color: #427b58; background: rgba(66,123,88,0.06); }
+.sql-variable { color: #d65d0e; font-style: italic; } .sql-constant { color: #8f3f71; font-weight: 600; }
+.sql-table { color: #b57614; text-decoration: underline; text-decoration-color: rgba(181,118,20,0.25); text-underline-offset: 2px; }
+.data-table th { background: #f2e5bc; border-bottom: 2px solid #d5c4a1; }
+.settings-input, .settings-textarea { background: #fbf1c7; border-color: #d5c4a1; color: #3c3836; }
+.modal-box { background: #f9f5d7; border-color: #d5c4a1; }
+.error-box { background: #fde8e8; border-color: #f5b4b1; color: #9d0006; }

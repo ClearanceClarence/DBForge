@@ -24,8 +24,14 @@ $values = [
     'admin_user'    => $_POST['admin_user'] ?? '',
     'admin_pass'    => $_POST['admin_pass'] ?? '',
     'admin_pass2'   => $_POST['admin_pass2'] ?? '',
-    'hide_system'   => $_POST['hide_system'] ?? '1',
-    'force_https'   => $_POST['force_https'] ?? '0',
+    // Checkboxes: present in POST = checked. On step 3 submit, absence means unchecked.
+    // Default to checked on first render only ($_SERVER['REQUEST_METHOD'] !== 'POST').
+    'hide_system'   => $_SERVER['REQUEST_METHOD'] === 'POST'
+                        ? (isset($_POST['hide_system']) ? '1' : '0')
+                        : '1',
+    'force_https'   => $_SERVER['REQUEST_METHOD'] === 'POST'
+                        ? (isset($_POST['force_https']) ? '1' : '0')
+                        : '0',
 ];
 
 // ── Step 2: Validate DB connection ──

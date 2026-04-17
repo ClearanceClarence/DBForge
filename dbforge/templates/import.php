@@ -114,7 +114,7 @@ if ($currentDb) {
 ?>
 
 <!-- Header -->
-<div class="info-header">
+<div class="info-header info-header-red">
     <div class="info-header-left">
         <div class="info-header-icon"><?= icon('upload', 24) ?></div>
         <div>
@@ -307,6 +307,21 @@ if ($currentDb) {
             </div>
             <div class="import-file-name" id="sql-file-name"></div>
 
+            <!-- Preview panel -->
+            <div class="sql-preview" id="sql-preview" style="display:none;">
+                <div class="sql-preview-header">
+                    <span class="sql-preview-title"><?= icon('terminal', 13) ?> Preview</span>
+                    <div class="sql-preview-meta">
+                        <span id="sql-preview-lines">0 lines</span>
+                        <span id="sql-preview-stmts">· 0 statements</span>
+                        <button type="button" class="sql-preview-toggle" id="sql-preview-toggle" title="Toggle preview">
+                            <?= icon('chevron-down', 13) ?>
+                        </button>
+                    </div>
+                </div>
+                <pre class="sql-preview-body" id="sql-preview-body"></pre>
+            </div>
+
             <div class="import-form-footer">
                 <div class="import-target">
                     <?= icon('upload', 13) ?>
@@ -427,6 +442,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 nameEl.textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
                 nameEl.style.display = 'block';
                 zone.classList.add('import-upload-has-file');
+
+                // Preview for SQL files
+                if (type === 'sql') {
+                    renderSqlPreview(f);
+                }
             }
         });
 
@@ -441,6 +461,66 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // ── SQL Preview ──
+    function renderSqlPreview(file) {
+        var panel = document.getElementById('sql-preview');
+        var body = document.getElementById('sql-preview-body');
+        var linesEl = document.getElementById('sql-preview-lines');
+        var stmtsEl = document.getElementById('sql-preview-stmts');
+        if (!panel || !body) return;
+
+        var MAX_BYTES = 256 * 1024; // 256 KB read cap
+        var truncated = file.size > MAX_BYTES;
+        var slice = truncated ? file.slice(0, MAX_BYTES) : file;
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var text = e.target.result;
+            if (truncated) text += '\n\n-- … file truncated for preview (showing first 256 KB of ' +
+                (file.size / 1024).toFixed(1) + ' KB) …';
+
+            var lines = text.split('\n').length;
+            // Rough statement count — split on `;` outside strings
+            var stmtCount = 0;
+            var inStr = false, strCh = '';
+            for (var i = 0; i < text.length; i++) {
+                var c = text[i];
+                if (inStr) {
+                    if (c === '\\') { i++; continue; }
+                    if (c === strCh) inStr = false;
+                } else {
+                    if (c === "'" || c === '"' || c === '`') { inStr = true; strCh = c; }
+                    else if (c === ';') stmtCount++;
+                }
+            }
+
+            linesEl.textContent = lines.toLocaleString() + ' lines';
+            stmtsEl.textContent = '· ' + stmtCount.toLocaleString() + ' statement' + (stmtCount === 1 ? '' : 's');
+
+            // Syntax highlight via DBForge tokenizer
+            if (typeof DBForge !== 'undefined' && DBForge.tokenize) {
+                var tokens = DBForge.tokenize(text);
+                body.innerHTML = DBForge.renderTokens(tokens);
+            } else {
+                body.textContent = text;
+            }
+
+            panel.style.display = '';
+        };
+        reader.readAsText(slice);
+    }
+
+    // Toggle collapse
+    var toggleBtn = document.getElementById('sql-preview-toggle');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            var body = document.getElementById('sql-preview-body');
+            var collapsed = body.style.display === 'none';
+            body.style.display = collapsed ? '' : 'none';
+            toggleBtn.style.transform = collapsed ? '' : 'rotate(-90deg)';
+        });
+    }
 });
 
 // ── Load tables when CSV database changes ──

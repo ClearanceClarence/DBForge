@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.4.0-4ade80?style=flat-square" alt="Version 1.4.0">
+  <img src="https://img.shields.io/badge/Version-1.5.0--alpha-4ade80?style=flat-square" alt="Version 1.5.0-alpha">
   <img src="https://img.shields.io/badge/PHP-7.4+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP">
   <img src="https://img.shields.io/badge/MySQL-5.7+-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL">
   <img src="https://img.shields.io/badge/MariaDB-10.3+-003545?style=flat-square&logo=mariadb&logoColor=white" alt="MariaDB">
@@ -30,10 +30,11 @@
   <a href="#-data-browsing--editing">Browse & Edit</a> · 
   <a href="#-search-across-tables">Search</a> · 
   <a href="#-er-diagram">ER Diagram</a> · 
+  <a href="#-views--triggers">Views & Triggers</a> · 
   <a href="#-query-history">History</a> · 
   <a href="#-table-management">Tables</a> · 
   <a href="#-import--export">Import/Export</a> · 
-  <a href="#-security">Security</a> · 
+  <a href="#-security--2fa">Security & 2FA</a> · 
   <a href="#-theming--fonts">Themes</a> · 
   <a href="CHANGELOG.md">Changelog</a>
 </p>
@@ -49,16 +50,18 @@ DBForge is a ground-up replacement that keeps the one thing phpMyAdmin gets righ
 | | phpMyAdmin | DBForge |
 |:-|:-----------|:--------|
 | **Install** | Download, extract, edit `config.inc.php`, set blowfish secret | Drop folder → open browser → 3-step visual wizard |
-| **SQL Editor** | Textarea with syntax coloring | Custom tokenizer (612 tokens), context-aware autocomplete, alias tracking across JOINs |
+| **SQL Editor** | Textarea with syntax coloring | Custom tokenizer (612 tokens), context-aware autocomplete, EXPLAIN visualizer |
 | **Edit Data** | Click Edit → full page form → submit → redirect back | Click any cell → type → Enter. AJAX save. Page never reloads |
-| **Bulk Delete** | Select rows one by one, confirm each | Checkbox select-all → "Delete Selected" → single `WHERE IN` query |
+| **FK Navigation** | Manual: note the ID, switch tables, search | Click FK value → jump to referenced row. Automatic linking |
+| **Views** | Basic listing | Full CRUD with syntax-highlighted definitions, sidebar integration |
+| **Triggers** | Basic listing | Create, edit (drop+recreate with rollback), drop. Color-coded badges |
 | **Search** | Search within one table at a time | Search across every table in the database simultaneously |
 | **ER Diagram** | Not available | Interactive SVG with drag, zoom, force-directed auto-layout, hover highlighting |
-| **Query History** | Not available | Session-stored with syntax highlighting, search, click to re-run, delete individual entries |
-| **Table Ops** | Scattered across Operations, Structure, and SQL tabs | Rename, copy, drop from one row. Create Table with live SQL preview |
-| **Import** | Standard form | Drag-and-drop SQL/CSV, "Into existing DB" or "New DB from file" target mode |
-| **Auth** | HTTP Basic or cookie-based with manual config | Bcrypt passwords, brute force lockout, CSRF on every request, IP whitelist |
-| **Themes** | 3 color schemes | 10 polished themes (5 light, 5 dark) + custom theme API + per-zone font control |
+| **Query History** | Not available | Session-stored with syntax highlighting, search, click to re-run, persistent drafts |
+| **Table Ops** | Scattered across Operations, Structure, and SQL tabs | Dedicated Operations tab + overview row actions. Favorites system |
+| **Import** | Standard form | Drag-and-drop SQL/CSV with syntax-highlighted preview |
+| **Auth** | HTTP Basic or cookie-based with manual config | Bcrypt + optional TOTP 2FA, brute force lockout, CSRF, IP whitelist |
+| **Themes** | 3 color schemes | 20 polished themes (10 light, 10 dark) + custom theme API + per-zone font control |
 | **Dependencies** | Requires Composer on v5.2+ | Zero. Pure PHP + vanilla JS. Entire codebase is in the repo |
 
 ---
@@ -118,6 +121,8 @@ The system uses a two-pass approach: first pass extracts all table references an
 - Auto-closing for quotes (`'`, `"`), backticks, and parentheses
 - Query results displayed inline: SELECT results as a data table, write operations as "N rows affected"
 - Error display with MySQL error code
+- **EXPLAIN button** — one-click query plan analysis. Results rendered in a dedicated panel with color-coded access types (green: const/eq_ref, blue: ref/range, amber: index, red: ALL), warning badges on Extra notes (filesort, temporary), row count highlighting, and a legend. Works on selected text or the full editor content
+- **Persistent drafts** — editor content auto-saves to `sessionStorage` per database. Navigate away and come back — your query is still there. Cleared after successful execution
 
 ---
 
@@ -131,7 +136,11 @@ Select a table and you see a paginated data grid with:
 - Type-aware cell styling: NULL values dimmed, numbers right-aligned, dates formatted, hashes truncated
 - Search bar that filters across all columns with `LIKE '%term%'`
 - Pagination controls with page numbers and row counts
-- A **syntax-highlighted query bar** showing the exact SQL being executed (`SELECT * FROM table ORDER BY id ASC LIMIT 50 OFFSET 0`) with an "Edit" link that opens it in the SQL tab
+- A **syntax-highlighted query bar** showing the exact SQL being executed with an "Edit" link that opens it in the SQL tab
+- **FK drill-down** — columns with foreign keys display values as clickable links. Click to jump to the referenced row in the target table with an exact-match filter. A blue banner shows the active filter with a "Clear" button
+- **Row detail panel** — click the eye button (👁) on any row to open a slide-out panel showing every column vertically with full untruncated values, column types, PK/FK badges, and FK drill-down links
+- **Sidebar table filter** — type `/` or use the filter input to search tables by name with match highlighting
+- **Favorites** — star tables from the sidebar, browse toolbar, or All Tables overview. Starred tables appear in a dedicated section at the top of the sidebar
 
 ### Inline Editing
 
@@ -235,6 +244,29 @@ Result: connected tables cluster together, unconnected tables spread to the peri
 ### Hover Highlighting
 
 Hover any table and its FK relationship lines brighten to full opacity with thicker stroke. All unrelated lines dim to near-invisible. Instantly trace which tables are connected without reading SQL.
+
+---
+
+## 👁 Views & Triggers
+
+### Views
+
+Views are listed alongside tables in the sidebar with a purple eye icon, and in a dedicated "Views" panel on the database overview page.
+
+- **List** — each view shows its name, definer, and syntax-highlighted SQL definition
+- **Create** — modal with name field and definition textarea (with live syntax highlighting). Validates and runs `CREATE VIEW`
+- **Edit** — fetches current definition via `SHOW CREATE VIEW`, extracts the SELECT body, pre-fills the modal. Saves with `CREATE OR REPLACE VIEW`
+- **Drop** — danger-styled confirm modal, `DROP VIEW IF EXISTS`
+- **Browse** — click a view name to browse its data just like a table
+
+### Triggers
+
+Triggers are managed from the Structure tab in a dedicated panel at the bottom.
+
+- **List** — each trigger shows timing badge (BEFORE = blue, AFTER = green), event badge (INSERT = green, UPDATE = amber, DELETE = red), name, definer, and syntax-highlighted body
+- **Create** — modal with name, timing dropdown, event dropdown, and body textarea with live syntax highlighting. Pre-filled with `BEGIN … END` skeleton
+- **Edit** — MySQL has no `ALTER TRIGGER`, so edit performs drop-then-recreate. If the new `CREATE` fails, the original trigger is restored from a pre-drop snapshot
+- **Drop** — danger-styled confirm modal
 
 ---
 
@@ -350,9 +382,9 @@ All file uploads support **drag-and-drop** with visual hover feedback.
 
 ---
 
-## 🔒 Security
+## 🔒 Security & 2FA
 
-Not bolted on. DBForge ships with an 11-step security chain — all opt-in so local dev stays frictionless, but production stays locked down.
+Not bolted on. DBForge ships with a 12-step security chain — all opt-in so local dev stays frictionless, but production stays locked down.
 
 | # | Layer | What It Does |
 |:--|:------|:-------------|
@@ -361,20 +393,26 @@ Not bolted on. DBForge ships with an 11-step security chain — all opt-in so lo
 | 3 | **IP whitelist** | Block by IP address or CIDR range (`192.168.1.0/24`). Checked before anything else loads |
 | 4 | **Session hardening** | `httponly`, `secure`, `samesite=Lax` cookies. Periodic session ID regeneration. Configurable idle timeout |
 | 5 | **Authentication** | Themed login page, multi-user support, bcrypt (`$2y$10$`) password hashing |
-| 6 | **Brute force protection** | IP-based lockout after N failed attempts (configurable). Lockout duration configurable |
-| 7 | **CSRF tokens** | Generated per session, validated on every POST form and every AJAX request. Meta tag in `<head>` for JS access |
-| 8 | **Read-only mode** | Regex-based detection of write keywords (`INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`, `CREATE`, `GRANT`, `REVOKE`). Blocked at both UI and API level |
-| 9 | **Hidden databases** | Configurable list filtered from sidebar, autocomplete, URL access, and export. Accessing a hidden DB via URL resets to home |
-| 10 | **Query audit logging** | Every query logged to a file with timestamp, username, database, IP address, and execution time |
-| 11 | **`.htaccess` rules** | Blocks direct web access to `config.php`, `includes/`, `logs/`, hidden files. Disables directory listing. Sets security headers at Apache level |
+| 6 | **TOTP Two-Factor Auth** | Optional per-user TOTP (RFC 6238). Enable from Profile → scan QR code with any authenticator app (Google Authenticator, Authy, 1Password). 6-digit verification on login with ±1 time window for clock drift. Disable any time from Profile |
+| 7 | **Brute force protection** | IP-based lockout after N failed attempts (configurable). Lockout duration configurable. Both password and 2FA failures count |
+| 8 | **CSRF tokens** | Generated per session, validated on every POST form and every AJAX request. Meta tag in `<head>` for JS access |
+| 9 | **Read-only mode** | Regex-based detection of write keywords (`INSERT`, `UPDATE`, `DELETE`, `DROP`, `ALTER`, `TRUNCATE`, `CREATE`, `GRANT`, `REVOKE`). Blocked at both UI and API level |
+| 10 | **Hidden databases** | Configurable list filtered from sidebar, autocomplete, URL access, and export. Accessing a hidden DB via URL resets to home |
+| 11 | **Query audit logging** | Every query logged to a file with timestamp, username, database, IP address, and execution time |
+| 12 | **`.htaccess` rules** | Blocks direct web access to `config.php`, `includes/`, `logs/`, hidden files. Disables directory listing. Sets security headers at Apache level |
 
 **First-run installer** means no default `admin/admin` ever exists. Passwords are bcrypt-hashed from the very first login.
 
 ```php
-// Production config
+// Production config with 2FA enabled
 'security' => [
     'require_auth'       => true,
-    'users'              => ['admin' => '$2y$10$...bcrypt_hash...'],
+    'users'              => [
+        'admin' => [
+            'password'    => '$2y$10$...bcrypt_hash...',
+            'totp_secret' => 'BASE32ENCODEDSECRET',  // omit to disable 2FA
+        ],
+    ],
     'force_https'        => true,
     'ip_whitelist'       => ['10.0.0.0/8', '192.168.1.0/24'],
     'hidden_databases'   => ['information_schema', 'performance_schema', 'mysql', 'sys'],
@@ -393,15 +431,20 @@ Not bolted on. DBForge ships with an 11-step security chain — all opt-in so lo
 
 | Light | Dark |
 |:------|:-----|
+| **Atom One Light** — crisp white, vibrant blue/orange/green | **Carbon** — charcoal gray, VS Code blue |
+| **Catppuccin Latte** — warm cream, soft pastel accents | **Catppuccin Mocha** — soothing pastels on warm dark |
 | **Clean** — crisp white, blue accents *(default)* | **Dark Industrial** — deep black, neon green |
-| **Forge** — white, green accents | **Midnight Teal** — ocean blue, teal highlights |
-| **Sand** — warm beige, amber tones | **Carbon** — charcoal gray, VS Code blue |
-| **Lavender** — soft purple, violet accents | **Nord** — arctic blue palette |
-| **Solarized Light** — Ethan Schoonover's classic | **Solarized Dark** — the dark companion |
+| **Forge** — white, green accents | **Dracula** — purple, pink, cyan on charcoal |
+| **GitHub Light** — GitHub's familiar white/blue | **GitHub Dark** — GitHub's dark mode, charcoal/blue/green |
+| **Gruvbox Light** — paper-warm, earthy tones | **Gruvbox Dark** — warm retro browns and oranges |
+| **Lavender** — soft purple, violet accents | **Monokai** — warm yellows/greens on deep black |
+| **Rosé Pine Dawn** — soft blush, muted purples | **Nord Dark** — arctic blue palette |
+| **Sand** — warm beige, amber tones | **Solarized Dark** — Ethan Schoonover's classic |
+| **Solarized Light** — the light companion | **Tokyo Night** — deep blue with neon cyan/purple |
 
-Every theme covers: surfaces, borders, text hierarchy, all SQL token colors (12 types), editor chrome, autocomplete dropdown, inline editing states, scrollbars, badges, modals, cell type variants (null, number, date, hash, primary), form inputs, and zebra striping.
+20 themes total — each covers: surfaces, borders, text hierarchy, all SQL token colors (12 types), editor chrome, autocomplete, inline editing states, scrollbars, badges, modals, cell types, form inputs, buttons, panel sections, EXPLAIN badges, trigger badges, FK links, danger zones, and zebra striping.
 
-Switch themes from the header dropdown — saved to cookie. Takes effect immediately, no page reload.
+Switch themes from the header dropdown — organized into Light and Dark groups, alphabetically sorted. Saved to cookie. Takes effect immediately, no page reload.
 
 ### Font Control
 
@@ -469,7 +512,7 @@ Press `?` anywhere (except when typing in an input) to open the shortcut overlay
 
 ```
 dbforge/
-├── index.php                    # Router + 11-step security chain
+├── index.php                    # Router + 12-step security chain
 ├── config.template.php          # Template for installer
 ├── install.php                  # 3-step first-run wizard
 ├── ajax.php                     # All AJAX endpoints (auth + CSRF protected)
@@ -478,47 +521,73 @@ dbforge/
 │   └── logo.svg                 # Project logo
 ├── includes/
 │   ├── Database.php             # PDO wrapper: browse, query, export, import,
-│   │                            # FK queries, search across tables, table ops
-│   ├── Auth.php                 # Auth, CSRF, IP whitelist, brute force, logging
+│   │                            # FK queries, views, triggers, table ops
+│   ├── Auth.php                 # Auth + TOTP 2FA, CSRF, IP whitelist,
+│   │                            # brute force, logging
+│   ├── TOTP.php                 # Zero-dependency RFC 6238 TOTP implementation
+│   ├── favorites.php            # Per-user table favorites (JSON storage)
 │   ├── helpers.php              # Theme loader, font system, formatters
 │   └── icons.php                # 30+ inline SVG icons + dbforge_logo() helper
 ├── templates/
-│   ├── layout.php               # HTML shell, header, sidebar, tabs, footer
+│   ├── layout.php               # HTML shell, header, sidebar, tabs, footer,
+│   │                            # profile modal (password + 2FA setup)
 │   ├── login.php                # Themed login page
-│   ├── sidebar.php              # DB/table tree with collapse, spacing, counts
+│   ├── login_2fa.php            # TOTP verification page
+│   ├── sidebar.php              # DB/table/view tree with collapse, filter,
+│   │                            # favorites, spacing, counts
 │   ├── browse.php               # Server overview / DB overview / data grid +
+│   │                            # FK drill-down + row detail + views panel +
 │   │                            # inline edit + bulk select + insert row +
 │   │                            # create table + table operations
-│   ├── structure.php            # Editable columns, FK display, CREATE statement
-│   ├── sql.php                  # SQL editor + query history panel
+│   ├── structure.php            # Editable columns, FK display, indexes,
+│   │                            # CREATE statement, partitions, info panels,
+│   │                            # triggers CRUD
+│   ├── sql.php                  # SQL editor + EXPLAIN + query history panel
 │   ├── search.php               # Search across all tables
 │   ├── er.php                   # Interactive ER diagram (SVG + force layout)
-│   ├── info.php                 # Table info with danger zone
+│   ├── operations.php           # Alter, rename, move, copy, maintenance,
+│   │                            # truncate, drop
+│   ├── info.php                 # Table info
 │   ├── export.php               # SQL/CSV export with database picker
-│   ├── import.php               # SQL/CSV import with drag-drop
+│   ├── import.php               # SQL/CSV import with drag-drop + preview
 │   ├── server_info.php          # Server stats
 │   ├── settings.php             # Full settings page + font customization
+│   ├── settings_save.php        # Settings save helper (PRG pattern)
 │   └── connection_error.php     # Error display
 ├── js/
-│   └── dbforge.js               # ~2200 lines: tokenizer (612 tokens),
-│                                # autocomplete, inline edit, bulk select,
-│                                # modals, CSRF, create DB/table, insert row,
-│                                # sidebar settings, shortcut overlay
-├── themes/                      # 10 themes (5 light + 5 dark)
+│   ├── dbforge.js               # ~2500 lines: tokenizer (612 tokens),
+│   │                            # autocomplete, inline edit, bulk select,
+│   │                            # modals, CSRF, favorites, sidebar filter,
+│   │                            # persistent drafts, mini-editor highlighter,
+│   │                            # shortcut overlay
+│   └── qr.js                    # QR code generator (qrcode-generator by
+│                                # Kazuhiko Arase, MIT license)
+├── themes/                      # 20 themes (10 light + 10 dark)
 │   ├── dark-industrial/         # Base theme (all CSS defined here)
-│   ├── midnight-teal/
+│   ├── atom-one-light/
 │   ├── carbon/
-│   ├── nord-dark/
-│   ├── solarized-dark/
+│   ├── catppuccin-latte/
+│   ├── catppuccin-mocha/
+│   ├── dracula/
+│   ├── github-dark/
+│   ├── github-light/
+│   ├── gruvbox-dark/
+│   ├── gruvbox-light/
 │   ├── light-clean/             # Default theme
 │   ├── light-forge/
-│   ├── light-sand/
 │   ├── light-lavender/
-│   └── solarized-light/
-└── logs/                        # Query audit logs (web-blocked)
+│   ├── light-sand/
+│   ├── monokai/
+│   ├── nord-dark/
+│   ├── rose-pine-dawn/
+│   ├── solarized-dark/
+│   ├── solarized-light/
+│   └── tokyo-night/
+└── logs/                        # Query audit logs + favorites (web-blocked)
+    └── favorites.json           # Per-user starred tables
 ```
 
-**Zero external dependencies.** No jQuery, no React, no Vue, no Bootstrap, no Tailwind, no CodeMirror, no Monaco, no D3, no Composer, no npm. Every line of code is in the repo. The entire tool runs offline after the initial Google Fonts load (and even that is optional — it falls back to system fonts).
+**One external library:** [qrcode-generator](https://github.com/nickmillerdev/qrcode-generator) by Kazuhiko Arase (MIT license, 21KB minified) for TOTP 2FA QR codes. Everything else is written from scratch. No jQuery, no React, no Vue, no Bootstrap, no Tailwind, no CodeMirror, no Monaco, no D3, no Composer, no npm. The entire tool runs offline after the initial Google Fonts load (and even that is optional — it falls back to system fonts).
 
 ---
 

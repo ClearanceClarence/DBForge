@@ -3,7 +3,7 @@
 <?php return; endif; ?>
 
 <!-- Header -->
-<div class="info-header">
+<div class="info-header info-header-gold">
     <div class="info-header-left">
         <div class="info-header-icon"><?= icon('share', 24) ?></div>
         <div>

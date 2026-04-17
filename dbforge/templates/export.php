@@ -4,7 +4,7 @@ if (!$currentDb):
 ?>
 
 <!-- Header -->
-<div class="info-header">
+<div class="info-header info-header-amber">
     <div class="info-header-left">
         <div class="info-header-icon"><?= icon('download', 24) ?></div>
         <div>
@@ -91,7 +91,7 @@ try {
 ?>
 
 <!-- Header -->
-<div class="info-header">
+<div class="info-header info-header-amber">
     <div class="info-header-left">
         <div class="info-header-icon"><?= icon('download', 24) ?></div>
         <div>

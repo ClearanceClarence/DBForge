@@ -5,7 +5,7 @@
 <?php $searchTerm = input('q', ''); ?>
 
 <!-- Header -->
-<div class="info-header">
+<div class="info-header info-header-purple">
     <div class="info-header-left">
         <div class="info-header-icon"><?= icon('search', 24) ?></div>
         <div>

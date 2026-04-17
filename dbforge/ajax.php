@@ -16,6 +16,7 @@ require __DIR__ . '/includes/Database.php';
 require __DIR__ . '/includes/helpers.php';
 require __DIR__ . '/includes/icons.php';
 require __DIR__ . '/includes/Auth.php';
+require __DIR__ . '/includes/favorites.php';
 
 // ── Security checks ────────────────────────────────────
 $auth = new Auth($config['security']);
@@ -497,6 +498,7 @@ switch ($action) {
         }
         $source = trim($_POST['source'] ?? '');
         $dest = trim($_POST['destination'] ?? '');
+        $destDb = trim($_POST['dest_db'] ?? '') ?: null;
         $withData = isset($_POST['with_data']);
         if (!$db || !$source || !$dest) {
             echo json_encode(['error' => 'Database, source table, and destination name are required.']);
@@ -507,10 +509,108 @@ switch ($action) {
             break;
         }
         try {
-            $dbInstance->copyTable($db, $source, $dest, $withData);
+            $dbInstance->copyTable($db, $source, $dest, $withData, $destDb);
             $label = $withData ? 'with data' : 'structure only';
-            $auth->logActivity("Copied table: {$db}.{$source} → {$dest} ({$label})");
-            echo json_encode(['success' => true, 'destination' => $dest]);
+            $target = $destDb ? "{$destDb}.{$dest}" : "{$db}.{$dest}";
+            $auth->logActivity("Copied table: {$db}.{$source} → {$target} ({$label})");
+            echo json_encode(['success' => true, 'destination' => $dest, 'dest_db' => $destDb ?: $db]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Move a table to another database (POST, write) ──
+    case 'move_table':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $tableName = trim($_POST['table'] ?? '');
+        $targetDb  = trim($_POST['target_db'] ?? '');
+        if (!$db || !$tableName || !$targetDb) {
+            echo json_encode(['error' => 'Database, table, and target database are required.']);
+            break;
+        }
+        if ($db === $targetDb) {
+            echo json_encode(['error' => 'Target database must differ from source.']);
+            break;
+        }
+        try {
+            $dbInstance->moveTableToDatabase($db, $tableName, $targetDb);
+            $auth->logActivity("Moved table: {$db}.{$tableName} → {$targetDb}.{$tableName}");
+            echo json_encode(['success' => true, 'target_db' => $targetDb]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Alter table options (POST, write) ──
+    case 'alter_table_options':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $tableName = trim($_POST['table'] ?? '');
+        if (!$db || !$tableName) {
+            echo json_encode(['error' => 'Database and table required.']);
+            break;
+        }
+        $options = [];
+        if (!empty($_POST['engine']))     $options['engine']     = $_POST['engine'];
+        if (!empty($_POST['collation']))  $options['collation']  = $_POST['collation'];
+        if (!empty($_POST['row_format'])) $options['row_format'] = $_POST['row_format'];
+        if (isset($_POST['comment']))     $options['comment']    = $_POST['comment'];
+        if (empty($options)) {
+            echo json_encode(['error' => 'No changes to apply.']);
+            break;
+        }
+        try {
+            $dbInstance->alterTableOptions($db, $tableName, $options);
+            $auth->logActivity("Altered table options: {$db}.{$tableName} (" . implode(', ', array_keys($options)) . ')');
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Maintenance operations: analyze / check / repair (POST) ──
+    case 'analyze_table':
+    case 'check_table':
+    case 'repair_table':
+        $tableName = trim($_POST['table'] ?? '');
+        if (!$db || !$tableName) {
+            echo json_encode(['error' => 'Database and table required.']);
+            break;
+        }
+        $method = str_replace('_table', 'Table', $action); // analyzeTable / checkTable / repairTable
+        try {
+            $rows = $dbInstance->$method($db, $tableName);
+            $msg = [];
+            foreach ($rows as $row) {
+                $msg[] = ($row['Msg_type'] ?? '') . ': ' . ($row['Msg_text'] ?? '');
+            }
+            $auth->logActivity(ucfirst(str_replace('_table', '', $action)) . " table: {$db}.{$tableName}");
+            echo json_encode(['success' => true, 'result' => implode("\n", $msg)]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Truncate a table (POST, write) ──
+    case 'truncate_table':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $tableName = trim($_POST['table'] ?? '');
+        if (!$db || !$tableName) {
+            echo json_encode(['error' => 'Database and table required.']);
+            break;
+        }
+        try {
+            $dbInstance->truncateTable($db, $tableName);
+            $auth->logActivity("Truncated table: {$db}.{$tableName}");
+            echo json_encode(['success' => true]);
         } catch (PDOException $e) {
             echo json_encode(['error' => $e->getMessage()]);
         }
@@ -555,6 +655,361 @@ switch ($action) {
         } catch (PDOException $e) {
             echo json_encode(['error' => $e->getMessage()]);
         }
+        break;
+
+    // ── Optimize table (POST, write) ──
+    case 'optimize_table':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $tableName = trim($_POST['table'] ?? '');
+        if (!$db || !$tableName) {
+            echo json_encode(['error' => 'Database and table required.']);
+            break;
+        }
+        try {
+            $result = $dbInstance->optimizeTable($db, $tableName);
+            $auth->logActivity("Optimized table: {$db}.{$tableName}");
+            $msg = '';
+            foreach ($result as $row) {
+                $msg .= ($row['Msg_type'] ?? '') . ': ' . ($row['Msg_text'] ?? '') . "\n";
+            }
+            echo json_encode(['success' => true, 'result' => trim($msg)]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── List views (GET, read-safe) ──
+    case 'get_views':
+        if (!$db) { echo json_encode(['error' => 'Database required.']); break; }
+        try {
+            echo json_encode(['success' => true, 'views' => $dbInstance->getViews($db)]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Get view definition (GET, read-safe) ──
+    case 'get_view_definition':
+        $name = trim($_REQUEST['name'] ?? '');
+        if (!$db || !$name) { echo json_encode(['error' => 'Database and view name required.']); break; }
+        try {
+            $def = $dbInstance->getViewDefinition($db, $name);
+            echo json_encode(['success' => true, 'definition' => $def]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Create/replace view (POST, write) ──
+    case 'create_view':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Read-only mode.']); break; }
+        $name = trim($_POST['name'] ?? '');
+        $definition = trim($_POST['definition'] ?? '');
+        $replace = isset($_POST['replace']);
+        if (!$db || !$name || !$definition) {
+            echo json_encode(['error' => 'Database, name, and definition required.']);
+            break;
+        }
+        try {
+            $dbInstance->createView($db, $name, $definition, $replace);
+            $auth->logActivity(($replace ? 'Replaced' : 'Created') . " view: {$db}.{$name}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Drop view (POST, write) ──
+    case 'drop_view':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Read-only mode.']); break; }
+        $name = trim($_POST['name'] ?? '');
+        if (!$db || !$name) { echo json_encode(['error' => 'Database and name required.']); break; }
+        try {
+            $dbInstance->dropView($db, $name);
+            $auth->logActivity("Dropped view: {$db}.{$name}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── EXPLAIN query (POST, read-safe) ──
+    case 'explain_query':
+        $sql = trim($_POST['sql'] ?? '');
+        if (!$db || !$sql) {
+            echo json_encode(['error' => 'Database and query required.']);
+            break;
+        }
+        // Strip trailing semicolon and any trailing comments
+        $sql = rtrim($sql, "; \t\n\r");
+        // Don't double-prefix
+        if (!preg_match('/^\s*explain\b/i', $sql)) {
+            $sql = 'EXPLAIN ' . $sql;
+        }
+        try {
+            $pdo = $dbInstance->connect($db);
+            $start = microtime(true);
+            $stmt = $pdo->query($sql);
+            $rows = $stmt->fetchAll();
+            $time = round((microtime(true) - $start) * 1000, 2);
+            echo json_encode(['success' => true, 'rows' => $rows, 'time' => $time, 'sql' => $sql]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── List triggers for a table (GET, read-safe) ──
+    case 'get_triggers':
+        $tableName = trim($_REQUEST['table'] ?? '');
+        if (!$db || !$tableName) {
+            echo json_encode(['error' => 'Database and table required.']);
+            break;
+        }
+        try {
+            echo json_encode(['success' => true, 'triggers' => $dbInstance->getTriggers($db, $tableName)]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Create a trigger (POST, write) ──
+    case 'create_trigger':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $name   = trim($_POST['name'] ?? '');
+        $timing = trim($_POST['timing'] ?? '');
+        $event  = trim($_POST['event'] ?? '');
+        $table  = trim($_POST['table'] ?? '');
+        $body   = trim($_POST['body'] ?? '');
+        if (!$db || !$name || !$timing || !$event || !$table || !$body) {
+            echo json_encode(['error' => 'All fields are required.']);
+            break;
+        }
+        try {
+            $dbInstance->createTrigger($db, $name, $timing, $event, $table, $body);
+            $auth->logActivity("Created trigger: {$db}.{$name} ({$timing} {$event} ON {$table})");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Replace a trigger (POST, write) ──
+    // Drop + recreate in one call. Restores original on failure.
+    case 'replace_trigger':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $origName = trim($_POST['orig_name'] ?? '');
+        $name     = trim($_POST['name'] ?? '');
+        $timing   = trim($_POST['timing'] ?? '');
+        $event    = trim($_POST['event'] ?? '');
+        $table    = trim($_POST['table'] ?? '');
+        $body     = trim($_POST['body'] ?? '');
+        if (!$db || !$origName || !$name || !$timing || !$event || !$table || !$body) {
+            echo json_encode(['error' => 'All fields are required.']);
+            break;
+        }
+        // Fetch the old definition for rollback
+        $oldTriggers = $dbInstance->getTriggers($db, $table);
+        $old = null;
+        foreach ($oldTriggers as $t) {
+            if ($t['name'] === $origName) { $old = $t; break; }
+        }
+        if (!$old) {
+            echo json_encode(['error' => "Trigger '{$origName}' not found."]);
+            break;
+        }
+        try {
+            $dbInstance->dropTrigger($db, $origName);
+            try {
+                $dbInstance->createTrigger($db, $name, $timing, $event, $table, $body);
+                $auth->logActivity("Replaced trigger: {$db}.{$origName} → {$name}");
+                echo json_encode(['success' => true]);
+            } catch (Exception $createErr) {
+                // Restore the original
+                try {
+                    $dbInstance->createTrigger($db, $old['name'], $old['timing'], $old['event'], $table, $old['body']);
+                    echo json_encode(['error' => 'Create failed, original restored: ' . $createErr->getMessage()]);
+                } catch (Exception $restoreErr) {
+                    echo json_encode(['error' => 'Create failed AND restore failed. Trigger lost: ' . $createErr->getMessage()]);
+                }
+            }
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Drop a trigger (POST, write) ──
+    case 'drop_trigger':
+        if ($auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        $name = trim($_POST['name'] ?? '');
+        if (!$db || !$name) {
+            echo json_encode(['error' => 'Database and name required.']);
+            break;
+        }
+        try {
+            $dbInstance->dropTrigger($db, $name);
+            $auth->logActivity("Dropped trigger: {$db}.{$name}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // ── Toggle favorite (POST) ──
+    case 'toggle_favorite':
+        $favDb    = trim($_POST['db'] ?? '');
+        $favTable = trim($_POST['table'] ?? '');
+        if (!$favDb || !$favTable) {
+            echo json_encode(['error' => 'Database and table required.']);
+            break;
+        }
+        $username = (isset($auth) && $auth->isLoggedIn()) ? $auth->getUsername() : 'anonymous';
+        $nowFavorited = dbforge_favorites_toggle($username, $favDb, $favTable);
+        echo json_encode([
+            'success'   => true,
+            'favorited' => $nowFavorited,
+            'favorites' => dbforge_favorites_get($username),
+        ]);
+        break;
+
+    // ── 2FA: Generate setup (POST) ──
+    case 'setup_2fa':
+        if (!isset($auth) || !$auth->isLoggedIn()) {
+            echo json_encode(['error' => 'Not authenticated.']);
+            break;
+        }
+        require_once __DIR__ . '/includes/TOTP.php';
+        $secret = DBForgeTOTP::generateSecret();
+        $username = $auth->getUsername();
+        $uri = DBForgeTOTP::getProvisioningUri($username, $secret, $config['app']['name'] ?? 'DBForge');
+        echo json_encode(['success' => true, 'secret' => $secret, 'uri' => $uri]);
+        break;
+
+    // ── 2FA: Confirm and save (POST) ──
+    case 'confirm_2fa':
+        if (!isset($auth) || !$auth->isLoggedIn()) {
+            echo json_encode(['error' => 'Not authenticated.']);
+            break;
+        }
+        $code = trim($_POST['code'] ?? '');
+        $secret = trim($_POST['secret'] ?? '');
+        if (!$code || !$secret) {
+            echo json_encode(['error' => 'Code and secret required.']);
+            break;
+        }
+        require_once __DIR__ . '/includes/TOTP.php';
+        if (!DBForgeTOTP::verify($secret, $code)) {
+            echo json_encode(['error' => 'Invalid code. Make sure your authenticator is synced and try again.']);
+            break;
+        }
+        // Save the secret to config
+        require_once __DIR__ . '/templates/settings_save.php';
+        $username = $auth->getUsername();
+        $newConfig = $config;
+        $currentHash = $auth->getUserPasswordHash($username);
+        $newConfig['security']['users'][$username] = [
+            'password' => $currentHash,
+            'totp_secret' => $secret,
+        ];
+        $written = dbforge_write_config_file(__DIR__ . '/config.php', $newConfig);
+        if (!$written) {
+            echo json_encode(['error' => 'Could not write config.php.']);
+            break;
+        }
+        $auth->logActivity('Enabled 2FA');
+        echo json_encode(['success' => true]);
+        break;
+
+    // ── 2FA: Disable (POST) ──
+    case 'disable_2fa':
+        if (!isset($auth) || !$auth->isLoggedIn()) {
+            echo json_encode(['error' => 'Not authenticated.']);
+            break;
+        }
+        require_once __DIR__ . '/templates/settings_save.php';
+        $username = $auth->getUsername();
+        $newConfig = $config;
+        $currentHash = $auth->getUserPasswordHash($username);
+        // Revert to plain hash string (no totp_secret)
+        $newConfig['security']['users'][$username] = $currentHash;
+        $written = dbforge_write_config_file(__DIR__ . '/config.php', $newConfig);
+        if (!$written) {
+            echo json_encode(['error' => 'Could not write config.php.']);
+            break;
+        }
+        $auth->logActivity('Disabled 2FA');
+        echo json_encode(['success' => true]);
+        break;
+
+    // ── Change current user's password (POST) ──
+    case 'change_password':
+        if (!isset($auth) || !$auth->isLoggedIn()) {
+            echo json_encode(['error' => 'Not authenticated.']);
+            break;
+        }
+        $current = $_POST['current'] ?? '';
+        $new     = $_POST['new'] ?? '';
+        if ($current === '' || $new === '') {
+            echo json_encode(['error' => 'Current and new passwords are required.']);
+            break;
+        }
+        if (strlen($new) < 6) {
+            echo json_encode(['error' => 'New password must be at least 6 characters.']);
+            break;
+        }
+
+        $username = $auth->getUsername();
+        $currentHash = $auth->getUserPasswordHash($username);
+        if ($currentHash === null) {
+            echo json_encode(['error' => 'Current user not found in config.']);
+            break;
+        }
+
+        // Verify current password
+        $ok = false;
+        if (str_starts_with($currentHash, '$2y$') || str_starts_with($currentHash, '$2a$')) {
+            $ok = password_verify($current, $currentHash);
+        } else {
+            $ok = hash_equals($currentHash, $current);
+        }
+        if (!$ok) {
+            echo json_encode(['error' => 'Current password is incorrect.']);
+            break;
+        }
+
+        // Write new hash to config, preserving totp_secret if set
+        require_once __DIR__ . '/templates/settings_save.php';
+        $newConfig = $config;
+        $userData = $config['security']['users'][$username] ?? null;
+        $totpSecret = is_array($userData) ? ($userData['totp_secret'] ?? null) : null;
+        $newHash = password_hash($new, PASSWORD_BCRYPT);
+        if ($totpSecret) {
+            $newConfig['security']['users'][$username] = [
+                'password' => $newHash,
+                'totp_secret' => $totpSecret,
+            ];
+        } else {
+            $newConfig['security']['users'][$username] = $newHash;
+        }
+        $written = dbforge_write_config_file(__DIR__ . '/config.php', $newConfig);
+        if (!$written) {
+            echo json_encode(['error' => 'Could not write config.php. Check file permissions.']);
+            break;
+        }
+
+        $auth->logActivity('Changed own password');
+        echo json_encode(['success' => true]);
         break;
 
     // ── Clear query history (POST) ──

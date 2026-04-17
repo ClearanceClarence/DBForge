@@ -34,6 +34,8 @@ require __DIR__ . '/includes/Database.php';
 require __DIR__ . '/includes/helpers.php';
 require __DIR__ . '/includes/icons.php';
 require __DIR__ . '/includes/Auth.php';
+require __DIR__ . '/includes/favorites.php';
+require __DIR__ . '/includes/TOTP.php';
 
 // ── Security Bootstrap ─────────────────────────────────
 $auth = new Auth($config['security']);
@@ -92,10 +94,33 @@ if ($auth->isAuthRequired()) {
             if ($result === true) {
                 header('Location: ?');
                 exit;
+            } elseif ($result === '2fa_required') {
+                // Fall through — will show 2FA form below
             } else {
                 $loginError = $result;
             }
         }
+    }
+
+    // Handle 2FA verification POST
+    if ($action === 'verify_2fa' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!$auth->validateCsrf()) {
+            $loginError = 'Invalid security token. Please try again.';
+        } else {
+            $result = $auth->verify2fa($_POST['totp_code'] ?? '');
+            if ($result === true) {
+                header('Location: ?');
+                exit;
+            } else {
+                $loginError = $result;
+            }
+        }
+    }
+
+    // If 2FA is pending, show 2FA form
+    if ($auth->is2faPending()) {
+        include __DIR__ . '/templates/login_2fa.php';
+        exit;
     }
 
     // If not logged in, show login page
@@ -143,7 +168,7 @@ $activeTab    = input('tab', 'browse');
 $action       = input('action');
 
 // Reset tabs that require context
-if (!$currentTable && in_array($activeTab, ['structure', 'info'])) {
+if (!$currentTable && in_array($activeTab, ['structure', 'info', 'operations'])) {
     $activeTab = 'browse';
 }
 
@@ -241,6 +266,20 @@ if ($action && $connected) {
 
 // ── Determine Content Template ─────────────────────────
 if ($activeTab === 'settings') {
+    // Process settings POST BEFORE layout renders so we can redirect
+    // and so the rest of this request uses the fresh config.
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_settings_action'] ?? '') === 'save') {
+        require_once __DIR__ . '/templates/settings_save.php';
+        $saveResult = dbforge_save_settings($config, $auth);
+        if ($saveResult['success']) {
+            $_SESSION['settings_msg'] = 'Settings saved successfully.';
+            header('Location: ?tab=settings');
+            exit;
+        }
+        // On error, fall through and render settings.php which picks up $settingsErr
+        $settingsErr = $saveResult['error'] ?? 'Unknown error.';
+        $config = $saveResult['config'] ?? $config; // show what they tried to save
+    }
     $contentTemplate = __DIR__ . '/templates/settings.php';
 } elseif (!$connected) {
     $contentTemplate = __DIR__ . '/templates/connection_error.php';
@@ -250,6 +289,8 @@ if ($activeTab === 'settings') {
     $contentTemplate = __DIR__ . '/templates/sql.php';
 } elseif ($activeTab === 'structure' && $currentTable) {
     $contentTemplate = __DIR__ . '/templates/structure.php';
+} elseif ($activeTab === 'operations' && $currentTable) {
+    $contentTemplate = __DIR__ . '/templates/operations.php';
 } elseif ($activeTab === 'info' && $currentTable) {
     $contentTemplate = __DIR__ . '/templates/info.php';
 } elseif ($activeTab === 'export') {

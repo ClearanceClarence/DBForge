@@ -39,6 +39,9 @@
 
     --scrollbar-track: #f0f0f4;
     --scrollbar-thumb: #c8c8d4;
+    --font-size-xxl:  1.35rem;
+    --bg-sidebar:     var(--bg-panel);
+    --font-heading:   var(--font-body);
 
     --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
     --shadow-md:  0 4px 12px rgba(0,0,0,0.1);

@@ -1,0 +1,72 @@
+/* GitHub Dark — based on GitHub's dark default */
+:root {
+    --bg-root: #0d1117; --bg-panel: #161b22; --bg-panel-alt: #1c2129;
+    --bg-input: #0d1117; --bg-hover: #1f2937; --bg-active: #1a2233;
+    --bg-selected: #1a2233; --bg-sidebar: #161b22;
+    --row-odd: transparent; --row-even: rgba(255,255,255,0.02);
+    --border: #30363d; --border-light: #3d444d; --border-focus: #58a6ff;
+    --text-primary: #e6edf3; --text-secondary: #8b949e; --text-muted: #484f58;
+    --text-inverse: #0d1117;
+    --accent: #58a6ff; --accent-dim: #2d5a8e; --accent-bg: rgba(88,166,255,0.1);
+    --warning: #d29922; --warning-bg: rgba(210,153,34,0.1);
+    --info: #58a6ff; --info-bg: rgba(88,166,255,0.1);
+    --purple: #bc8cff; --purple-bg: rgba(188,140,255,0.1);
+    --danger: #f85149; --danger-bg: rgba(248,81,73,0.1);
+    --gold: #d29922; --gold-bg: rgba(210,153,34,0.1);
+    --font-heading: var(--font-body); --font-size-xxl: 1.35rem;
+    --scrollbar-track: #0d1117; --scrollbar-thumb: #3d444d;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.5); --shadow-md: 0 4px 12px rgba(0,0,0,0.6); --shadow-lg: 0 8px 24px rgba(0,0,0,0.7);
+}
+.logo-text { color: var(--accent); }
+.btn-primary { background: rgba(88,166,255,0.15); border-color: #2d5a8e; color: #58a6ff; }
+.btn-primary:hover { background: rgba(88,166,255,0.25); }
+.btn-danger { background: #f85149; border-color: #f85149; color: #e6edf3; }
+.btn-danger:hover { background: #da3633; box-shadow: 0 2px 8px rgba(248,81,73,0.3); }
+.btn-ghost { border-color: #30363d; color: #8b949e; }
+.btn-ghost:hover { background: rgba(255,255,255,0.04); color: #e6edf3; }
+
+.cell-number { color: #79c0ff; } .cell-date { color: #58a6ff; } .cell-primary { color: #d29922; }
+.fk-link { color: #58a6ff; } .fk-link:hover { color: #3fb950; }
+.fk-icon { color: #d29922; }
+
+/* Syntax — GitHub Dark palette */
+.sql-keyword { color: #ff7b72; font-weight: 600; }
+.sql-function { color: #d2a8ff; }
+.sql-type { color: #ffa657; font-style: italic; }
+.sql-string { color: #a5d6ff; }
+.sql-number { color: #79c0ff; }
+.sql-comment { color: #484f58; font-style: italic; }
+.sql-operator { color: #ff7b72; }
+.sql-punctuation { color: #8b949e; }
+.sql-identifier { color: #e6edf3; }
+.sql-backtick { color: #3fb950; background: rgba(63,185,80,0.08); }
+.sql-variable { color: #ffa657; font-style: italic; }
+.sql-constant { color: #79c0ff; font-weight: 600; }
+.sql-table { color: #3fb950; text-decoration: underline; text-decoration-color: rgba(63,185,80,0.3); text-underline-offset: 2px; }
+
+/* Components */
+.data-table th { background: #1c2129; border-bottom: 2px solid #30363d; }
+.data-table td { border-color: rgba(48,54,61,0.5); }
+.data-table tbody tr:hover { background: #1f2937; }
+.editor-container { border-color: #30363d; }
+.editor-container:focus-within { border-color: #58a6ff; box-shadow: 0 0 0 2px rgba(88,166,255,0.1); }
+.editor-line-numbers { background: #1c2129; border-right-color: #30363d; color: #484f58; }
+.editor-footer { background: #1c2129; border-color: #30363d; }
+.editor-hint kbd { background: #0d1117; border-color: #30363d; color: #8b949e; }
+.settings-input, .settings-textarea { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+.settings-input:focus, .settings-textarea:focus { border-color: #58a6ff; }
+.modal-overlay { background: rgba(0,0,0,0.5); }
+.modal-box { background: #161b22; border-color: #30363d; }
+.error-box { background: rgba(248,81,73,0.1); border-color: rgba(248,81,73,0.3); color: #f85149; }
+.panel-section { border-color: #30363d; }
+.panel-section-header { background: #1c2129; border-color: #30363d; }
+.insert-field-label { background: #1c2129; }
+.sidebar-filter { background: #0d1117; border-color: #30363d; color: #e6edf3; }
+.sidebar-filter:focus { border-color: #58a6ff; box-shadow: 0 0 0 2px rgba(88,166,255,0.1); }
+.sidebar-match { background: rgba(210,153,34,0.2); color: #d29922; }
+.row-detail-panel { background: #161b22; border-color: #30363d; }
+.row-detail-header { background: #1c2129; }
+.search-input { color: #e6edf3; }
+.ac-dropdown { background: #161b22; border-color: #30363d; }
+.ac-item:hover, .ac-item-active { background: #1f2937; }
+.ac-item-active { border-left-color: #58a6ff; }

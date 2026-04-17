@@ -28,7 +28,7 @@ $totalSize = $dataLen + $idxLen;
 ?>
 
 <!-- Header -->
-<div class="info-header">
+<div class="info-header info-header-green">
     <div class="info-header-left">
         <div class="info-header-icon"><?= icon('table', 24) ?></div>
         <div>

@@ -14,7 +14,7 @@ return [
     ],
     'app' => [
         'name'              => 'DBForge',
-        'version'           => '1.4.0',
+        'version'           => '1.5.0-alpha',
         'default_theme'     => 'light-clean',
         'rows_per_page'     => 50,
         'max_query_history'  => 50,

@@ -1,3 +1,9 @@
+<?php
+$favUsername = (isset($auth) && $auth->isLoggedIn()) ? $auth->getUsername() : 'anonymous';
+$favorites = dbforge_favorites_get($favUsername);
+$favSet = [];
+foreach ($favorites as $f) { $favSet[$f['db'] . '.' . $f['table']] = true; }
+?>
 <aside class="sidebar" id="sidebar"
        data-spacing="<?= h($_COOKIE['dbforge_sidebar_spacing'] ?? 'normal') ?>"
        data-hide-counts="<?= h($_COOKIE['dbforge_hide_counts'] ?? '0') ?>">
@@ -31,6 +37,25 @@
     </div>
 
     <div class="sidebar-content">
+        <div class="sidebar-filter-wrap">
+            <input type="text" class="sidebar-filter" id="sidebar-filter" placeholder="Filter tables…" autocomplete="off" spellcheck="false">
+        </div>
+        <?php if (!empty($favorites)): ?>
+        <div class="fav-section">
+            <div class="fav-section-header"><?= icon('star-filled', 11) ?> Favorites</div>
+            <div class="fav-list">
+                <?php foreach ($favorites as $fav): ?>
+                <a href="?db=<?= urlencode($fav['db']) ?>&table=<?= urlencode($fav['table']) ?>&tab=browse"
+                   class="fav-item <?= ($fav['db'] === $currentDb && $fav['table'] === $currentTable) ? 'active' : '' ?>">
+                    <?= icon('star-filled', 11, 'fav-item-star') ?>
+                    <span class="fav-item-table"><?= h($fav['table']) ?></span>
+                    <span class="fav-item-db"><?= h($fav['db']) ?></span>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <?php foreach ($databases as $dbName): ?>
         <?php
             $isExpanded = ($dbName === $currentDb);
@@ -67,18 +92,47 @@
                 <?php foreach ($tables as $tbl): ?>
                 <?php
                     $tblName = $tbl['Name'];
+                    $isFav = isset($favSet[$dbName . '.' . $tblName]);
                     try {
                         $exactCount = $dbInstance->getExactRowCount($dbName, $tblName);
                     } catch (Exception $e) {
                         $exactCount = $tbl['Rows'] ?? 0;
                     }
                 ?>
-                <a href="?db=<?= urlencode($dbName) ?>&table=<?= urlencode($tblName) ?>&tab=browse"
-                   class="table-item <?= $tblName === $currentTable ? 'active' : '' ?>">
-                    <?= icon('table', 13, 'table-icon') ?>
-                    <span class="table-name"><?= h($tblName) ?></span>
-                    <span class="row-count"><?= format_number($exactCount) ?></span>
-                </a>
+                <div class="table-row <?= $tblName === $currentTable ? 'active' : '' ?>">
+                    <a href="?db=<?= urlencode($dbName) ?>&table=<?= urlencode($tblName) ?>&tab=browse" class="table-item">
+                        <?= icon('table', 13, 'table-icon') ?>
+                        <span class="table-name"><?= h($tblName) ?></span>
+                        <span class="row-count"><?= format_number($exactCount) ?></span>
+                    </a>
+                    <button type="button"
+                            class="table-fav-btn <?= $isFav ? 'is-fav' : '' ?>"
+                            data-db="<?= h($dbName) ?>"
+                            data-table="<?= h($tblName) ?>"
+                            title="<?= $isFav ? 'Remove from favorites' : 'Add to favorites' ?>">
+                        <?= icon($isFav ? 'star-filled' : 'star', 12) ?>
+                    </button>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
+            <?php
+                // Views for this database
+                $dbViews = [];
+                if ($isExpanded) {
+                    try { $dbViews = $dbInstance->getViews($dbName); } catch (Exception $e) {}
+                }
+            ?>
+            <?php if (!empty($dbViews)): ?>
+            <div class="table-list views-list">
+                <div class="sidebar-section-label"><?= icon('eye', 10) ?> Views</div>
+                <?php foreach ($dbViews as $v): ?>
+                <div class="table-row view-row <?= $v['name'] === $currentTable ? 'active' : '' ?>">
+                    <a href="?db=<?= urlencode($dbName) ?>&table=<?= urlencode($v['name']) ?>&tab=browse" class="table-item">
+                        <?= icon('eye', 13, 'view-icon') ?>
+                        <span class="table-name"><?= h($v['name']) ?></span>
+                    </a>
+                </div>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>

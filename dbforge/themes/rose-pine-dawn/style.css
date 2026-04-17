@@ -1,0 +1,35 @@
+/* Rosé Pine Dawn */
+:root {
+    --bg-root: #faf4ed; --bg-panel: #fffaf3; --bg-panel-alt: #f2e9e1;
+    --bg-input: #faf4ed; --bg-hover: #f2e9de; --bg-active: #eaddd5;
+    --bg-selected: #eaddd5; --bg-sidebar: #f2e9e1;
+    --row-odd: transparent; --row-even: rgba(0,0,0,0.015);
+    --border: #dfdad9; --border-light: #cecacd; --border-focus: #907aa9;
+    --text-primary: #575279; --text-secondary: #797593; --text-muted: #9893a5;
+    --text-inverse: #faf4ed;
+    --accent: #907aa9; --accent-dim: #c4b5d4; --accent-bg: rgba(144,122,169,0.08);
+    --warning: #ea9d34; --warning-bg: #fef5e0; --info: #286983; --info-bg: #d8eef5;
+    --purple: #907aa9; --purple-bg: #f0e6f6; --danger: #b4637a; --danger-bg: #fae4ea;
+    --gold: #ea9d34; --gold-bg: #fef5e0;
+    --font-heading: var(--font-body); --font-size-xxl: 1.35rem;
+    --scrollbar-track: #f2e9e1; --scrollbar-thumb: #cecacd;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04); --shadow-md: 0 4px 12px rgba(0,0,0,0.06); --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+}
+.logo-text { color: var(--accent); }
+.btn-primary { background: #907aa9; border-color: #907aa9; color: #faf4ed; }
+.btn-primary:hover { background: #7d6895; }
+.btn-danger { background: #b4637a; border-color: #b4637a; color: #faf4ed; }
+.btn-danger:hover { background: #9c5068; }
+.cell-number { color: #d7827e; } .cell-date { color: #286983; } .cell-primary { color: #ea9d34; }
+.fk-link { color: #286983; } .fk-link:hover { color: #907aa9; }
+.sql-keyword { color: #907aa9; font-weight: 600; } .sql-function { color: #286983; }
+.sql-type { color: #ea9d34; font-style: italic; } .sql-string { color: #56949f; }
+.sql-number { color: #d7827e; } .sql-comment { color: #9893a5; font-style: italic; }
+.sql-operator { color: #575279; } .sql-punctuation { color: #797593; }
+.sql-identifier { color: #575279; } .sql-backtick { color: #56949f; background: rgba(86,148,159,0.06); }
+.sql-variable { color: #b4637a; font-style: italic; } .sql-constant { color: #d7827e; font-weight: 600; }
+.sql-table { color: #ea9d34; text-decoration: underline; text-decoration-color: rgba(234,157,52,0.25); text-underline-offset: 2px; }
+.data-table th { background: #f2e9e1; border-bottom: 2px solid #dfdad9; }
+.settings-input, .settings-textarea { background: #faf4ed; border-color: #dfdad9; color: #575279; }
+.modal-box { background: #fffaf3; border-color: #dfdad9; }
+.error-box { background: #fae4ea; border-color: #e8bfc9; color: #893146; }

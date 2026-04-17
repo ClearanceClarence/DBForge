@@ -1,0 +1,39 @@
+/* Atom One Light */
+:root {
+    --bg-root: #fafafa; --bg-panel: #ffffff; --bg-panel-alt: #f0f0f0;
+    --bg-input: #f5f5f5; --bg-hover: #eaeaeb; --bg-active: #dbdbdc;
+    --bg-selected: #dbdbdc; --bg-sidebar: #f0f0f0;
+    --row-odd: transparent; --row-even: rgba(0,0,0,0.02);
+    --border: #dbdbdc; --border-light: #c8c8c9; --border-focus: #4078f2;
+    --text-primary: #383a42; --text-secondary: #696c77; --text-muted: #a0a1a7;
+    --text-inverse: #ffffff;
+    --accent: #4078f2; --accent-dim: #8da8f5; --accent-bg: #e8eefb;
+    --warning: #c18401; --warning-bg: #fef6dc; --info: #4078f2; --info-bg: #e8eefb;
+    --purple: #a626a4; --purple-bg: #f6e6f6; --danger: #e45649; --danger-bg: #fde8e6;
+    --gold: #c18401; --gold-bg: #fef6dc;
+    --font-heading: var(--font-body); --font-size-xxl: 1.35rem;
+    --scrollbar-track: #f0f0f0; --scrollbar-thumb: #c8c8c9;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.07); --shadow-lg: 0 8px 24px rgba(0,0,0,0.09);
+}
+.logo-text { color: var(--accent); }
+.btn-primary { background: #4078f2; border-color: #4078f2; color: #fff; }
+.btn-primary:hover { background: #3068e0; }
+.btn-danger { background: #e45649; border-color: #e45649; color: #fff; }
+.btn-danger:hover { background: #ca3c30; }
+.cell-number { color: #986801; } .cell-date { color: #4078f2; } .cell-primary { color: #c18401; }
+.fk-link { color: #4078f2; } .fk-link:hover { color: #50a14f; }
+.sql-keyword { color: #a626a4; font-weight: 600; } .sql-function { color: #4078f2; }
+.sql-type { color: #c18401; font-style: italic; } .sql-string { color: #50a14f; }
+.sql-number { color: #986801; } .sql-comment { color: #a0a1a7; font-style: italic; }
+.sql-operator { color: #383a42; } .sql-punctuation { color: #696c77; }
+.sql-identifier { color: #383a42; } .sql-backtick { color: #0184bc; background: rgba(1,132,188,0.05); }
+.sql-variable { color: #e45649; font-style: italic; } .sql-constant { color: #986801; font-weight: 600; }
+.sql-table { color: #4078f2; text-decoration: underline; text-decoration-color: rgba(64,120,242,0.25); text-underline-offset: 2px; }
+.data-table th { background: #f0f0f0; border-bottom: 2px solid #dbdbdc; }
+.data-table td { border-bottom: 1px solid #dbdbdc; }
+.editor-line-numbers { background: #f0f0f0; border-right-color: #dbdbdc; color: #a0a1a7; }
+.editor-footer { background: #f0f0f0; border-color: #dbdbdc; }
+.settings-input, .settings-textarea { background: #f5f5f5; border-color: #dbdbdc; color: #383a42; }
+.modal-box { background: #ffffff; border-color: #dbdbdc; }
+.modal-overlay { background: rgba(0,0,0,0.25); }
+.error-box { background: #fde8e6; border-color: #f5b8b3; color: #9d1b14; }

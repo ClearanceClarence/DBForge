@@ -30,28 +30,46 @@
 
 <div class="info-grid" style="margin-bottom:20px;">
     <div class="info-card">
-        <div class="info-label">Databases</div>
-        <div class="info-value accent"><?= count($databases) ?></div>
+        <div class="info-card-icon accent-bg"><?= icon('database', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Databases</div>
+            <div class="info-value accent"><?= count($databases) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Total Tables</div>
-        <div class="info-value info"><?= format_number($totalTables) ?></div>
+        <div class="info-card-icon info-bg"><?= icon('table', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Total Tables</div>
+            <div class="info-value info"><?= format_number($totalTables) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Total Size</div>
-        <div class="info-value warning"><?= format_bytes($totalSize) ?></div>
+        <div class="info-card-icon warning-bg"><?= icon('zap', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Total Size</div>
+            <div class="info-value warning"><?= format_bytes($totalSize) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">MySQL Version</div>
-        <div class="info-value purple"><?= h($serverVersion) ?></div>
+        <div class="info-card-icon purple-bg"><?= icon('server', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">MySQL Version</div>
+            <div class="info-value purple"><?= h($serverVersion) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">PHP Version</div>
-        <div class="info-value gold"><?= PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION ?></div>
+        <div class="info-card-icon gold-bg"><?= icon('terminal', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">PHP Version</div>
+            <div class="info-value gold"><?= PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Server</div>
-        <div class="info-value muted"><?= h($serverHost) ?></div>
+        <div class="info-card-icon muted-bg"><?= icon('activity', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Server</div>
+            <div class="info-value muted"><?= h($serverHost) ?></div>
+        </div>
     </div>
 </div>
 
@@ -175,6 +193,11 @@
 <?php if ($currentDb && !$currentTable):
     // ── Database Overview ──
     $isReadOnly = isset($auth) && $auth->isReadOnly();
+    $favUser = (isset($auth) && $auth->isLoggedIn()) ? $auth->getUsername() : 'anonymous';
+    $favSet = [];
+    foreach (dbforge_favorites_get($favUser) as $f) {
+        $favSet[$f['db'] . '.' . $f['table']] = true;
+    }
     try {
         $allTables = $dbInstance->getTables($currentDb);
     } catch (Exception $e) {
@@ -205,28 +228,46 @@
 
 <div class="info-grid" style="margin-bottom:20px;">
     <div class="info-card">
-        <div class="info-label">Tables</div>
-        <div class="info-value accent"><?= count($allTables) ?></div>
+        <div class="info-card-icon accent-bg"><?= icon('table', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Tables</div>
+            <div class="info-value accent"><?= count($allTables) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Total Rows</div>
-        <div class="info-value info"><?= format_number($totalRows) ?></div>
+        <div class="info-card-icon info-bg"><?= icon('database', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Total Rows</div>
+            <div class="info-value info"><?= format_number($totalRows) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Data Size</div>
-        <div class="info-value warning"><?= format_bytes($totalDataSize) ?></div>
+        <div class="info-card-icon warning-bg"><?= icon('download', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Data Size</div>
+            <div class="info-value warning"><?= format_bytes($totalDataSize) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Index Size</div>
-        <div class="info-value purple"><?= format_bytes($totalIndexSize) ?></div>
+        <div class="info-card-icon purple-bg"><?= icon('key', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Index Size</div>
+            <div class="info-value purple"><?= format_bytes($totalIndexSize) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Total Size</div>
-        <div class="info-value gold"><?= format_bytes($totalSize) ?></div>
+        <div class="info-card-icon gold-bg"><?= icon('zap', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Total Size</div>
+            <div class="info-value gold"><?= format_bytes($totalSize) ?></div>
+        </div>
     </div>
     <div class="info-card">
-        <div class="info-label">Default Collation</div>
-        <div class="info-value muted" style="font-size:var(--font-size-sm);"><?= h($allTables[0]['Collation'] ?? '—') ?></div>
+        <div class="info-card-icon muted-bg"><?= icon('settings', 16) ?></div>
+        <div class="info-card-text">
+            <div class="info-label">Default Collation</div>
+            <div class="info-value muted" style="font-size:var(--font-size-sm);"><?= h($allTables[0]['Collation'] ?? '—') ?></div>
+        </div>
     </div>
 </div>
 
@@ -570,7 +611,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td style="color:var(--text-muted);"><?= h($tbl['Auto_increment'] ?? '—') ?></td>
                 <td style="color:var(--text-muted);font-size:var(--font-size-xs);"><?= h($tbl['Collation'] ?? '—') ?></td>
                 <td>
-                    <div style="display:flex;gap:4px;">
+                    <div style="display:flex;gap:4px;align-items:center;">
+                        <?php $rowFav = isset($favSet[$currentDb . '.' . $tName]); ?>
+                        <button type="button"
+                                class="btn btn-ghost btn-sm table-fav-btn overview-fav-btn <?= $rowFav ? 'is-fav' : '' ?>"
+                                data-db="<?= h($currentDb) ?>"
+                                data-table="<?= h($tName) ?>"
+                                title="<?= $rowFav ? 'Remove from favorites' : 'Add to favorites' ?>"
+                                style="padding:2px 6px;">
+                            <?= icon($rowFav ? 'star-filled' : 'star', 13) ?>
+                        </button>
                         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=browse" class="btn btn-ghost btn-sm" title="Browse"><?= icon('table', 13) ?></a>
                         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=structure" class="btn btn-ghost btn-sm" title="Structure"><?= icon('columns', 13) ?></a>
                         <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($tName) ?>&tab=export" class="btn btn-ghost btn-sm" title="Export"><?= icon('download', 13) ?></a>
@@ -753,6 +803,239 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php endif; ?>
 
+<?php
+// ── Views ──
+$dbViews = [];
+try { $dbViews = $dbInstance->getViews($currentDb); } catch (Exception $e) {}
+?>
+
+<div class="panel-section" style="margin-top:20px;">
+    <div class="panel-section-header" style="justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><?= icon('eye', 14) ?> Views <span class="db-count"><?= count($dbViews) ?></span></span>
+        <?php if (!$isReadOnly): ?>
+        <button type="button" class="btn btn-ghost btn-sm" id="view-create-btn" style="padding:2px 8px;font-size:var(--font-size-xs);">
+            <?= icon('plus', 12) ?> Create view
+        </button>
+        <?php endif; ?>
+    </div>
+    <div class="panel-section-body" style="padding:0;">
+        <?php if (empty($dbViews)): ?>
+        <div class="panel-empty" style="margin:14px 16px;">
+            <?= icon('info', 14) ?>
+            <span>No views in this database.</span>
+        </div>
+        <?php else: ?>
+        <div class="trigger-list">
+            <?php foreach ($dbViews as $v): ?>
+            <div class="trigger-item view-item" data-name="<?= h($v['name']) ?>">
+                <div class="trigger-item-head">
+                    <?= icon('eye', 13, 'view-icon') ?>
+                    <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($v['name']) ?>&tab=browse" class="trigger-name" style="text-decoration:none;"><?= h($v['name']) ?></a>
+                    <span class="trigger-definer"><?= h($v['definer'] ?? '') ?></span>
+                    <?php if (!$isReadOnly): ?>
+                    <div class="trigger-actions">
+                        <button type="button" class="btn btn-ghost btn-sm view-edit-btn" data-name="<?= h($v['name']) ?>" title="Edit"><?= icon('edit', 12) ?></button>
+                        <button type="button" class="btn btn-danger btn-sm view-drop-btn" data-name="<?= h($v['name']) ?>" title="Drop" style="padding:2px 6px;"><?= icon('trash', 12) ?></button>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php if (!empty($v['definition'])): ?>
+                <pre class="trigger-body view-sql-body"><?= h($v['definition']) ?></pre>
+                <?php endif; ?>
+            </div>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+(function() {
+    var db = <?= json_encode($currentDb) ?>;
+
+    function openViewModal(mode, name) {
+        // If editing, fetch definition first
+        if (mode === 'edit' && name) {
+            fetch('ajax.php?action=get_view_definition&db=' + encodeURIComponent(db) + '&name=' + encodeURIComponent(name))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) { DBForge.setStatus('Error: ' + data.error); return; }
+                    showModal(mode, name, data.definition || '');
+                });
+        } else {
+            showModal(mode, '', '');
+        }
+    }
+
+    function showModal(mode, name, definition) {
+        DBForge.closeModal();
+        // Extract just the SELECT part from full CREATE VIEW statement
+        var selectBody = definition;
+        if (selectBody) {
+            var match = selectBody.match(/\bAS\s+(SELECT\b.+)/is);
+            if (match) selectBody = match[1];
+        }
+
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'dbforge-modal';
+        overlay.innerHTML =
+            '<div class="modal-box" style="max-width:640px;">' +
+                '<div class="modal-header">' +
+                    '<span class="modal-title">' + (mode === 'create' ? 'Create View' : 'Edit View') + '</span>' +
+                    '<button class="modal-close" data-action="cancel">&times;</button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="settings-field">' +
+                        '<label class="settings-label">Name</label>' +
+                        '<input type="text" id="vw-name" class="settings-input" value="' + (name || '').replace(/"/g, '&quot;') + '" style="font-family:var(--font-mono);" ' + (mode === 'edit' ? 'disabled' : '') + '>' +
+                    '</div>' +
+                    '<div class="settings-field" style="margin-top:10px;">' +
+                        '<label class="settings-label">Definition <span style="color:var(--text-muted);font-weight:normal;">(SELECT statement)</span></label>' +
+                        '<textarea id="vw-def" class="settings-textarea" rows="12" style="font-family:var(--font-mono);font-size:var(--font-size-xs);line-height:1.5;" spellcheck="false" placeholder="SELECT column1, column2 FROM some_table WHERE ...">' + (selectBody || '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</textarea>' +
+                    '</div>' +
+                    '<div id="vw-err" class="error-box" style="margin-top:10px;display:none;font-size:var(--font-size-xs);padding:8px 12px;"></div>' +
+                    '<div id="vw-preview" class="sql-preview" style="margin-top:10px;display:none;">' +
+                        '<div class="sql-preview-header"><span class="sql-preview-title">Preview</span></div>' +
+                        '<pre class="sql-preview-body" id="vw-preview-body" style="max-height:120px;"></pre>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button class="btn btn-ghost modal-btn" id="vw-open-sql" title="Open in SQL Editor with full syntax highlighting and autocomplete"><?= str_replace("'", "\\'", icon('terminal', 12)) ?> Open in SQL Editor</button>' +
+                    '<div style="flex:1;"></div>' +
+                    '<button class="btn btn-ghost modal-btn" data-action="cancel">Cancel</button>' +
+                    '<button class="btn btn-primary modal-btn" id="vw-save">' + (mode === 'create' ? 'Create' : 'Save') + '</button>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+        // Attach syntax highlighting to the definition textarea
+        var defTextarea = overlay.querySelector('#vw-def');
+        if (defTextarea && typeof DBForge !== 'undefined' && DBForge.attachHighlighter) {
+            DBForge.attachHighlighter(defTextarea);
+        }
+
+        var errEl = overlay.querySelector('#vw-err');
+        function close() {
+            overlay.classList.remove('modal-visible');
+            setTimeout(function() { overlay.remove(); }, 150);
+        }
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay || (e.target.closest && e.target.closest('[data-action="cancel"]'))) close();
+        });
+
+        overlay.querySelector('#vw-save').addEventListener('click', function() {
+            errEl.style.display = 'none';
+            var vName = overlay.querySelector('#vw-name').value.trim();
+            var vDef = overlay.querySelector('#vw-def').value.trim();
+            if (!vName || !vDef) { errEl.textContent = 'Name and definition are required.'; errEl.style.display = ''; return; }
+
+            var fd = new FormData();
+            fd.append('action', 'create_view');
+            fd.append('db', db);
+            fd.append('name', vName);
+            fd.append('definition', vDef);
+            fd.append('_csrf_token', DBForge.getCsrfToken());
+            if (mode === 'edit') fd.append('replace', '1');
+
+            fetch('ajax.php', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(resp) {
+                    if (resp.error) { errEl.textContent = resp.error; errEl.style.display = ''; return; }
+                    DBForge.setStatus('View ' + (mode === 'create' ? 'created' : 'updated') + '.');
+                    close();
+                    window.location.reload();
+                });
+        });
+
+        // Build full CREATE statement from current fields
+        function buildSql() {
+            var vName = overlay.querySelector('#vw-name').value.trim() || 'view_name';
+            var vDef = overlay.querySelector('#vw-def').value.trim() || 'SELECT 1';
+            var prefix = mode === 'edit' ? 'CREATE OR REPLACE' : 'CREATE';
+            return prefix + ' VIEW `' + vName + '` AS\n' + vDef + ';';
+        }
+
+        // Live preview with syntax highlighting
+        var previewEl = overlay.querySelector('#vw-preview');
+        var previewBody = overlay.querySelector('#vw-preview-body');
+        var defEl = overlay.querySelector('#vw-def');
+        var nameEl = overlay.querySelector('#vw-name');
+
+        function updatePreview() {
+            var sql = buildSql();
+            if (typeof DBForge !== 'undefined' && DBForge.tokenize) {
+                var tokens = DBForge.tokenize(sql);
+                previewBody.innerHTML = DBForge.renderTokens(tokens);
+            } else {
+                previewBody.textContent = sql;
+            }
+            previewEl.style.display = '';
+        }
+
+        // Update preview on typing (debounced)
+        var previewTimer = null;
+        function schedulePreview() {
+            clearTimeout(previewTimer);
+            previewTimer = setTimeout(updatePreview, 200);
+        }
+        defEl.addEventListener('input', schedulePreview);
+        nameEl.addEventListener('input', schedulePreview);
+        // Initial preview if there's content
+        if (defEl.value.trim()) updatePreview();
+
+        // Open in SQL Editor
+        overlay.querySelector('#vw-open-sql').addEventListener('click', function() {
+            var sql = buildSql();
+            close();
+            window.location.href = '?db=' + encodeURIComponent(db) + '&tab=sql&sql=' + encodeURIComponent(sql);
+        });
+    }
+
+    var createBtn = document.getElementById('view-create-btn');
+    if (createBtn) createBtn.addEventListener('click', function() { openViewModal('create'); });
+
+    document.querySelectorAll('.view-edit-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { openViewModal('edit', btn.dataset.name); });
+    });
+
+    document.querySelectorAll('.view-drop-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var vName = btn.dataset.name;
+            DBForge.confirm({
+                title: 'Drop view',
+                message: 'Permanently delete view `' + vName + '`?',
+                confirmText: 'Drop',
+                danger: true,
+            }).then(function(ok) {
+                if (!ok) return;
+                var fd = new FormData();
+                fd.append('action', 'drop_view');
+                fd.append('db', db);
+                fd.append('name', vName);
+                fd.append('_csrf_token', DBForge.getCsrfToken());
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(resp) {
+                        if (resp.error) { DBForge.setStatus('Error: ' + resp.error); return; }
+                        DBForge.setStatus('View dropped.');
+                        window.location.reload();
+                    });
+            });
+        });
+    });
+
+    // Syntax-highlight view SQL definitions
+    if (typeof DBForge !== 'undefined' && DBForge.tokenize) {
+        document.querySelectorAll('.view-sql-body').forEach(function(el) {
+            var tokens = DBForge.tokenize(el.textContent);
+            el.innerHTML = DBForge.renderTokens(tokens);
+        });
+    }
+})();
+</script>
+
 <?php return; endif; ?>
 
 <?php
@@ -761,10 +1044,17 @@ $perPage = (int) ($config['app']['rows_per_page'] ?? 50);
 $orderBy = input('sort');
 $orderDir = input('dir', 'ASC');
 $search  = input('search', '');
+$fkCol   = input('fk_col', '');
+$fkVal   = input('fk_val', '');
 
 try {
     $columns = $dbInstance->getColumns($currentDb, $currentTable);
-    $result  = $dbInstance->browseTable($currentDb, $currentTable, $page, $perPage, $orderBy, $orderDir, $search ?: null);
+    if ($fkCol !== '' && $fkVal !== '') {
+        // Exact-match FK drill-down filter
+        $result = $dbInstance->browseTable($currentDb, $currentTable, $page, $perPage, $orderBy, $orderDir, null, $fkCol, $fkVal);
+    } else {
+        $result = $dbInstance->browseTable($currentDb, $currentTable, $page, $perPage, $orderBy, $orderDir, $search ?: null);
+    }
 } catch (Exception $e) {
     echo '<div class="error-box"><strong>ERROR:</strong> ' . h($e->getMessage()) . '</div>';
     return;
@@ -779,6 +1069,21 @@ $browseSql  = $result['sql'] ?? '';
 $colInfo = [];
 foreach ($columns as $col) {
     $colInfo[$col['Field']] = $col;
+}
+
+// Build FK drill-down map: column_name → [ref_table, ref_column, ref_schema]
+$fkMap = [];
+try {
+    $fks = $dbInstance->getForeignKeys($currentDb, $currentTable);
+    foreach ($fks as $fk) {
+        $fkMap[$fk['COLUMN_NAME']] = [
+            'table'  => $fk['REFERENCED_TABLE_NAME'],
+            'column' => $fk['REFERENCED_COLUMN_NAME'],
+            'schema' => $fk['REFERENCED_TABLE_SCHEMA'],
+        ];
+    }
+} catch (Exception $e) {
+    // Non-critical — just skip FK links
 }
 ?>
 
@@ -799,6 +1104,13 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <!-- Toolbar -->
+<?php if ($fkCol && $fkVal !== ''): ?>
+<div class="fk-filter-banner">
+    <?= icon('share', 13) ?>
+    <span>Showing rows where <code><?= h($fkCol) ?></code> = <code><?= h(truncate($fkVal, 40)) ?></code></span>
+    <a href="?db=<?= urlencode($currentDb) ?>&table=<?= urlencode($currentTable) ?>&tab=browse" class="btn btn-ghost btn-sm"><?= icon('x', 12) ?> Clear filter</a>
+</div>
+<?php endif; ?>
 <div class="table-toolbar">
     <form method="get" class="search-box">
         <input type="hidden" name="db" value="<?= h($currentDb) ?>">
@@ -813,6 +1125,18 @@ document.addEventListener('DOMContentLoaded', function(){
         <span>Page <?= $page ?>/<?= max(1, $totalPages) ?></span>
     </div>
     <div class="toolbar-actions">
+        <?php
+            $favUser = (isset($auth) && $auth->isLoggedIn()) ? $auth->getUsername() : 'anonymous';
+            $isFavTable = dbforge_favorites_has($favUser, $currentDb, $currentTable);
+        ?>
+        <button type="button"
+                class="btn btn-ghost btn-sm browse-fav-btn <?= $isFavTable ? 'is-fav' : '' ?>"
+                data-db="<?= h($currentDb) ?>"
+                data-table="<?= h($currentTable) ?>"
+                title="<?= $isFavTable ? 'Remove from favorites' : 'Add to favorites' ?>">
+            <?= icon($isFavTable ? 'star-filled' : 'star', 13) ?>
+            <?= $isFavTable ? 'Favorited' : 'Favorite' ?>
+        </button>
         <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
         <button type="button" class="btn btn-primary btn-sm" id="insert-row-btn">
             <?= icon('plus', 13) ?> Insert Row
@@ -884,12 +1208,13 @@ foreach ($columns as $col) {
                 <div class="insert-field-label">
                     <span class="insert-field-name"><?= h($field) ?></span>
                     <span class="insert-field-type"><?= h($col['Type']) ?></span>
-                    <?php if ($isPK): ?><span class="key-badge key-badge-pk" style="font-size:9px;padding:0 4px;"><?= icon('key', 9) ?> PK</span><?php endif; ?>
-                    <?php if ($isAI): ?><span class="insert-field-ai"><?= icon('zap', 10) ?> AI</span><?php endif; ?>
+                    <div class="insert-field-badges">
+                        <?php if ($isPK): ?><span class="key-badge key-badge-pk" style="font-size:9px;padding:0 4px;"><?= icon('key', 9) ?> PK</span><?php endif; ?>
+                        <?php if ($isAI): ?><span class="insert-field-ai"><?= icon('zap', 10) ?> AI</span><?php endif; ?>
+                    </div>
                 </div>
                 <div class="insert-field-input">
                     <?php if ($inputType === 'enum'):
-                        // Parse enum values
                         preg_match_all("/'([^']+)'/", $col['Type'], $enumVals);
                     ?>
                     <select class="insert-input" data-col="<?= h($field) ?>" <?= $isAI ? 'disabled' : '' ?>>
@@ -1105,6 +1430,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <?php if ($col['Key'] === 'PRI'): ?>
                             <span class="key-icon" title="Primary Key"><?= icon('key', 12) ?></span>
                             <?php endif; ?>
+                            <?php if (isset($fkMap[$field])): ?>
+                            <span class="fk-icon" title="FK → <?= h($fkMap[$field]['table']) ?>.<?= h($fkMap[$field]['column']) ?>"><?= icon('share', 11) ?></span>
+                            <?php endif; ?>
                             <?php if ($isSorted): ?>
                             <span class="sort-icon"><?= icon($orderDir === 'ASC' ? 'arrow-up' : 'arrow-down', 11) ?></span>
                             <?php endif; ?>
@@ -1142,7 +1470,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <?php else: ?>
             <?php foreach ($rows as $ri => $row): ?>
             <?php $pkVal = $pkCol ? ($row[$pkCol] ?? '') : ''; ?>
-            <tr data-pk-val="<?= h(strval($pkVal)) ?>">
+            <tr data-pk-val="<?= h(strval($pkVal)) ?>" data-row="<?= h(json_encode($row, JSON_HEX_APOS | JSON_HEX_QUOT)) ?>" class="browse-row">
                 <?php if ($pkCol): ?>
                 <td style="text-align:center;padding:4px 6px;">
                     <input type="checkbox" class="row-checkbox row-select" data-pk="<?= h(strval($pkVal)) ?>">
@@ -1154,8 +1482,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     $value = $row[$field] ?? null;
                     $cls = cell_class($value, $col['Key']);
                     $isEditable = ($pkCol && $col['Key'] !== 'PRI');
+                    $hasFk = isset($fkMap[$field]) && $value !== null;
                 ?>
-                <td class="<?= $cls ?><?= $isEditable ? ' cell-editable' : '' ?>"
+                <td class="<?= $cls ?><?= $isEditable ? ' cell-editable' : '' ?><?= $hasFk ? ' cell-fk' : '' ?>"
                     <?php if ($isEditable): ?>
                     data-col="<?= h($field) ?>"
                     data-value="<?= h($value !== null ? strval($value) : '') ?>"
@@ -1164,6 +1493,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 >
                     <?php if ($value === null): ?>
                         <span class="cell-null">NULL</span>
+                    <?php elseif ($hasFk): ?>
+                        <?php
+                            $ref = $fkMap[$field];
+                            $refDb = ($ref['schema'] !== $currentDb) ? $ref['schema'] : $currentDb;
+                            $fkUrl = '?db=' . urlencode($refDb)
+                                   . '&table=' . urlencode($ref['table'])
+                                   . '&tab=browse'
+                                   . '&fk_col=' . urlencode($ref['column'])
+                                   . '&fk_val=' . urlencode($value);
+                        ?>
+                        <a href="<?= h($fkUrl) ?>" class="fk-link" title="Go to <?= h($ref['table']) ?>.<?= h($ref['column']) ?> = <?= h(truncate(strval($value), 30)) ?>">
+                            <?= h(truncate(strval($value), 80)) ?>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:3px;opacity:0.5;"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </a>
                     <?php elseif ($cls === 'cell-hash'): ?>
                         <?= h(truncate($value, 20)) ?>
                     <?php else: ?>
@@ -1172,7 +1515,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
                 <?php endforeach; ?>
                 <?php if ($pkCol): ?>
-                <td style="text-align:center;padding:4px;">
+                <td style="text-align:center;padding:4px;white-space:nowrap;">
+                    <button class="btn btn-ghost btn-sm row-detail-btn"
+                            title="View row detail"
+                            style="padding:2px 6px;font-size:11px;"><?= icon('eye', 12) ?></button>
                     <button class="btn btn-danger btn-sm row-delete-btn"
                             data-pk="<?= h(strval($pkVal)) ?>"
                             title="Delete row"
@@ -1209,3 +1555,97 @@ document.addEventListener('DOMContentLoaded', function() {
     <a href="<?= $baseUrl ?>&page=<?= $totalPages ?>" class="page-btn <?= $page >= $totalPages ? 'disabled' : '' ?>">Last »</a>
 </div>
 <?php endif; ?>
+
+<!-- Row Detail Panel -->
+<div class="row-detail-overlay" id="row-detail-overlay" style="display:none;">
+    <div class="row-detail-panel" id="row-detail-panel">
+        <div class="row-detail-header">
+            <span class="row-detail-title"><?= icon('eye', 14) ?> Row Detail</span>
+            <button type="button" class="row-detail-close" id="row-detail-close">&times;</button>
+        </div>
+        <div class="row-detail-body" id="row-detail-body"></div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var overlay = document.getElementById('row-detail-overlay');
+    var panel = document.getElementById('row-detail-panel');
+    var body = document.getElementById('row-detail-body');
+    var closeBtn = document.getElementById('row-detail-close');
+    if (!overlay || !body) return;
+
+    var columns = <?= json_encode(array_map(fn($c) => ['Field' => $c['Field'], 'Type' => $c['Type'], 'Key' => $c['Key']], $columns)) ?>;
+    var fkMap = <?= json_encode($fkMap) ?>;
+    var currentDb = <?= json_encode($currentDb) ?>;
+
+    function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+
+    function showDetail(rowData) {
+        var html = '<table class="row-detail-table">';
+        columns.forEach(function(col) {
+            var field = col.Field;
+            var val = rowData[field];
+            var isNull = val === null;
+            var isPK = col.Key === 'PRI';
+            var hasFk = fkMap[field] && !isNull;
+
+            html += '<tr>';
+            html += '<td class="row-detail-field' + (isPK ? ' is-pk' : '') + '">';
+            if (isPK) html += '<?= str_replace("'", "\\'", icon('key', 10)) ?> ';
+            if (hasFk) html += '<?= str_replace("'", "\\'", icon('share', 10)) ?> ';
+            html += escapeHtml(field);
+            html += '<span class="row-detail-type">' + escapeHtml(col.Type) + '</span>';
+            html += '</td>';
+
+            html += '<td class="row-detail-value">';
+            if (isNull) {
+                html += '<span class="cell-null">NULL</span>';
+            } else if (hasFk) {
+                var ref = fkMap[field];
+                var refDb = ref.schema !== currentDb ? ref.schema : currentDb;
+                var url = '?db=' + encodeURIComponent(refDb) + '&table=' + encodeURIComponent(ref.table) + '&tab=browse&fk_col=' + encodeURIComponent(ref.column) + '&fk_val=' + encodeURIComponent(val);
+                html += '<a href="' + escapeHtml(url) + '" class="fk-link">' + escapeHtml(String(val)) + ' → ' + escapeHtml(ref.table) + '</a>';
+            } else {
+                html += '<span class="row-detail-val-text">' + escapeHtml(String(val)) + '</span>';
+            }
+            html += '</td>';
+            html += '</tr>';
+        });
+        html += '</table>';
+        body.innerHTML = html;
+        overlay.style.display = '';
+        requestAnimationFrame(function() { overlay.classList.add('visible'); });
+    }
+
+    function closeDetail() {
+        overlay.classList.remove('visible');
+        setTimeout(function() { overlay.style.display = 'none'; }, 150);
+    }
+
+    // Click eye button to open detail
+    document.querySelectorAll('.row-detail-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var tr = btn.closest('tr.browse-row');
+            if (!tr) return;
+            var data = tr.dataset.row;
+            if (!data) return;
+            try { showDetail(JSON.parse(data)); } catch(err) {}
+        });
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeDetail);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeDetail();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.style.display !== 'none') closeDetail();
+    });
+})();
+</script>

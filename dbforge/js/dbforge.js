@@ -541,6 +541,51 @@ const DBForge = {
         return meta ? meta.getAttribute('content') : '';
     },
 
+    /**
+     * Attach syntax highlighting + basic autocomplete to any textarea.
+     * Creates a backdrop overlay behind the textarea for colored tokens.
+     * Returns a cleanup function to remove listeners.
+     */
+    attachHighlighter(textarea) {
+        if (!textarea || !this.tokenize) return () => {};
+
+        // Wrap textarea in a container with a backdrop
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mini-editor-wrap';
+        textarea.parentNode.insertBefore(wrapper, textarea);
+        wrapper.appendChild(textarea);
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'mini-editor-backdrop';
+        const highlight = document.createElement('div');
+        highlight.className = 'mini-editor-highlight';
+        backdrop.appendChild(highlight);
+        wrapper.insertBefore(backdrop, textarea);
+
+        const self = this;
+
+        function sync() {
+            let tokens = self.tokenize(textarea.value);
+            tokens = self.resolveTableNames(tokens);
+            highlight.innerHTML = self.renderTokens(tokens) + '\n';
+            backdrop.scrollTop = textarea.scrollTop;
+            backdrop.scrollLeft = textarea.scrollLeft;
+        }
+
+        textarea.addEventListener('input', sync);
+        textarea.addEventListener('scroll', function() {
+            backdrop.scrollTop = textarea.scrollTop;
+            backdrop.scrollLeft = textarea.scrollLeft;
+        });
+
+        // Initial sync
+        sync();
+
+        return function cleanup() {
+            textarea.removeEventListener('input', sync);
+        };
+    },
+
     // ── Editor Sync ──────────────────────────────────────
 
     syncEditor() {
@@ -1185,6 +1230,7 @@ const DBForge = {
         this.initColTypeToggle();
         this.initCreateDatabase();
         this.initSidebar();
+        this.initFavorites();
         this.bindKeyboard();
         this.bindQuickQueries();
         this.autoFocusEditor();
@@ -1559,6 +1605,32 @@ const DBForge = {
         const editor = document.getElementById('sql-editor');
         if (!editor) return;
 
+        // ── Persistent SQL drafts ──
+        // Keyed by database so each DB keeps its own draft
+        const dbName = new URLSearchParams(window.location.search).get('db') || '_global';
+        const draftKey = 'dbforge_draft_' + dbName;
+
+        // Restore draft if editor is empty (no server-side value)
+        if (!editor.value.trim()) {
+            const saved = sessionStorage.getItem(draftKey);
+            if (saved) {
+                editor.value = saved;
+            }
+        }
+
+        // Save on every input
+        editor.addEventListener('input', () => {
+            sessionStorage.setItem(draftKey, editor.value);
+        });
+
+        // Clear draft after successful execution (form submit)
+        const form = document.getElementById('sql-form');
+        if (form) {
+            form.addEventListener('submit', () => {
+                sessionStorage.removeItem(draftKey);
+            });
+        }
+
         // Initial highlight
         this.syncEditor();
 
@@ -1620,6 +1692,48 @@ const DBForge = {
             const btn = document.getElementById('toggle-col-types');
             if (btn) btn.classList.add('btn-toggled-off');
         }
+    },
+
+    // ── Favorites ────────────────────────────────────────
+
+    initFavorites() {
+        const self = this;
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.table-fav-btn, .browse-fav-btn');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            const db = btn.dataset.db;
+            const table = btn.dataset.table;
+            if (!db || !table) return;
+
+            // Disable briefly to prevent double-clicks
+            btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('action', 'toggle_favorite');
+            fd.append('db', db);
+            fd.append('table', table);
+            fd.append('_csrf_token', self.getCsrfToken());
+
+            fetch('ajax.php', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) {
+                        self.setStatus('Error: ' + data.error);
+                        btn.disabled = false;
+                        return;
+                    }
+                    self.setStatus(data.favorited ? 'Added to favorites.' : 'Removed from favorites.');
+                    // Reload so the sidebar rebuilds with the new favorites list
+                    window.location.reload();
+                })
+                .catch(function(err) {
+                    self.setStatus('Error: ' + err.message);
+                    btn.disabled = false;
+                });
+        });
     },
 
     // ── Create / Drop Database ───────────────────────────
@@ -1895,6 +2009,82 @@ const DBForge = {
                 sidebar.dataset.hideCounts = hideCounts.checked ? '1' : '0';
                 setCookie('dbforge_hide_counts', hideCounts.checked ? '1' : '0');
             });
+        }
+
+        // Table filter
+        const filterInput = document.getElementById('sidebar-filter');
+        if (filterInput) {
+            filterInput.addEventListener('input', () => {
+                const term = filterInput.value.toLowerCase().trim();
+
+                // Filter table rows inside expanded db groups
+                sidebar.querySelectorAll('.table-row').forEach(row => {
+                    const name = row.querySelector('.table-name');
+                    if (!name) return;
+                    const text = name.textContent.toLowerCase();
+                    const match = !term || text.includes(term);
+                    row.style.display = match ? '' : 'none';
+
+                    // Highlight matching text
+                    if (term && match) {
+                        const orig = name.textContent;
+                        const idx = text.indexOf(term);
+                        name.innerHTML =
+                            escapeHtml(orig.substring(0, idx)) +
+                            '<mark class="sidebar-match">' + escapeHtml(orig.substring(idx, idx + term.length)) + '</mark>' +
+                            escapeHtml(orig.substring(idx + term.length));
+                    } else {
+                        // Restore plain text (remove mark tags)
+                        if (name.querySelector('mark')) {
+                            name.textContent = name.textContent;
+                        }
+                    }
+                });
+
+                // Also filter favorites
+                sidebar.querySelectorAll('.fav-item').forEach(item => {
+                    const name = item.querySelector('.fav-item-table');
+                    if (!name) return;
+                    const text = name.textContent.toLowerCase();
+                    item.style.display = (!term || text.includes(term)) ? '' : 'none';
+                });
+
+                // Show/hide empty db groups (all tables hidden)
+                sidebar.querySelectorAll('.db-group').forEach(group => {
+                    const tableList = group.querySelector('.table-list');
+                    if (!tableList) return;
+                    const visibleRows = tableList.querySelectorAll('.table-row:not([style*="display: none"])');
+                    // If filtering and no visible tables, dim the db group
+                    if (term) {
+                        group.style.opacity = visibleRows.length ? '' : '0.3';
+                    } else {
+                        group.style.opacity = '';
+                    }
+                });
+
+                // Show/hide fav section header
+                const favSection = sidebar.querySelector('.fav-section');
+                if (favSection && term) {
+                    const visibleFavs = favSection.querySelectorAll('.fav-item:not([style*="display: none"])');
+                    favSection.style.display = visibleFavs.length ? '' : 'none';
+                } else if (favSection) {
+                    favSection.style.display = '';
+                }
+            });
+
+            // Ctrl+F or / to focus filter
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName) &&
+                    !document.activeElement.isContentEditable) {
+                    e.preventDefault();
+                    filterInput.focus();
+                    filterInput.select();
+                }
+            });
+
+            function escapeHtml(s) {
+                return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            }
         }
     },
 

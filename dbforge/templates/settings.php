@@ -2,167 +2,21 @@
 /**
  * DBForge — Settings Page
  * Allows editing config.php from the UI.
+ *
+ * The POST handler lives in settings_save.php and is invoked from
+ * index.php BEFORE layout renders, so redirects work and the sidebar
+ * reflects the new config immediately.
+ *
+ * On entry here, index.php may have set $settingsErr (if save failed).
  */
 
 $settingsMsg = '';
-$settingsErr = '';
+if (!isset($settingsErr)) $settingsErr = '';
 
-// ── Handle Settings Save ──
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['_settings_action'] ?? '') === 'save') {
-    // CSRF check
-    if (isset($auth) && $auth->csrfEnabled() && !$auth->validateCsrf()) {
-        $settingsErr = 'Invalid security token. Please reload and try again.';
-    } else {
-        $newConfig = $config; // Start from current config
-
-        // ── Database ──
-        $newConfig['db']['host']     = trim($_POST['db_host'] ?? '127.0.0.1');
-        $newConfig['db']['port']     = (int)($_POST['db_port'] ?? 3306);
-        $newConfig['db']['username'] = trim($_POST['db_user'] ?? 'root');
-        // Only update password if the field wasn't left as placeholder
-        if (($_POST['db_pass_changed'] ?? '0') === '1') {
-            $newConfig['db']['password'] = $_POST['db_pass'] ?? '';
-        }
-
-        // ── App ──
-        $newConfig['app']['default_theme']   = $_POST['default_theme'] ?? 'light-clean';
-        $newConfig['app']['rows_per_page']   = max(10, min(500, (int)($_POST['rows_per_page'] ?? 50)));
-        $newConfig['app']['enable_export']   = isset($_POST['enable_export']);
-
-        // ── Fonts ──
-        $fontZones = dbforge_font_zones();
-        if (!isset($newConfig['app']['fonts'])) $newConfig['app']['fonts'] = [];
-        foreach ($fontZones as $zoneKey => $zone) {
-            $newConfig['app']['fonts'][$zoneKey] = trim($_POST['font_' . $zoneKey] ?? '');
-        }
-
-        // ── Security ──
-        $newConfig['security']['require_auth']      = isset($_POST['require_auth']);
-        $newConfig['security']['csrf_enabled']       = isset($_POST['csrf_enabled']);
-        $newConfig['security']['force_https']        = isset($_POST['force_https']);
-        $newConfig['security']['read_only']          = isset($_POST['read_only']);
-        $newConfig['security']['session_lifetime']   = max(300, (int)($_POST['session_lifetime'] ?? 3600));
-        $newConfig['security']['max_login_attempts'] = max(1, (int)($_POST['max_login_attempts'] ?? 5));
-        $newConfig['security']['lockout_duration']   = max(30, (int)($_POST['lockout_duration'] ?? 300));
-        $newConfig['security']['query_log']          = isset($_POST['query_log']);
-
-        // IP whitelist (one per line)
-        $ipRaw = trim($_POST['ip_whitelist'] ?? '');
-        $newConfig['security']['ip_whitelist'] = $ipRaw
-            ? array_values(array_filter(array_map('trim', explode("\n", $ipRaw))))
-            : [];
-
-        // Hidden databases (one per line)
-        $hiddenRaw = trim($_POST['hidden_databases'] ?? '');
-        $newConfig['security']['hidden_databases'] = $hiddenRaw
-            ? array_values(array_filter(array_map('trim', explode("\n", $hiddenRaw))))
-            : [];
-
-        // ── Users ──
-        // Keep existing users, process changes
-        $existingUsers = $newConfig['security']['users'] ?? [];
-        $updatedUsers = [];
-
-        // Existing users
-        $keepUsers = $_POST['keep_user'] ?? [];
-        foreach ($existingUsers as $uname => $uhash) {
-            if (in_array($uname, $keepUsers)) {
-                // Check if password is being changed
-                $newPass = $_POST['user_newpass_' . $uname] ?? '';
-                if (!empty($newPass)) {
-                    if (strlen($newPass) < 6) {
-                        $settingsErr = "Password for '{$uname}' must be at least 6 characters.";
-                        break;
-                    }
-                    $updatedUsers[$uname] = password_hash($newPass, PASSWORD_BCRYPT);
-                } else {
-                    $updatedUsers[$uname] = $uhash;
-                }
-            }
-            // If not in keepUsers, user is deleted
-        }
-
-        // New user
-        $newUsername = trim($_POST['new_username'] ?? '');
-        $newPassword = $_POST['new_password'] ?? '';
-        if (!empty($newUsername)) {
-            if (strlen($newUsername) < 3) {
-                $settingsErr = 'New username must be at least 3 characters.';
-            } elseif (strlen($newPassword) < 6) {
-                $settingsErr = 'New password must be at least 6 characters.';
-            } elseif (isset($updatedUsers[$newUsername])) {
-                $settingsErr = "Username '{$newUsername}' already exists.";
-            } else {
-                $updatedUsers[$newUsername] = password_hash($newPassword, PASSWORD_BCRYPT);
-            }
-        }
-
-        // Must have at least one user if auth is enabled
-        if ($newConfig['security']['require_auth'] && empty($updatedUsers)) {
-            $settingsErr = 'You must have at least one user when authentication is enabled.';
-        }
-
-        if (empty($settingsErr)) {
-            $newConfig['security']['users'] = $updatedUsers;
-
-            // Write config.php
-            $written = writeConfig(__DIR__ . '/../config.php', $newConfig);
-            if ($written) {
-                $settingsMsg = 'Settings saved successfully. Some changes may require a page reload.';
-                $config = $newConfig; // Update in-memory
-                if (isset($auth)) {
-                    $auth->logActivity('Settings updated');
-                }
-            } else {
-                $settingsErr = 'Could not write config.php. Check file permissions.';
-            }
-        }
-    }
-}
-
-/**
- * Write config array back to PHP file
- */
-function writeConfig(string $path, array $cfg): bool
-{
-    $export = function ($val, $indent = 2) use (&$export) {
-        $pad = str_repeat('    ', $indent);
-        $padInner = str_repeat('    ', $indent + 1);
-
-        if (is_array($val)) {
-            // Check if sequential array
-            $isSeq = array_keys($val) === range(0, count($val) - 1);
-            if (empty($val)) return '[]';
-
-            $lines = [];
-            foreach ($val as $k => $v) {
-                $key = $isSeq ? '' : var_export($k, true) . ' => ';
-                $lines[] = $padInner . $key . $export($v, $indent + 1);
-            }
-            return "[\n" . implode(",\n", $lines) . ",\n{$pad}]";
-        }
-        if (is_bool($val)) return $val ? 'true' : 'false';
-        if (is_int($val) || is_float($val)) return (string)$val;
-        if (is_null($val)) return 'null';
-
-        // String - check for __DIR__ reference
-        if (str_contains($val, '__DIR__')) return $val;
-
-        return var_export($val, true);
-    };
-
-    $out = "<?php\n/**\n * DBForge Configuration\n * Last modified: " . date('Y-m-d H:i:s') . "\n */\n\nreturn ";
-    $out .= $export($cfg, 0);
-    $out .= ";\n";
-
-    // Preserve the __DIR__ reference for query_log_file
-    $out = str_replace(
-        "'__DIR__ . '/logs/queries.log''",
-        "__DIR__ . '/logs/queries.log'",
-        $out
-    );
-
-    return (bool)@file_put_contents($path, $out, LOCK_EX);
+// Flash message after successful save → redirect
+if (!empty($_SESSION['settings_msg'])) {
+    $settingsMsg = $_SESSION['settings_msg'];
+    unset($_SESSION['settings_msg']);
 }
 
 $sec = $config['security'] ?? [];

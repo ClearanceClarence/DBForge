@@ -74,7 +74,8 @@ class Auth
     }
 
     /**
-     * Attempt login. Returns true on success, error string on failure.
+     * Attempt login. Returns true on success, error string on failure,
+     * or '2fa_required' if TOTP verification is needed.
      */
     public function login(string $username, string $password): string|bool
     {
@@ -94,14 +95,15 @@ class Auth
         }
 
         $storedPassword = $users[$username];
-        $valid = false;
+        // Support both plain hash string and array with hash + totp_secret
+        $hash = is_array($storedPassword) ? ($storedPassword['password'] ?? '') : $storedPassword;
+        $totpSecret = is_array($storedPassword) ? ($storedPassword['totp_secret'] ?? null) : null;
 
-        // Check if stored password is a bcrypt hash
-        if (str_starts_with($storedPassword, '$2y$') || str_starts_with($storedPassword, '$2a$')) {
-            $valid = password_verify($password, $storedPassword);
+        $valid = false;
+        if (str_starts_with($hash, '$2y$') || str_starts_with($hash, '$2a$')) {
+            $valid = password_verify($password, $hash);
         } else {
-            // Plain text comparison (for dev environments)
-            $valid = hash_equals($storedPassword, $password);
+            $valid = hash_equals($hash, $password);
         }
 
         if (!$valid) {
@@ -109,16 +111,108 @@ class Auth
             return 'Invalid username or password.';
         }
 
-        // Success — clear lockout, regenerate session
+        // If 2FA is enabled for this user, require TOTP step
+        if ($totpSecret) {
+            $this->clearFailedAttempts($ip);
+            session_regenerate_id(true);
+            $_SESSION['dbforge_2fa_pending'] = true;
+            $_SESSION['dbforge_2fa_username'] = $username;
+            return '2fa_required';
+        }
+
+        // No 2FA — complete login
+        $this->completeLogin($username, $ip);
+        return true;
+    }
+
+    /**
+     * Verify TOTP code for a pending 2FA login
+     */
+    public function verify2fa(string $code): string|bool
+    {
+        if (empty($_SESSION['dbforge_2fa_pending']) || empty($_SESSION['dbforge_2fa_username'])) {
+            return 'No 2FA session pending.';
+        }
+
+        $ip = $this->getClientIp();
+        if ($this->isLockedOut($ip)) {
+            $remaining = $this->getLockoutRemaining($ip);
+            return "Too many failed attempts. Try again in {$remaining} seconds.";
+        }
+
+        $username = $_SESSION['dbforge_2fa_username'];
+        $users = $this->config['users'] ?? [];
+
+        if (!isset($users[$username])) {
+            return 'User not found.';
+        }
+
+        $userData = $users[$username];
+        $totpSecret = is_array($userData) ? ($userData['totp_secret'] ?? null) : null;
+
+        if (!$totpSecret) {
+            // 2FA not actually configured — complete login
+            $this->completeLogin($username, $ip);
+            return true;
+        }
+
+        require_once __DIR__ . '/TOTP.php';
+        if (!DBForgeTOTP::verify($totpSecret, $code)) {
+            $this->recordFailedAttempt($ip);
+            return 'Invalid verification code.';
+        }
+
+        // 2FA verified
+        unset($_SESSION['dbforge_2fa_pending'], $_SESSION['dbforge_2fa_username']);
+        $this->completeLogin($username, $ip);
+        return true;
+    }
+
+    /**
+     * Check if 2FA verification is pending
+     */
+    public function is2faPending(): bool
+    {
+        return !empty($_SESSION['dbforge_2fa_pending']);
+    }
+
+    /**
+     * Complete the login (set session vars, log activity)
+     */
+    private function completeLogin(string $username, string $ip): void
+    {
         $this->clearFailedAttempts($ip);
         session_regenerate_id(true);
         $_SESSION['dbforge_authenticated'] = true;
         $_SESSION['dbforge_username'] = $username;
         $_SESSION['dbforge_login_time'] = time();
         $_SESSION['dbforge_ip'] = $ip;
-
+        unset($_SESSION['dbforge_2fa_pending'], $_SESSION['dbforge_2fa_username']);
         $this->logActivity('Login successful', $username);
-        return true;
+    }
+
+    /**
+     * Get the TOTP secret for a user (null if not configured)
+     */
+    public function getUserTotpSecret(string $username): ?string
+    {
+        $users = $this->config['users'] ?? [];
+        $userData = $users[$username] ?? null;
+        if (is_array($userData)) {
+            return $userData['totp_secret'] ?? null;
+        }
+        return null;
+    }
+
+    /**
+     * Get the password hash for a user (handles both formats)
+     */
+    public function getUserPasswordHash(string $username): ?string
+    {
+        $users = $this->config['users'] ?? [];
+        $userData = $users[$username] ?? null;
+        if ($userData === null) return null;
+        return is_array($userData) ? ($userData['password'] ?? null) : $userData;
     }
 
     public function logout(): void

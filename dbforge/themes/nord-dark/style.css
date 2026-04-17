@@ -14,6 +14,7 @@
     --text-primary:   #d8dee9;
     --text-secondary: #a0aec0;
     --text-muted:     #6a7486;
+    --text-inverse:   #0c0c12;
     --accent:         #88c0d0;
     --accent-dim:     #4a6a78;
     --accent-bg:      #2e3e48;
@@ -29,6 +30,9 @@
     --gold-bg:        #3e3828;
     --scrollbar-track: #2e3440;
     --scrollbar-thumb: #4c566a;
+    --font-size-xxl:  1.35rem;
+    --bg-sidebar:     var(--bg-panel);
+    --font-heading:   var(--font-body);
 }
 .logo-text { color: var(--accent); }
 .sql-keyword   { color: #81a1c1; font-weight: 600; }

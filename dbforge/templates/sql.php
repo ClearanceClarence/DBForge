@@ -120,14 +120,31 @@ if (window.location.search.includes('sql=')) {
                 <span class="editor-hint"><kbd>Tab</kbd> Indent</span>
                 <span class="editor-hint"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> Focus editor</span>
             </div>
-            <button type="submit" class="btn btn-primary" id="run-btn">
-                <?= icon('play', 13) ?> Execute
-            </button>
+            <div style="display:flex;gap:8px;">
+                <button type="button" class="btn btn-ghost" id="explain-btn" title="EXPLAIN the current query">
+                    <?= icon('activity', 13) ?> Explain
+                </button>
+                <button type="submit" class="btn btn-primary" id="run-btn">
+                    <?= icon('play', 13) ?> Execute
+                </button>
+            </div>
         </div>
         <!-- Line numbers -->
         <div class="editor-line-numbers" id="editor-line-numbers" aria-hidden="true"></div>
     </div>
 </form>
+
+<!-- EXPLAIN Panel -->
+<div class="explain-panel" id="explain-panel" style="display:none;">
+    <div class="explain-header">
+        <span class="explain-title"><?= icon('activity', 13) ?> Query Plan</span>
+        <span class="explain-meta" id="explain-meta"></span>
+        <button type="button" class="explain-close" id="explain-close" title="Close">&times;</button>
+    </div>
+    <div class="explain-body" id="explain-body">
+        <!-- filled by JS -->
+    </div>
+</div>
 
 <!-- Query History -->
 <?php if (!empty($queryHistory)): ?>
@@ -366,3 +383,171 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 <?php endif; ?>
+
+<script>
+(function() {
+    var btn = document.getElementById('explain-btn');
+    var panel = document.getElementById('explain-panel');
+    var body = document.getElementById('explain-body');
+    var meta = document.getElementById('explain-meta');
+    var closeBtn = document.getElementById('explain-close');
+    if (!btn || !panel) return;
+
+    // Efficiency classification for the `type` column (access method)
+    var typeClass = {
+        'system': 'good', 'const': 'good', 'eq_ref': 'good',
+        'ref': 'ok', 'ref_or_null': 'ok', 'range': 'ok', 'fulltext': 'ok',
+        'index_merge': 'ok', 'unique_subquery': 'ok', 'index_subquery': 'ok',
+        'index': 'warn',
+        'ALL': 'bad'
+    };
+
+    // Extra notes — substrings that indicate warnings
+    var extraWarnings = [
+        'Using filesort', 'Using temporary', 'Using where; Using filesort',
+        'Range checked for each record', 'Using join buffer'
+    ];
+    var extraGood = ['Using index', 'Using index condition', 'Using where'];
+
+    function classifyExtra(extra) {
+        if (!extra) return '';
+        for (var i = 0; i < extraWarnings.length; i++) {
+            if (extra.indexOf(extraWarnings[i]) !== -1) return 'warn';
+        }
+        for (var i = 0; i < extraGood.length; i++) {
+            if (extra.indexOf(extraGood[i]) !== -1) return 'good';
+        }
+        return '';
+    }
+
+    function formatNum(n) {
+        if (n == null) return '—';
+        var num = parseInt(n, 10);
+        if (isNaN(num)) return String(n);
+        return num.toLocaleString();
+    }
+
+    function rowsCellClass(n) {
+        var num = parseInt(n, 10);
+        if (isNaN(num)) return '';
+        if (num > 100000) return 'explain-rows-bad';
+        if (num > 10000)  return 'explain-rows-warn';
+        return '';
+    }
+
+    function renderResults(data) {
+        if (data.error) {
+            body.innerHTML = '<div class="explain-error">' + escapeHtml(data.error) + '</div>';
+            meta.textContent = '';
+            return;
+        }
+        if (!data.rows || !data.rows.length) {
+            body.innerHTML = '<div class="explain-empty">No plan returned.</div>';
+            return;
+        }
+
+        var cols = Object.keys(data.rows[0]);
+        var html = '<table class="explain-table"><thead><tr>';
+        cols.forEach(function(c) { html += '<th>' + escapeHtml(c) + '</th>'; });
+        html += '</tr></thead><tbody>';
+
+        data.rows.forEach(function(row) {
+            html += '<tr>';
+            cols.forEach(function(col) {
+                var val = row[col];
+                var cls = '';
+                var display = val == null ? '<span class="explain-null">NULL</span>' : escapeHtml(String(val));
+
+                if (col === 'type' && val) {
+                    cls = 'explain-type explain-type-' + (typeClass[val] || '');
+                    display = '<span class="' + cls + '">' + escapeHtml(val) + '</span>';
+                    cls = '';
+                } else if (col === 'Extra' && val) {
+                    var extraCls = classifyExtra(val);
+                    display = '';
+                    val.split('; ').forEach(function(part) {
+                        var partCls = classifyExtra(part) || extraCls;
+                        display += '<span class="explain-extra-tag ' + (partCls ? 'explain-extra-' + partCls : '') + '">' + escapeHtml(part) + '</span>';
+                    });
+                } else if (col === 'rows' && val != null) {
+                    cls = 'explain-rows ' + rowsCellClass(val);
+                    display = formatNum(val);
+                } else if (col === 'key' || col === 'possible_keys') {
+                    if (val == null) {
+                        display = '<span class="explain-null">—</span>';
+                    } else {
+                        display = '<code>' + escapeHtml(String(val)) + '</code>';
+                    }
+                } else if (col === 'table' && val) {
+                    display = '<code class="explain-table-name">' + escapeHtml(val) + '</code>';
+                } else if (col === 'id') {
+                    cls = 'explain-id';
+                }
+
+                html += cls ? '<td class="' + cls + '">' : '<td>';
+                html += display + '</td>';
+            });
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+
+        // Legend
+        html += '<div class="explain-legend">';
+        html += '<span class="legend-item"><span class="legend-swatch good"></span> Efficient</span>';
+        html += '<span class="legend-item"><span class="legend-swatch ok"></span> OK</span>';
+        html += '<span class="legend-item"><span class="legend-swatch warn"></span> Worth reviewing</span>';
+        html += '<span class="legend-item"><span class="legend-swatch bad"></span> Full scan / slow</span>';
+        html += '</div>';
+
+        body.innerHTML = html;
+        meta.textContent = data.time + ' ms · ' + data.rows.length + ' step' + (data.rows.length === 1 ? '' : 's');
+    }
+
+    function escapeHtml(s) {
+        return s.replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+
+    btn.addEventListener('click', function() {
+        var editor = document.getElementById('sql-editor');
+        if (!editor) return;
+        // Use selected text if any, otherwise full editor
+        var selStart = editor.selectionStart, selEnd = editor.selectionEnd;
+        var sql = (selStart !== selEnd) ? editor.value.substring(selStart, selEnd) : editor.value;
+        sql = sql.trim();
+        if (!sql) { DBForge.setStatus('Nothing to explain.'); return; }
+
+        btn.disabled = true;
+        var orig = btn.innerHTML;
+        btn.textContent = 'Explaining…';
+
+        var fd = new FormData();
+        fd.append('action', 'explain_query');
+        fd.append('db', <?= json_encode($currentDb ?? '') ?>);
+        fd.append('sql', sql);
+        fd.append('_csrf_token', DBForge.getCsrfToken());
+
+        fetch('ajax.php', { method: 'POST', body: fd })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                panel.style.display = '';
+                renderResults(data);
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            })
+            .catch(function(err) {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                renderResults({ error: err.message });
+            });
+    });
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            panel.style.display = 'none';
+        });
+    }
+})();
+</script>
