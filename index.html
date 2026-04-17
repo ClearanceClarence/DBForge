@@ -621,40 +621,55 @@
         color: var(--c-text3);
         font-style: italic;
       }
-      .themes-row {
+      .themes-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+      }
+      .themes-col-title {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--c-text3);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--c-border);
+      }
+      .themes-list {
+        list-style: none;
         display: flex;
-        gap: 12px;
-        overflow-x: auto;
-        padding: 8px 0 24px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+        flex-direction: column;
+        gap: 0;
       }
-      .themes-row::-webkit-scrollbar {
-        display: none;
-      }
-      .theme-chip {
-        flex-shrink: 0;
-        padding: 10px 20px;
-        border-radius: 100px;
-        font-size: 13px;
-        font-weight: 600;
-        border: 1px solid var(--c-border);
-        background: var(--c-surface);
+      .themes-list li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
         color: var(--c-text2);
-        cursor: default;
-        transition: all 0.2s;
-        white-space: nowrap;
+        transition:
+          background 0.15s,
+          color 0.15s;
       }
-      .theme-chip:hover {
-        border-color: rgba(74, 222, 128, 0.3);
+      .themes-list li:hover {
         background: var(--c-surface2);
         color: var(--c-text);
       }
-      .theme-chip.dark {
-        border-left: 3px solid var(--c-text3);
+      .themes-list .td {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
       }
-      .theme-chip.light {
-        border-left: 3px solid var(--c-gold);
+      @media (max-width: 600px) {
+        .themes-columns {
+          grid-template-columns: 1fr;
+        }
       }
       .security-grid {
         display: grid;
@@ -1145,55 +1160,98 @@
           </div>
         </div>
         <div class="reveal">
-          <div
-            style="
-              margin-bottom: 12px;
-              font-family: var(--font-mono);
-              font-size: 11px;
-              color: var(--c-text3);
-              text-transform: uppercase;
-              letter-spacing: 0.1em;
-              font-weight: 700;
-            "
-          >
-            Dark
-          </div>
-          <div class="themes-row">
-            <div class="theme-chip dark">Carbon</div>
-            <div class="theme-chip dark">Catppuccin Mocha</div>
-            <div class="theme-chip dark">Dark Industrial</div>
-            <div class="theme-chip dark">Dracula</div>
-            <div class="theme-chip dark">GitHub Dark</div>
-            <div class="theme-chip dark">Gruvbox Dark</div>
-            <div class="theme-chip dark">Monokai</div>
-            <div class="theme-chip dark">Nord Dark</div>
-            <div class="theme-chip dark">Solarized Dark</div>
-            <div class="theme-chip dark">Tokyo Night</div>
-          </div>
-          <div
-            style="
-              margin: 20px 0 12px;
-              font-family: var(--font-mono);
-              font-size: 11px;
-              color: var(--c-text3);
-              text-transform: uppercase;
-              letter-spacing: 0.1em;
-              font-weight: 700;
-            "
-          >
-            Light
-          </div>
-          <div class="themes-row">
-            <div class="theme-chip light">Atom One Light</div>
-            <div class="theme-chip light">Catppuccin Latte</div>
-            <div class="theme-chip light">Clean</div>
-            <div class="theme-chip light">Forge</div>
-            <div class="theme-chip light">GitHub Light</div>
-            <div class="theme-chip light">Gruvbox Light</div>
-            <div class="theme-chip light">Lavender</div>
-            <div class="theme-chip light">Rosé Pine Dawn</div>
-            <div class="theme-chip light">Sand</div>
-            <div class="theme-chip light">Solarized Light</div>
+          <div class="themes-columns">
+            <div>
+              <div class="themes-col-title">Dark — 10 themes</div>
+              <ul class="themes-list">
+                <li>
+                  <span class="td" style="background: #4ade80"></span>Dark
+                  Industrial
+                </li>
+                <li>
+                  <span class="td" style="background: #bd93f9"></span>Dracula
+                </li>
+                <li>
+                  <span class="td" style="background: #58a6ff"></span>GitHub
+                  Dark
+                </li>
+                <li>
+                  <span class="td" style="background: #7aa2f7"></span>Tokyo
+                  Night
+                </li>
+                <li>
+                  <span class="td" style="background: #a9dc76"></span>Monokai
+                </li>
+                <li>
+                  <span class="td" style="background: #b8bb26"></span>Gruvbox
+                  Dark
+                </li>
+                <li>
+                  <span class="td" style="background: #cba6f7"></span>Catppuccin
+                  Mocha
+                </li>
+                <li>
+                  <span class="td" style="background: #2aa198"></span>Solarized
+                  Dark
+                </li>
+                <li>
+                  <span class="td" style="background: #88c0d0"></span>Nord Dark
+                </li>
+                <li>
+                  <span class="td" style="background: #569cd6"></span>Carbon
+                </li>
+              </ul>
+            </div>
+            <div>
+              <div class="themes-col-title">Light — 10 themes</div>
+              <ul class="themes-list">
+                <li>
+                  <span class="td" style="background: #3b82f6"></span>Clean
+                  <span
+                    style="
+                      font-family: var(--font-mono);
+                      font-size: 10px;
+                      color: var(--c-text3);
+                      margin-left: auto;
+                    "
+                    >default</span
+                  >
+                </li>
+                <li>
+                  <span class="td" style="background: #0969da"></span>GitHub
+                  Light
+                </li>
+                <li>
+                  <span class="td" style="background: #4078f2"></span>Atom One
+                  Light
+                </li>
+                <li>
+                  <span class="td" style="background: #8839ef"></span>Catppuccin
+                  Latte
+                </li>
+                <li>
+                  <span class="td" style="background: #79740e"></span>Gruvbox
+                  Light
+                </li>
+                <li>
+                  <span class="td" style="background: #907aa9"></span>Rosé Pine
+                  Dawn
+                </li>
+                <li>
+                  <span class="td" style="background: #2aa198"></span>Solarized
+                  Light
+                </li>
+                <li>
+                  <span class="td" style="background: #16a34a"></span>Forge
+                </li>
+                <li>
+                  <span class="td" style="background: #7c3aed"></span>Lavender
+                </li>
+                <li>
+                  <span class="td" style="background: #b45309"></span>Sand
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
