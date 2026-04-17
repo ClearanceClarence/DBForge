@@ -59,7 +59,7 @@ All notable changes to [DBForge](https://github.com/ClearanceClarence/DBForge) a
 - `templates/settings_save.php`: Extracted settings save logic for Post-Redirect-Get pattern.
 - `templates/operations.php`: Full Operations tab.
 - `templates/login_2fa.php`: TOTP verification page.
-- `js/qr.js`: QR code generation using [qrcode-generator](https://github.com/nickmillerdev/qrcode-generator) by Kazuhiko Arase (MIT license).
+- `js/qr.js`: QR code generation using [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) by Kazuhiko Arase (MIT license).
 - 20+ new AJAX endpoints, all CSRF-protected and read-only aware.
 
 ### Fixes
