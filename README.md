@@ -587,7 +587,7 @@ dbforge/
     └── favorites.json           # Per-user starred tables
 ```
 
-**One external library:** [qrcode-generator](https://github.com/nickmillerdev/qrcode-generator) by Kazuhiko Arase (MIT license, 21KB minified) for TOTP 2FA QR codes. Everything else is written from scratch. No jQuery, no React, no Vue, no Bootstrap, no Tailwind, no CodeMirror, no Monaco, no D3, no Composer, no npm. The entire tool runs offline after the initial Google Fonts load (and even that is optional — it falls back to system fonts).
+**One external library:** [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) by Kazuhiko Arase (MIT license, 21KB minified) for TOTP 2FA QR codes. Everything else is written from scratch. No jQuery, no React, no Vue, no Bootstrap, no Tailwind, no CodeMirror, no Monaco, no D3, no Composer, no npm. The entire tool runs offline after the initial Google Fonts load (and even that is optional — it falls back to system fonts).
 
 ---
 
