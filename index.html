@@ -8,6 +8,20 @@
       name="description"
       content="A lightweight, themeable phpMyAdmin alternative. Zero dependencies, drop-in install. FK drill-down, EXPLAIN visualizer, 2FA, 20 themes, views, triggers, and more."
     />
+    <!-- Google Tag Manager -->
+    <script>
+      (function (w, d, s, l, i) {
+        w[l] = w[l] || [];
+        w[l].push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+        var f = d.getElementsByTagName(s)[0],
+          j = d.createElement(s),
+          dl = l != "dataLayer" ? "&l=" + l : "";
+        j.async = true;
+        j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+        f.parentNode.insertBefore(j, f);
+      })(window, document, "script", "dataLayer", "GTM-MP865WF9");
+    </script>
+    <!-- End Google Tag Manager -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap"
@@ -824,6 +838,16 @@
     </style>
   </head>
   <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript
+      ><iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-MP865WF9"
+        height="0"
+        width="0"
+        style="display: none; visibility: hidden"
+      ></iframe
+    ></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <nav>
       <div class="nav-inner">
         <a href="#" class="nav-logo"
@@ -848,14 +872,14 @@
       <div class="container">
         <div class="hero-grid">
           <div>
-            <div class="hero-badge">v1.5.0-alpha · Open Source</div>
+            <div class="hero-badge">v1.6.0-alpha · Open Source</div>
             <h1 class="hero-title">
               The database tool phpMyAdmin <em>should have been.</em>
             </h1>
             <p class="hero-sub">
               Drop a folder. Run the installer. Manage your databases. Zero
-              dependencies, 20 themes, built-in 2FA, and an editor that doesn't
-              fight you. Pure PHP + vanilla JS.
+              dependencies, 20 themes, built-in 2FA, Docker support, and an
+              editor that doesn't fight you. Pure PHP + vanilla JS.
             </p>
             <div class="hero-actions">
               <a
@@ -1010,18 +1034,18 @@
             <div class="feature-icon fi-gold">📊</div>
             <div class="feature-title">ER Diagram</div>
             <div class="feature-desc">
-              Interactive SVG with drag, zoom, force-directed auto-layout, hover
-              highlighting, and orthogonal FK lines. See your schema structure
-              at a glance.
+              Interactive SVG with crow's foot notation, three line styles,
+              force-directed layout, auto-save per database. Right-click context
+              menus. Drag, zoom, hover to trace relationships.
             </div>
           </div>
           <div class="feature-card">
             <div class="feature-icon fi-blue">👁</div>
-            <div class="feature-title">Views & Triggers</div>
+            <div class="feature-title">Views, Triggers & Routines</div>
             <div class="feature-desc">
-              Full CRUD for views and triggers with syntax-highlighted
-              definitions. Edit triggers with automatic rollback on failure.
-              Browse views like tables.
+              Full CRUD for views, triggers, stored procedures, and functions.
+              Syntax-highlighted editors with skeleton templates. Edit triggers
+              with automatic rollback on failure.
             </div>
           </div>
           <div class="feature-card">
@@ -1044,20 +1068,29 @@
           </div>
           <div class="feature-card">
             <div class="feature-icon fi-cyan">🔧</div>
-            <div class="feature-title">Operations Tab</div>
+            <div class="feature-title">Operations & Maintenance</div>
             <div class="feature-desc">
-              Alter engine, collation, row format. Rename, move, copy across
-              databases. Optimize, analyze, check, repair. Truncate and drop
-              with proper danger styling.
+              Alter engine, collation, row format. Rename, move, copy tables.
+              Optimize, analyze, check, repair in one panel. Partition
+              management: create, drop, truncate, rebuild.
             </div>
           </div>
           <div class="feature-card">
             <div class="feature-icon fi-purple">⭐</div>
-            <div class="feature-title">Favorites & Filter</div>
+            <div class="feature-title">Saved Queries & Favorites</div>
             <div class="feature-desc">
-              Star tables for quick access. Sidebar filter with match
-              highlighting. Persistent SQL drafts. Row detail panel for wide
+              Save queries with names for instant reuse. Star tables for quick
+              sidebar access. Persistent SQL drafts. Row detail panel for wide
               tables. Everything a daily driver needs.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon fi-gold">🐳</div>
+            <div class="feature-title">Docker Ready</div>
+            <div class="feature-desc">
+              docker-compose up and you're running. DBForge + MySQL 8.0 with
+              healthchecks, persistent volumes, and a quick-start guide. From
+              zero to managing databases in 30 seconds.
             </div>
           </div>
         </div>
@@ -1114,6 +1147,16 @@
                 <td>CRUD with rollback on failure</td>
               </tr>
               <tr>
+                <td>Routines</td>
+                <td>Basic listing</td>
+                <td>Full CRUD with syntax-highlighted editor</td>
+              </tr>
+              <tr>
+                <td>Saved Queries</td>
+                <td>Bookmarks (limited)</td>
+                <td>Save, rename, delete, click to load</td>
+              </tr>
+              <tr>
                 <td>Search</td>
                 <td>One table at a time</td>
                 <td>Every table simultaneously</td>
@@ -1121,7 +1164,17 @@
               <tr>
                 <td>ER Diagram</td>
                 <td class="cross">Not available</td>
-                <td>Interactive SVG with auto-layout</td>
+                <td>Crow's foot notation, auto-save, 3 line styles</td>
+              </tr>
+              <tr>
+                <td>Partitions</td>
+                <td>View only</td>
+                <td>Create, add, drop, truncate, optimize, rebuild</td>
+              </tr>
+              <tr>
+                <td>Maintenance</td>
+                <td>Optimize only</td>
+                <td>Optimize, analyze, check, repair in one panel</td>
               </tr>
               <tr>
                 <td>Query History</td>
@@ -1137,6 +1190,11 @@
                 <td>Themes</td>
                 <td>3 color schemes</td>
                 <td>20 themes (Dracula, GitHub, Gruvbox…)</td>
+              </tr>
+              <tr>
+                <td>Docker</td>
+                <td class="cross">Not included</td>
+                <td>docker-compose up — running in 30 seconds</td>
               </tr>
               <tr>
                 <td>Dependencies</td>
@@ -1380,7 +1438,7 @@
             </div>
           </div>
           <div class="install-code">
-            <div><span class="comment"># Clone the repo</span></div>
+            <div><span class="comment"># Option 1: Clone</span></div>
             <div>
               <span class="prompt">$ </span
               ><span class="cmd"
@@ -1388,19 +1446,31 @@
                 https://github.com/ClearanceClarence/DBForge.git</span
               >
             </div>
-            <div style="margin-top: 12px">
-              <span class="comment"># Copy to your web root</span>
-            </div>
             <div>
               <span class="prompt">$ </span
               ><span class="cmd">cp -r DBForge/dbforge/ /var/www/html/</span>
             </div>
-            <div style="margin-top: 12px">
-              <span class="comment"># Open in browser</span>
-            </div>
             <div>
               <span class="prompt">$ </span
               ><span class="cmd">open http://localhost/dbforge/</span>
+            </div>
+            <div style="margin-top: 16px">
+              <span class="comment"># Option 2: Docker (recommended)</span>
+            </div>
+            <div>
+              <span class="prompt">$ </span
+              ><span class="cmd"
+                >git clone
+                https://github.com/ClearanceClarence/DBForge.git</span
+              >
+            </div>
+            <div>
+              <span class="prompt">$ </span
+              ><span class="cmd">cd DBForge && docker-compose up -d</span>
+            </div>
+            <div>
+              <span class="prompt">$ </span
+              ><span class="cmd">open http://localhost:8080/dbforge/</span>
             </div>
             <div
               style="
@@ -1425,7 +1495,7 @@
                 PHP 7.4+ · MySQL 5.7+ / MariaDB 10.3+ · Apache
               </div>
               <div style="color: var(--c-text3); margin-top: 4px">
-                No Composer. No npm. No build step.
+                Or just Docker. No Composer. No npm. No build step.
               </div>
             </div>
           </div>
@@ -1475,7 +1545,7 @@
             src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg"
             alt=""
             style="height: 18px"
-          /><span>DBForge v1.5.0-alpha</span>
+          /><span>DBForge v1.6.0-alpha</span>
         </div>
         <div class="footer-links">
           <a href="https://github.com/ClearanceClarence/DBForge">GitHub</a
