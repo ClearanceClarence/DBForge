@@ -28,7 +28,7 @@
 <body>
 <div class="app-wrapper">
 
-    <!-- ═══ Header ═══ -->
+    <!-- Header -->
     <header class="app-header">
         <div class="header-left">
             <a href="?" class="logo">
@@ -85,10 +85,10 @@
 
     <div class="app-body">
 
-        <!-- ═══ Sidebar ═══ -->
+        <!-- Sidebar -->
         <?php include __DIR__ . '/sidebar.php'; ?>
 
-        <!-- ═══ Main Area ═══ -->
+        <!-- Main Area -->
         <main class="main-area">
 
             <!-- Tab Bar -->
@@ -159,7 +159,7 @@
         </main>
     </div>
 
-    <!-- ═══ Status Bar ═══ -->
+    <!-- Status Bar -->
     <footer class="status-bar">
         <div class="status-left">
             <span class="status-dot online"></span>
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         '<input type="text" class="settings-input" value="' + username + '" disabled style="opacity:0.6;font-family:var(--font-mono);">' +
                     '</div>' +
 
-                    // ── 2FA section ──
+                    // 2FA section
                     '<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">' +
                         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">' +
                             '<div style="font-size:var(--font-size-sm);font-weight:600;color:var(--text-secondary);">Two-Factor Authentication</div>' +
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         '</div>' +
                     '</div>' +
 
-                    // ── Change password section ──
+                    // Change password section
                     '<div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">' +
                         '<div style="font-size:var(--font-size-sm);font-weight:600;color:var(--text-secondary);margin-bottom:10px;">Change password</div>' +
                         '<div class="settings-field">' +
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function showErr(msg) { errEl.textContent = msg; errEl.style.display = ''; okEl.style.display = 'none'; }
         function showOk(msg)  { okEl.textContent  = msg; okEl.style.display  = ''; errEl.style.display = 'none'; }
 
-        // ── 2FA Setup Handler ──
+        // 2FA Setup Handler
         var setupBtn = overlay.querySelector('#pf-2fa-setup');
         var disableBtn = overlay.querySelector('#pf-2fa-disable');
         var area2fa = overlay.querySelector('#pf-2fa-area');

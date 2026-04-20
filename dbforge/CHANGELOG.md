@@ -40,6 +40,9 @@ All notable changes to [DBForge](https://github.com/ClearanceClarence/DBForge) a
 
 ### Code Quality
 
+- Removed all decorative Unicode comment headers (══, ──, ★).
+- Removed ASCII art box from index.php.
+- Removed ~60 trivial docblocks that restated function names.
 - Trimmed verbose file headers.
 - Converted all IIFE `(function(){})()` blocks to `DOMContentLoaded` to prevent `DBForge is not defined` errors.
 - Replaced `DBForge.getCsrfToken()` calls in templates with direct meta tag reads.

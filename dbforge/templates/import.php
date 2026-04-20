@@ -4,7 +4,7 @@ $csrfToken = isset($auth) ? $auth->generateCsrfToken() : '';
 $importResults = null;
 $importType = null;
 
-// ── Handle import POST ──
+// Handle import POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isReadOnly) {
     if (isset($auth) && $auth->csrfEnabled() && !$auth->validateCsrf()) {
         $importResults = ['error' => 'Invalid security token. Please reload and try again.'];
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isReadOnly) {
             $content = file_get_contents($filePath);
 
             if ($importType === 'sql') {
-                // ── SQL Import ──
+                // SQL Import
                 $sqlTarget = $_POST['sql_target'] ?? 'existing';
                 $targetDb = null;
 
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$isReadOnly) {
                 }
 
             } elseif ($importType === 'csv') {
-                // ── CSV Import ──
+                // CSV Import
                 $targetDb = $_POST['target_db'] ?? $currentDb;
                 $targetTable = $_POST['target_table'] ?? '';
                 if (!$targetDb || !$targetTable) {
@@ -130,7 +130,7 @@ if ($currentDb) {
 </div>
 <?php return; endif; ?>
 
-<!-- ═══ Import Results ═══ -->
+<!-- Import Results -->
 <?php if ($importResults): ?>
 <div class="import-results" style="margin-top:16px;">
 
@@ -245,7 +245,7 @@ if ($currentDb) {
 </div>
 <?php endif; ?>
 
-<!-- ═══ Import Forms ═══ -->
+<!-- Import Forms -->
 <div class="import-forms">
 
     <!-- SQL Import (always available) -->
@@ -425,7 +425,7 @@ if ($currentDb) {
 <!-- Drag & drop + CSV table loader -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // ── Drag & drop ──
+    // Drag & drop
     ['sql', 'csv'].forEach(function(type) {
         var zone = document.getElementById(type + '-drop-zone');
         var input = document.getElementById(type + '-file-input');
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ── SQL Preview ──
+    // SQL Preview
     function renderSqlPreview(file) {
         var panel = document.getElementById('sql-preview');
         var body = document.getElementById('sql-preview-body');
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ── Load tables when CSV database changes ──
+// Load tables when CSV database changes
 if (typeof DBForge !== 'undefined') {
     DBForge.loadCsvTables = function(db) {
         var sel = document.getElementById('csv-table-select');

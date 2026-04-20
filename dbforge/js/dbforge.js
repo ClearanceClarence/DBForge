@@ -5,7 +5,7 @@
 
 const DBForge = {
 
-    // ── SQL Token Definitions ────────────────────────────
+    // SQL Token Definitions
 
     SQL_KEYWORDS: new Set([
         // DML
@@ -173,8 +173,12 @@ const DBForge = {
 
     SQL_OPERATORS: /^(!=|<>|>=|<=|:=|=>|\|\||&&|<<|>>|<=>|[+\-*/%&|^~<>=!])/,
 
-    // ── Tokenizer ────────────────────────────────────────
+    // Tokenizer
 
+    /**
+     * Tokenize SQL into an array of {type, value} objects.
+     * Types: keyword, function, type, constant, string, number, comment, operator, identifier, whitespace
+     */
     tokenize(sql) {
         const tokens = [];
         let i = 0;
@@ -346,7 +350,7 @@ const DBForge = {
         return tokens;
     },
 
-    // ── Table/Alias Resolution (Second Pass) ─────────────
+    // Table/Alias Resolution (Second Pass)
 
     /**
      * Scan tokens for FROM/JOIN/UPDATE/INTO/TABLE clauses,
@@ -384,7 +388,7 @@ const DBForge = {
             return k;
         };
 
-        // ── Pass 1: Extract table names and aliases ──
+        // Pass 1: Extract table names and aliases
         for (let i = 0; i < tokens.length; i++) {
             const t = tokens[i];
             if (t.type !== 'keyword') continue;
@@ -483,7 +487,7 @@ const DBForge = {
             }
         }
 
-        // ── Pass 2: Re-classify tokens ──
+        // Pass 2: Re-classify tokens
         for (let i = 0; i < tokens.length; i++) {
             const t = tokens[i];
 
@@ -513,8 +517,11 @@ const DBForge = {
         return tokens;
     },
 
-    // ── HTML Renderer ────────────────────────────────────
+    // HTML Renderer
 
+    /**
+     * Convert token array to syntax-highlighted HTML string.
+     */
     renderTokens(tokens) {
         let html = '';
         for (const token of tokens) {
@@ -586,7 +593,7 @@ const DBForge = {
         };
     },
 
-    // ── Editor Sync ──────────────────────────────────────
+    // Editor Sync
 
     syncEditor() {
         const editor = document.getElementById('sql-editor');
@@ -621,7 +628,7 @@ const DBForge = {
         }
     },
 
-    // ── Autocomplete System ──────────────────────────────
+    // Autocomplete System
 
     // State
     acData: null,          // { databases, tables, columns, keywords }
@@ -1127,9 +1134,9 @@ const DBForge = {
         });
     },
 
-    // ── Initialization ───────────────────────────────────
+    // Initialization
 
-    // ── Modal Dialog System ─────────────────────────────
+    // Modal Dialog System
 
     /**
      * Show a themed confirmation dialog. Returns a Promise<boolean>.
@@ -1237,7 +1244,7 @@ const DBForge = {
         this.initStatusMessages();
     },
 
-    // ── Inline Cell Editing ──────────────────────────────
+    // Inline Cell Editing
 
     _editingCell: null,
 
@@ -1458,7 +1465,7 @@ const DBForge = {
             });
     },
 
-    // ── Bulk Row Selection ───────────────────────────────
+    // Bulk Row Selection
 
     initBulkSelect() {
         const wrapper = document.getElementById('browse-table');
@@ -1605,7 +1612,7 @@ const DBForge = {
         const editor = document.getElementById('sql-editor');
         if (!editor) return;
 
-        // ── Persistent SQL drafts ──
+        // Persistent SQL drafts
         // Keyed by database so each DB keeps its own draft
         const dbName = new URLSearchParams(window.location.search).get('db') || '_global';
         const draftKey = 'dbforge_draft_' + dbName;
@@ -1661,14 +1668,14 @@ const DBForge = {
         }
     },
 
-    // ── Theme Switching ──────────────────────────────────
+    // Theme Switching
 
     switchTheme(slug) {
         document.cookie = 'dbforge_theme=' + slug + ';path=/;max-age=' + (365*86400) + ';SameSite=Lax';
         window.location.reload();
     },
 
-    // ── Column Type Toggle ───────────────────────────────
+    // Column Type Toggle
 
     toggleColTypes() {
         const table = document.getElementById('browse-table');
@@ -1694,7 +1701,7 @@ const DBForge = {
         }
     },
 
-    // ── Favorites ────────────────────────────────────────
+    // Favorites
 
     initFavorites() {
         const self = this;
@@ -1736,7 +1743,7 @@ const DBForge = {
         });
     },
 
-    // ── Create / Drop Database ───────────────────────────
+    // Create / Drop Database
 
     initCreateDatabase() {
         const self = this;
@@ -1953,7 +1960,7 @@ const DBForge = {
         });
     },
 
-    // ── Sidebar Settings ─────────────────────────────────
+    // Sidebar Settings
 
     initSidebar() {
         const sidebar = document.getElementById('sidebar');
@@ -2088,7 +2095,7 @@ const DBForge = {
         }
     },
 
-    // ── Keyboard Shortcuts ───────────────────────────────
+    // Keyboard Shortcuts
 
     bindKeyboard() {
         const editor = document.getElementById('sql-editor');
@@ -2096,7 +2103,7 @@ const DBForge = {
 
         if (editor && form) {
             editor.addEventListener('keydown', (e) => {
-                // ── Autocomplete gets first priority ──
+                // Autocomplete gets first priority
                 if (this.acVisible) {
                     if (this.handleAutocompleteKey(e)) return;
                 }
@@ -2179,7 +2186,7 @@ const DBForge = {
         });
     },
 
-    // ── Shortcut Overlay ─────────────────────────────────
+    // Shortcut Overlay
 
     showShortcutOverlay() {
         if (document.getElementById('shortcut-overlay')) {
@@ -2261,7 +2268,7 @@ const DBForge = {
         });
     },
 
-    // ── Quick Query Buttons ──────────────────────────────
+    // Quick Query Buttons
 
     bindQuickQueries() {
         document.querySelectorAll('.quick-query[data-sql]').forEach(el => {
@@ -2292,7 +2299,7 @@ const DBForge = {
         }
     },
 
-    // ── Auto Focus ───────────────────────────────────────
+    // Auto Focus
 
     autoFocusEditor() {
         const editor = document.getElementById('sql-editor');
@@ -2303,7 +2310,7 @@ const DBForge = {
         }
     },
 
-    // ── Status Bar ───────────────────────────────────────
+    // Status Bar
 
     setStatus(msg) {
         const el = document.getElementById('status-message');

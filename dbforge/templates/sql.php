@@ -121,6 +121,9 @@ if (window.location.search.includes('sql=')) {
                 <span class="editor-hint"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> Focus editor</span>
             </div>
             <div style="display:flex;gap:8px;">
+                <button type="button" class="btn btn-ghost" id="save-query-btn" title="Save this query">
+                    <?= icon('check', 13) ?> Save
+                </button>
                 <button type="button" class="btn btn-ghost" id="explain-btn" title="EXPLAIN the current query">
                     <?= icon('activity', 13) ?> Explain
                 </button>
@@ -384,8 +387,267 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 <?php endif; ?>
 
+<!-- Saved Queries Panel -->
+<div style="margin-top:24px;" id="saved-queries-section">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 0;" id="saved-queries-toggle">
+        <h4 class="section-title" style="font-size:var(--font-size-sm);margin:0;">
+            <?= icon('database', 13) ?> Saved Queries
+            <span id="saved-queries-count" style="font-size:var(--font-size-xs);color:var(--text-muted);font-weight:400;margin-left:6px;"></span>
+        </h4>
+        <span style="font-size:var(--font-size-xs);color:var(--text-muted);" id="saved-queries-chevron">▼</span>
+    </div>
+    <div id="saved-queries-list" style="display:none;"></div>
+</div>
+
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
+    var db = <?= json_encode($currentDb ?? '') ?>;
+    var editor = document.getElementById('sql-editor');
+    var listEl = document.getElementById('saved-queries-list');
+    var countEl = document.getElementById('saved-queries-count');
+    var chevron = document.getElementById('saved-queries-chevron');
+    var toggle = document.getElementById('saved-queries-toggle');
+    var saveBtn = document.getElementById('save-query-btn');
+    var isOpen = false;
+
+    function getCsrf() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    // Toggle panel
+    toggle.addEventListener('click', function() {
+        isOpen = !isOpen;
+        listEl.style.display = isOpen ? '' : 'none';
+        chevron.textContent = isOpen ? '▲' : '▼';
+        if (isOpen) loadSaved();
+    });
+
+    // Load saved queries
+    function loadSaved() {
+        fetch('ajax.php?action=get_saved_queries&db=' + encodeURIComponent(db))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var queries = data.queries || [];
+                countEl.textContent = queries.length ? '(' + queries.length + ')' : '';
+                if (!queries.length) {
+                    listEl.innerHTML = '<div style="padding:12px;font-size:var(--font-size-xs);color:var(--text-muted);text-align:center;">No saved queries yet. Use the Save button to save the current query.</div>';
+                    return;
+                }
+                var html = '';
+                queries.forEach(function(q) {
+                    var shortSql = q.sql.length > 120 ? q.sql.substring(0, 117) + '…' : q.sql;
+                    var ago = timeAgo(q.updated || q.created);
+                    var dbBadge = q.db ? '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:var(--accent-bg);color:var(--accent);font-family:var(--font-mono);">' + escHtml(q.db) + '</span>' : '';
+                    html += '<div class="saved-query-item" data-id="' + escHtml(q.id) + '" style="padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;cursor:pointer;transition:border-color 0.15s,background 0.15s;">'
+                        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+                        + '<span style="font-weight:600;font-size:var(--font-size-sm);color:var(--text-primary);flex:1;" class="sq-name">' + escHtml(q.name) + '</span>'
+                        + dbBadge
+                        + '<span style="font-size:var(--font-size-xs);color:var(--text-muted);">' + ago + '</span>'
+                        + '<button type="button" class="sq-rename" title="Rename" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 4px;">✏️</button>'
+                        + '<button type="button" class="sq-delete" title="Delete" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:12px;padding:2px 4px;">🗑️</button>'
+                        + '</div>'
+                        + '<code style="font-size:var(--font-size-xs);color:var(--text-secondary);font-family:var(--font-mono);line-height:1.5;word-break:break-all;">' + escHtml(shortSql) + '</code>'
+                        + '</div>';
+                });
+                listEl.innerHTML = html;
+
+                // Bind events
+                listEl.querySelectorAll('.saved-query-item').forEach(function(item, idx) {
+                    var q = queries[idx];
+                    // Click to load
+                    item.addEventListener('click', function(e) {
+                        if (e.target.closest('.sq-rename') || e.target.closest('.sq-delete')) return;
+                        if (editor) {
+                            editor.value = q.sql;
+                            editor.dispatchEvent(new Event('input'));
+                            editor.focus();
+                            editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            DBForge.setStatus('Loaded: ' + q.name);
+                        }
+                    });
+                    item.addEventListener('mouseenter', function() { this.style.borderColor = 'var(--accent)'; this.style.background = 'var(--bg-hover)'; });
+                    item.addEventListener('mouseleave', function() { this.style.borderColor = 'var(--border)'; this.style.background = ''; });
+
+                    // Rename — inline edit
+                    item.querySelector('.sq-rename').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        var nameEl = item.querySelector('.sq-name');
+                        var oldName = q.name;
+                        var inp = document.createElement('input');
+                        inp.type = 'text';
+                        inp.value = oldName;
+                        inp.className = 'settings-input';
+                        inp.style.cssText = 'font-size:var(--font-size-sm);padding:3px 6px;width:100%;';
+                        nameEl.innerHTML = '';
+                        nameEl.appendChild(inp);
+                        inp.focus();
+                        inp.select();
+
+                        function finishRename() {
+                            var newName = inp.value.trim();
+                            if (!newName || newName === oldName) { nameEl.textContent = oldName; return; }
+                            nameEl.textContent = newName;
+                            var fd = new FormData();
+                            fd.append('action', 'update_saved_query');
+                            fd.append('id', q.id);
+                            fd.append('name', newName);
+                            fd.append('_csrf_token', getCsrf());
+                            fetch('ajax.php', { method: 'POST', body: fd })
+                                .then(function(r) { return r.json(); })
+                                .then(function(data) { if (data.success) { q.name = newName; } else { nameEl.textContent = oldName; } });
+                        }
+                        inp.addEventListener('blur', finishRename);
+                        inp.addEventListener('keydown', function(ev) { if (ev.key === 'Enter') { ev.preventDefault(); inp.blur(); } if (ev.key === 'Escape') { nameEl.textContent = oldName; } });
+                    });
+
+                    // Delete
+                    item.querySelector('.sq-delete').addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        // Use DBForge confirm if available, otherwise just delete
+                        function doDelete() {
+                            var fd = new FormData();
+                            fd.append('action', 'delete_saved_query');
+                            fd.append('id', q.id);
+                            fd.append('_csrf_token', getCsrf());
+                            fetch('ajax.php', { method: 'POST', body: fd })
+                                .then(function(r) { return r.json(); })
+                                .then(function(data) {
+                                    if (data.success) {
+                                        item.style.opacity = '0';
+                                        item.style.transform = 'translateX(-20px)';
+                                        item.style.transition = 'all 0.2s';
+                                        setTimeout(function() { loadSaved(); }, 200);
+                                    }
+                                });
+                        }
+                        if (typeof DBForge !== 'undefined' && DBForge.confirm) {
+                            DBForge.confirm('Delete "' + q.name + '"?', 'This action cannot be undone.', doDelete);
+                        } else {
+                            doDelete();
+                        }
+                    });
+                });
+            });
+    }
+
+    // Save button
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            if (!editor) return;
+            var sql = editor.value.trim();
+            if (!sql) { if (typeof DBForge !== 'undefined') DBForge.setStatus('Nothing to save.'); return; }
+
+            // Build inline save dialog
+            var defaultName = sql.substring(0, 50).replace(/\s+/g, ' ');
+            if (defaultName.length >= 50) defaultName = defaultName.substring(0, 47) + '…';
+
+            // Remove existing dialog if any
+            var existing = document.getElementById('save-query-dialog');
+            if (existing) existing.remove();
+
+            var overlay = document.createElement('div');
+            overlay.id = 'save-query-dialog';
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML =
+                '<div class="modal-box" style="max-width:400px;">' +
+                    '<div class="modal-header">' +
+                        '<span class="modal-title">Save Query</span>' +
+                        '<button class="modal-close" id="sq-cancel">&times;</button>' +
+                    '</div>' +
+                    '<div class="modal-body">' +
+                        '<div class="settings-field">' +
+                            '<label class="settings-label">Query name</label>' +
+                            '<input type="text" id="sq-name-input" class="settings-input" value="' + defaultName.replace(/"/g, '&quot;') + '" placeholder="My query" autofocus>' +
+                        '</div>' +
+                        '<div style="margin-top:8px;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);max-height:80px;overflow:auto;">' +
+                            '<code style="font-size:var(--font-size-xs);color:var(--text-secondary);font-family:var(--font-mono);word-break:break-all;">' + sql.substring(0, 200).replace(/</g, '&lt;') + (sql.length > 200 ? '…' : '') + '</code>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer">' +
+                        '<button class="btn btn-ghost modal-btn" id="sq-cancel2">Cancel</button>' +
+                        '<button class="btn btn-primary modal-btn" id="sq-confirm">Save Query</button>' +
+                    '</div>' +
+                '</div>';
+
+            document.body.appendChild(overlay);
+            requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+            var nameInput = document.getElementById('sq-name-input');
+            nameInput.focus();
+            nameInput.select();
+
+            function close() {
+                overlay.classList.remove('modal-visible');
+                setTimeout(function() { overlay.remove(); }, 150);
+            }
+
+            function doSave() {
+                var name = nameInput.value.trim();
+                if (!name) { nameInput.style.borderColor = 'var(--danger)'; nameInput.focus(); return; }
+                close();
+
+                saveBtn.disabled = true;
+                var orig = saveBtn.innerHTML;
+                saveBtn.textContent = 'Saving…';
+
+                var fd = new FormData();
+                fd.append('action', 'save_query');
+                fd.append('name', name);
+                fd.append('sql', sql);
+                fd.append('db', db);
+                fd.append('_csrf_token', getCsrf());
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        saveBtn.disabled = false;
+                        if (data.success) {
+                            saveBtn.innerHTML = '<?= icon('check', 13) ?> Saved!';
+                            saveBtn.style.color = 'var(--accent)';
+                            setTimeout(function() { saveBtn.innerHTML = orig; saveBtn.style.color = ''; }, 2000);
+                            if (!isOpen) { isOpen = true; listEl.style.display = ''; chevron.textContent = '▲'; }
+                            loadSaved();
+                            if (typeof DBForge !== 'undefined') DBForge.setStatus('Query saved: ' + name);
+                        } else {
+                            saveBtn.innerHTML = orig;
+                            if (typeof DBForge !== 'undefined') DBForge.setStatus(data.error || 'Save failed.');
+                        }
+                    });
+            }
+
+            document.getElementById('sq-confirm').addEventListener('click', doSave);
+            document.getElementById('sq-cancel').addEventListener('click', close);
+            document.getElementById('sq-cancel2').addEventListener('click', close);
+            nameInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') close(); });
+            overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+        });
+    }
+
+    // Helpers
+    function escHtml(s) {
+        var d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+    }
+    function timeAgo(ts) {
+        var diff = Math.floor(Date.now() / 1000) - ts;
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+        return new Date(ts * 1000).toLocaleDateString();
+    }
+
+    // Auto-load count on page load
+    fetch('ajax.php?action=get_saved_queries&db=' + encodeURIComponent(db))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var n = (data.queries || []).length;
+            countEl.textContent = n ? '(' + n + ')' : '';
+        });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
     var btn = document.getElementById('explain-btn');
     var panel = document.getElementById('explain-panel');
     var body = document.getElementById('explain-body');
@@ -549,5 +811,5 @@ document.addEventListener('DOMContentLoaded', function() {
             panel.style.display = 'none';
         });
     }
-})();
+});
 </script>

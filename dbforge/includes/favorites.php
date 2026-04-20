@@ -1,14 +1,8 @@
 <?php
 /**
- * DBForge — Favorites storage
- *
- * Per-user starred tables. Stored as JSON at logs/favorites.json.
- * Structure:
- *   {
- *     "username1": [{"db": "mydb", "table": "users"}, ...],
- *     "username2": [...]
- *   }
+ * DBForge — Favorites (per-user starred tables)
  */
+
 
 function dbforge_favorites_file(): string
 {

@@ -1,10 +1,4 @@
 <?php
-/**
- * DBForge — TOTP Two-Factor Authentication
- *
- * Zero-dependency TOTP (RFC 6238) implementation.
- * Compatible with Google Authenticator, Authy, 1Password, etc.
- */
 
 class DBForgeTOTP
 {
@@ -13,18 +7,12 @@ class DBForgeTOTP
     private const ALGORITHM = 'sha1'; // HMAC algorithm
     private const SECRET_LENGTH = 20; // Bytes of entropy
 
-    /**
-     * Generate a new random secret (Base32-encoded)
-     */
     public static function generateSecret(): string
     {
         $bytes = random_bytes(self::SECRET_LENGTH);
         return self::base32Encode($bytes);
     }
 
-    /**
-     * Generate the current TOTP code for a given secret
-     */
     public static function getCode(string $secret, ?int $timestamp = null): string
     {
         $timestamp = $timestamp ?? time();
@@ -130,7 +118,7 @@ class DBForgeTOTP
         return [];
     }
 
-    // ── Base32 ──
+    // Base32
 
     private static function base32Encode(string $data): string
     {

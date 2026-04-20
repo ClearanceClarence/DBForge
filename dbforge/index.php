@@ -1,34 +1,25 @@
 <?php
 /**
- * ╔═══════════════════════════════════════════════════╗
- * ║  DBForge — Database Management Tool               ║
- * ║  A lightweight PhpMyAdmin alternative              ║
- * ║                                                    ║
- * ║  Production-ready with auth, CSRF, IP whitelist,  ║
- * ║  query logging, read-only mode, and more.         ║
- * ╚═══════════════════════════════════════════════════╝
+ * DBForge — Database Management Tool
  */
 
-// ── Error Handling ─────────────────────────────────────
+// Error Handling
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
 
 set_exception_handler(function (Throwable $e) {
     http_response_code(500);
-    echo '<div style="font-family:monospace;background:#1a0808;color:#f06060;padding:20px;margin:20px;border-radius:8px;border:1px solid #3a1a1a;">';
-    echo '<h2 style="margin:0 0 10px;">DBForge — Fatal Error</h2>';
-    echo '<p>' . htmlspecialchars($e->getMessage()) . '</p>';
-    echo '</div>';
+    echo '<pre style="font-family:monospace;padding:20px;">DBForge Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
     exit;
 });
 
-// ── First-run check ───────────────────────────────────
+// First-run check
 if (!file_exists(__DIR__ . '/config.php')) {
     header('Location: install.php');
     exit;
 }
 
-// ── Bootstrap ──────────────────────────────────────────
+// Bootstrap
 $config = require __DIR__ . '/config.php';
 require __DIR__ . '/includes/Database.php';
 require __DIR__ . '/includes/helpers.php';
@@ -36,8 +27,9 @@ require __DIR__ . '/includes/icons.php';
 require __DIR__ . '/includes/Auth.php';
 require __DIR__ . '/includes/favorites.php';
 require __DIR__ . '/includes/TOTP.php';
+require __DIR__ . '/includes/saved_queries.php';
 
-// ── Security Bootstrap ─────────────────────────────────
+// Security Bootstrap
 $auth = new Auth($config['security']);
 
 // 1) Security headers (always)
@@ -60,7 +52,7 @@ if (!$auth->isIpAllowed()) {
 // 4) Start session (needed for auth + CSRF)
 $auth->startSession();
 
-// ── Theme System (needed for login page too) ──────────
+// Theme System (needed for login page too)
 $themeData = dbforge_load_themes(__DIR__ . '/themes', $config['app']['default_theme']);
 $themes      = $themeData['list'];
 $activeTheme = $themeData['active'];
@@ -69,7 +61,7 @@ $appName    = $config['app']['name'];
 $appVersion = $config['app']['version'];
 $serverHost = $config['db']['host'];
 
-// ── Authentication ─────────────────────────────────────
+// Authentication
 if ($auth->isAuthRequired()) {
     $action = input('action');
 
@@ -130,7 +122,7 @@ if ($auth->isAuthRequired()) {
     }
 }
 
-// ── Database Connection ────────────────────────────────
+// Database Connection
 $dbInstance = Database::getInstance($config['db']);
 
 try {
@@ -161,7 +153,7 @@ try {
     $totalQueries = 0;
 }
 
-// ── Routing ────────────────────────────────────────────
+// Routing
 $currentDb    = input('db') ?: null;
 $currentTable = input('table') ?: null;
 $activeTab    = input('tab', 'browse');
@@ -178,7 +170,7 @@ if ($currentDb && $auth->isDatabaseHidden($currentDb)) {
     $currentTable = null;
 }
 
-// ── Handle Actions (exports, drop, truncate) ──────────
+// Handle Actions (exports, drop, truncate)
 if ($action && $connected) {
 
     // Read-only guard for destructive actions
@@ -198,10 +190,32 @@ if ($action && $connected) {
         switch ($action) {
             case 'export_sql':
                 if ($currentDb && $currentTable) {
-                    $sql = $dbInstance->exportTable($currentDb, $currentTable);
                     header('Content-Type: application/sql');
                     header("Content-Disposition: attachment; filename=\"{$currentTable}.sql\"");
-                    echo $sql;
+
+                    $pdo = $dbInstance->connect($currentDb);
+                    $serverVersion = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION);
+                    $rowCount = $pdo->query("SELECT COUNT(*) FROM `{$currentTable}`")->fetchColumn();
+
+                    $line = str_repeat('-', 60);
+                    echo "-- {$line}\n";
+                    echo "--\n";
+                    echo "--  DBForge · Table Export\n";
+                    echo "--\n";
+                    echo "--  Database:     {$currentDb}\n";
+                    echo "--  Table:        {$currentTable}\n";
+                    echo "--  Rows:         " . number_format((int)$rowCount) . "\n";
+                    echo "--  Server:       {$serverVersion}\n";
+                    echo "--  Exported by:  " . (isset($auth) ? ($auth->getUsername() ?: 'anonymous') : 'anonymous') . "\n";
+                    echo "--  Date:         " . date('Y-m-d H:i:s T') . "\n";
+                    echo "--  Generator:    DBForge v" . ($config['app']['version'] ?? '1.6.0') . "\n";
+                    echo "--\n";
+                    echo "-- {$line}\n\n";
+
+                    echo "SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS = 0;\n\n";
+                    echo "DROP TABLE IF EXISTS `{$currentTable}`;\n\n";
+                    echo $dbInstance->exportTable($currentDb, $currentTable);
+                    echo "\nSET FOREIGN_KEY_CHECKS = 1;\n";
                     exit;
                 }
                 break;
@@ -221,15 +235,59 @@ if ($action && $connected) {
                     header('Content-Type: application/sql');
                     header("Content-Disposition: attachment; filename=\"{$currentDb}.sql\"");
                     $tables = $dbInstance->getTables($currentDb);
-                    echo "-- DBForge Full Database Export\n";
-                    echo "-- Database: {$currentDb}\n";
-                    echo "-- Exported by: " . ($auth->getUsername() ?: 'anonymous') . "\n";
-                    echo "-- Generated: " . date('Y-m-d H:i:s') . "\n\n";
-                    echo "CREATE DATABASE IF NOT EXISTS `{$currentDb}`;\nUSE `{$currentDb}`;\n\n";
+                    $tableCount = count($tables);
+                    $totalRows = 0;
                     foreach ($tables as $tbl) {
-                        echo $dbInstance->exportTable($currentDb, $tbl['Name']);
+                        $totalRows += (int)($tbl['Rows'] ?? 0);
+                    }
+
+                    // Server info
+                    $pdo = $dbInstance->connect($currentDb);
+                    $serverVersion = $pdo->getAttribute(\PDO::ATTR_SERVER_VERSION);
+                    $serverInfo = $pdo->getAttribute(\PDO::ATTR_SERVER_INFO) ?? '';
+                    $charset = $pdo->query("SELECT @@character_set_database")->fetchColumn() ?: 'utf8mb4';
+                    $collation = $pdo->query("SELECT @@collation_database")->fetchColumn() ?: '';
+
+                    $line = str_repeat('-', 60);
+                    echo "-- {$line}\n";
+                    echo "--\n";
+                    echo "--  DBForge · Database Export\n";
+                    echo "--\n";
+                    echo "--  Database:     {$currentDb}\n";
+                    echo "--  Server:       {$serverVersion}\n";
+                    echo "--  Charset:      {$charset}" . ($collation ? " / {$collation}" : "") . "\n";
+                    echo "--  Tables:       {$tableCount}\n";
+                    echo "--  Total rows:   " . number_format($totalRows) . "\n";
+                    echo "--  Exported by:  " . ($auth->getUsername() ?: 'anonymous') . "\n";
+                    echo "--  Date:         " . date('Y-m-d H:i:s T') . "\n";
+                    echo "--  Generator:    DBForge v" . ($config['app']['version'] ?? '1.6.0') . "\n";
+                    echo "--\n";
+                    echo "-- {$line}\n\n";
+
+                    echo "SET NAMES utf8mb4;\n";
+                    echo "SET FOREIGN_KEY_CHECKS = 0;\n";
+                    echo "SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';\n\n";
+
+                    echo "CREATE DATABASE IF NOT EXISTS `{$currentDb}` /*!40100 DEFAULT CHARACTER SET {$charset} */;\nUSE `{$currentDb}`;\n\n";
+
+                    echo "-- {$line}\n";
+                    echo "--  Table structure and data\n";
+                    echo "-- {$line}\n\n";
+
+                    foreach ($tables as $tbl) {
+                        $tblName = $tbl['Name'];
+                        $tblRows = number_format((int)($tbl['Rows'] ?? 0));
+                        echo "-- ---\n";
+                        echo "-- Table: {$tblName} ({$tblRows} rows)\n";
+                        echo "-- ---\n\n";
+                        echo "DROP TABLE IF EXISTS `{$tblName}`;\n\n";
+                        echo $dbInstance->exportTable($currentDb, $tblName);
                         echo "\n\n";
                     }
+
+                    echo "SET FOREIGN_KEY_CHECKS = 1;\n\n";
+                    echo "-- Export complete.\n";
+
                     $auth->logActivity("Exported database: {$currentDb}");
                     exit;
                 }
@@ -264,7 +322,7 @@ if ($action && $connected) {
     }
 }
 
-// ── Determine Content Template ─────────────────────────
+// Determine Content Template
 if ($activeTab === 'settings') {
     // Process settings POST BEFORE layout renders so we can redirect
     // and so the rest of this request uses the fresh config.
@@ -305,5 +363,5 @@ if ($activeTab === 'settings') {
     $contentTemplate = __DIR__ . '/templates/browse.php';
 }
 
-// ── Render Layout ──────────────────────────────────────
+// Render Layout
 include __DIR__ . '/templates/layout.php';

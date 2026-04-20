@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const table = editor.dataset.table;
     const csrf = editor.dataset.csrf;
 
-    // ── Edit / Save / Cancel per row ──
+    // Edit / Save / Cancel per row
 
     editor.querySelectorAll('.struct-edit-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -625,7 +625,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    // ── Drop Column ──
+    // Drop Column
 
     editor.querySelectorAll('.struct-drop-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ── Add Column ──
+    // Add Column
 
     const addBtn = document.getElementById('add-column-btn');
     const addForm = document.getElementById('add-column-form');
@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ── Keyboard: Enter saves, Escape cancels ──
+    // Keyboard: Enter saves, Escape cancels
     editor.addEventListener('keydown', function(e) {
         const row = e.target.closest('.struct-editing');
         if (!row) return;
@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape') { e.preventDefault(); window.location.reload(); }
     });
 
-    // ── Auto Increment ──
+    // Auto Increment
 
     var setBtn = document.getElementById('auto-inc-set-btn');
     var resetBtn = document.getElementById('auto-inc-reset-btn');
@@ -800,7 +800,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-// ── Partitions & Information panels ──
+// Partitions & Information panels
 $tableStatus = null;
 $partitions = [];
 $panelError = null;
@@ -820,51 +820,7 @@ try {
 
 <?php if ($tableStatus): ?>
 
-<!-- ── Partitions Panel ── -->
-<div class="panel-section" style="margin-top:24px;">
-    <div class="panel-section-header">
-        <?= icon('layers', 14) ?> Partitions
-    </div>
-    <div class="panel-section-body">
-        <?php if (empty($partitions)): ?>
-        <div class="panel-empty">
-            <?= icon('alert-triangle', 14) ?>
-            <span>No partitioning defined.</span>
-        </div>
-        <?php else: ?>
-        <table class="data-table" style="margin:0;">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Method</th>
-                    <th>Expression</th>
-                    <th>Description</th>
-                    <th class="cell-number">Rows</th>
-                    <th>Data</th>
-                    <th>Index</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($partitions as $p): ?>
-                <tr>
-                    <td><?= (int)$p['PARTITION_ORDINAL_POSITION'] ?></td>
-                    <td style="color:var(--warning);font-family:var(--font-mono);"><?= h($p['PARTITION_NAME']) ?></td>
-                    <td style="color:var(--purple);font-family:var(--font-mono);"><?= h($p['PARTITION_METHOD'] ?? '—') ?></td>
-                    <td style="color:var(--text-secondary);font-family:var(--font-mono);"><?= h($p['PARTITION_EXPRESSION'] ?? '—') ?></td>
-                    <td style="color:var(--text-muted);font-family:var(--font-mono);font-size:var(--font-size-xs);"><?= h($p['PARTITION_DESCRIPTION'] ?? '—') ?></td>
-                    <td class="cell-number"><?= format_number((int)($p['TABLE_ROWS'] ?? 0)) ?></td>
-                    <td style="color:var(--text-secondary);"><?= format_bytes((int)($p['DATA_LENGTH'] ?? 0)) ?></td>
-                    <td style="color:var(--text-secondary);"><?= format_bytes((int)($p['INDEX_LENGTH'] ?? 0)) ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-        <?php endif; ?>
-    </div>
-</div>
-
-<!-- ── Information Panels ── -->
+<!-- Information Panels -->
 <?php
 $dataLen   = (int)($tableStatus['Data_length'] ?? 0);
 $indexLen  = (int)($tableStatus['Index_length'] ?? 0);
@@ -897,23 +853,6 @@ $fmtDate = function ($d) {
                 <tr><td><strong>Effective</strong></td><td class="cell-number"><strong><?= format_bytes($effective) ?></strong></td></tr>
                 <tr><td><strong>Total</strong></td><td class="cell-number"><strong><?= format_bytes($total) ?></strong></td></tr>
             </table>
-            <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
-            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-                <button type="button"
-                        class="btn btn-ghost btn-sm"
-                        id="optimize-table-btn"
-                        data-db="<?= h($currentDb) ?>"
-                        data-table="<?= h($currentTable) ?>"
-                        <?= $overhead > 0 ? 'style="color:var(--warning);"' : '' ?>>
-                    <?= icon('zap', 12) ?> Optimize table
-                </button>
-                <?php if ($overhead > 0): ?>
-                <span style="font-size:var(--font-size-xs);color:var(--text-muted);margin-left:8px;">
-                    Reclaim <?= format_bytes($overhead) ?>
-                </span>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
         </div>
     </div>
 
@@ -935,41 +874,374 @@ $fmtDate = function ($d) {
     </div>
 </div>
 
+<!-- ── Maintenance Panel ── -->
+<?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+<div class="panel-section" style="margin-top:16px;">
+    <div class="panel-section-header"><?= icon('settings', 14) ?> Maintenance</div>
+    <div class="panel-section-body" style="padding:0;">
+        <table class="info-kv-table" style="margin:0;">
+            <tr>
+                <td style="padding:12px 16px;"><strong>Optimize table</strong><div style="font-size:var(--font-size-xs);color:var(--text-muted);margin-top:2px;">Rebuild the table to reclaim unused space and defragment data and index pages.</div></td>
+                <td style="width:80px;text-align:right;padding-right:16px;"><button type="button" class="btn btn-ghost btn-sm maint-btn" data-op="OPTIMIZE">Run</button></td>
+            </tr>
+            <tr>
+                <td style="padding:12px 16px;"><strong>Analyze table</strong><div style="font-size:var(--font-size-xs);color:var(--text-muted);margin-top:2px;">Update key distribution statistics so the optimizer makes better query plans.</div></td>
+                <td style="width:80px;text-align:right;padding-right:16px;"><button type="button" class="btn btn-ghost btn-sm maint-btn" data-op="ANALYZE">Run</button></td>
+            </tr>
+            <tr>
+                <td style="padding:12px 16px;"><strong>Check table</strong><div style="font-size:var(--font-size-xs);color:var(--text-muted);margin-top:2px;">Look for errors. Read-only — does not modify the table.</div></td>
+                <td style="width:80px;text-align:right;padding-right:16px;"><button type="button" class="btn btn-ghost btn-sm maint-btn" data-op="CHECK">Run</button></td>
+            </tr>
+            <tr>
+                <td style="padding:12px 16px;"><strong>Repair table</strong><div style="font-size:var(--font-size-xs);color:var(--text-muted);margin-top:2px;">Attempt to repair a corrupted table. MyISAM/ARIA only — InnoDB has no equivalent.</div></td>
+                <td style="width:80px;text-align:right;padding-right:16px;"><button type="button" class="btn btn-ghost btn-sm maint-btn" data-op="REPAIR">Run</button></td>
+            </tr>
+        </table>
+    </div>
+</div>
 <script>
-(function() {
-    var btn = document.getElementById('optimize-table-btn');
-    if (!btn) return;
-    btn.addEventListener('click', function() {
-        var db = btn.dataset.db, table = btn.dataset.table;
-        DBForge.confirm({
-            title: 'Optimize table',
-            message: 'Run OPTIMIZE TABLE on `' + table + '`? This rebuilds the table to reclaim unused space and can take a while on large tables.',
-            confirmText: 'Optimize',
-            cancelText: 'Cancel',
-        }).then(function(ok) {
-            if (!ok) return;
+document.addEventListener('DOMContentLoaded', function() {
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrfToken = csrfMeta ? csrfMeta.content : '';
+    document.querySelectorAll('.maint-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var op = btn.dataset.op;
+            var db = <?= json_encode($currentDb) ?>;
+            var table = <?= json_encode($currentTable) ?>;
             btn.disabled = true;
-            btn.textContent = 'Optimizing…';
+            var orig = btn.textContent;
+            btn.textContent = 'Running…';
             var fd = new FormData();
-            fd.append('action', 'optimize_table');
+            fd.append('action', 'maintenance');
+            fd.append('operation', op);
             fd.append('db', db);
             fd.append('table', table);
-            fd.append('_csrf_token', DBForge.getCsrfToken());
+            fd.append('_csrf_token', csrfToken);
             fetch('ajax.php', { method: 'POST', body: fd })
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
+                    btn.disabled = false;
                     if (data.error) {
-                        DBForge.setStatus('Error: ' + data.error);
-                        btn.disabled = false;
-                        btn.innerHTML = '<?= str_replace("'", "\\'", icon('zap', 12)) ?> Optimize table';
-                        return;
+                        btn.textContent = 'Error'; btn.style.color = 'var(--danger)';
+                        if (typeof DBForge !== 'undefined') DBForge.setStatus('Error: ' + data.error);
+                        else alert('Error: ' + data.error);
+                    } else {
+                        btn.textContent = '✓ Done'; btn.style.color = 'var(--accent)';
+                        var msg = op + ' TABLE completed.';
+                        if (data.result && data.result.length) msg += ' Status: ' + (data.result[0].Msg_text || 'OK');
+                        if (typeof DBForge !== 'undefined') DBForge.setStatus(msg);
                     }
-                    DBForge.setStatus('Table optimized. ' + (data.result || ''));
-                    setTimeout(function() { window.location.reload(); }, 800);
+                    setTimeout(function() { btn.textContent = orig; btn.style.color = ''; }, 3000);
+                })
+                .catch(function(err) {
+                    btn.disabled = false;
+                    btn.textContent = 'Error';
+                    btn.style.color = 'var(--danger)';
+                    setTimeout(function() { btn.textContent = orig; btn.style.color = ''; }, 3000);
                 });
         });
     });
-})();
+});
+</script>
+<?php endif; ?>
+
+<!-- ── Partitions Panel ── -->
+<?php
+$partitions = [];
+$partInfo = null;
+try {
+    $partitions = $dbInstance->getPartitions($currentDb, $currentTable);
+    $partInfo = $dbInstance->getPartitionInfo($currentDb, $currentTable);
+} catch (Exception $e) {}
+$isPartitioned = !empty($partitions);
+$isReadOnlyMode = isset($auth) && $auth->isReadOnly();
+?>
+<div class="panel-section" style="margin-top:16px;">
+    <div class="panel-section-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><?= icon('layers', 14) ?> Partitions</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+            <?php if ($isPartitioned): ?>
+            <span style="font-size:var(--font-size-xs);color:var(--text-muted);">
+                <?= strtoupper($partInfo['PARTITION_METHOD'] ?? '') ?> on <?= h($partInfo['PARTITION_EXPRESSION'] ?? '') ?>
+                · <?= count($partitions) ?> partition<?= count($partitions) !== 1 ? 's' : '' ?>
+            </span>
+            <?php if (!$isReadOnlyMode): ?>
+            <button type="button" class="btn btn-ghost btn-sm" id="part-add-btn"><?= icon('plus', 11) ?> Add</button>
+            <button type="button" class="btn btn-danger btn-sm" id="part-remove-btn">Remove All</button>
+            <?php endif; ?>
+            <?php else: ?>
+            <span style="font-size:var(--font-size-xs);color:var(--text-muted);">Not partitioned</span>
+            <?php if (!$isReadOnlyMode): ?>
+            <button type="button" class="btn btn-primary btn-sm" id="part-create-btn"><?= icon('plus', 11) ?> Create Partitioning</button>
+            <?php endif; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+    <div style="padding:0;">
+        <?php if (!$isPartitioned): ?>
+        <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:var(--font-size-sm);">
+            This table is not partitioned.
+        </div>
+        <?php else: ?>
+        <table class="data-table" style="margin:0;font-size:var(--font-size-sm);">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th style="text-align:right;">Rows</th>
+                    <th style="text-align:right;">Data</th>
+                    <th style="text-align:right;">Index</th>
+                    <?php if (!$isReadOnlyMode): ?>
+                    <th style="width:140px;">Actions</th>
+                    <?php endif; ?>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($partitions as $p):
+                $dataLen = (int)($p['DATA_LENGTH'] ?? 0);
+                $indexLen = (int)($p['INDEX_LENGTH'] ?? 0);
+            ?>
+                <tr>
+                    <td style="color:var(--text-muted);"><?= h($p['PARTITION_ORDINAL_POSITION']) ?></td>
+                    <td style="font-family:var(--font-mono);font-weight:600;"><?= h($p['PARTITION_NAME']) ?></td>
+                    <td style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--text-secondary);">
+                        <?= h($p['PARTITION_DESCRIPTION'] ?: '—') ?>
+                    </td>
+                    <td style="text-align:right;font-family:var(--font-mono);"><?= number_format((int)($p['TABLE_ROWS'] ?? 0)) ?></td>
+                    <td style="text-align:right;font-size:var(--font-size-xs);color:var(--text-muted);"><?= format_bytes($dataLen) ?></td>
+                    <td style="text-align:right;font-size:var(--font-size-xs);color:var(--text-muted);"><?= format_bytes($indexLen) ?></td>
+                    <?php if (!$isReadOnlyMode): ?>
+                    <td>
+                        <div style="display:flex;gap:3px;">
+                            <button type="button" class="btn btn-ghost btn-sm part-action" data-op="optimize" data-part="<?= h($p['PARTITION_NAME']) ?>" title="Optimize"><?= icon('zap', 10) ?></button>
+                            <button type="button" class="btn btn-ghost btn-sm part-action" data-op="rebuild" data-part="<?= h($p['PARTITION_NAME']) ?>" title="Rebuild"><?= icon('tool', 10) ?></button>
+                            <button type="button" class="btn btn-ghost btn-sm part-action" data-op="truncate" data-part="<?= h($p['PARTITION_NAME']) ?>" title="Truncate"><?= icon('trash', 10) ?></button>
+                            <button type="button" class="btn btn-danger btn-sm part-action" data-op="drop" data-part="<?= h($p['PARTITION_NAME']) ?>" title="Drop"><?= icon('x', 10) ?></button>
+                        </div>
+                    </td>
+                    <?php endif; ?>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var db = <?= json_encode($currentDb) ?>;
+    var table = <?= json_encode($currentTable) ?>;
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrf = csrfMeta ? csrfMeta.content : '';
+
+    // Per-partition actions (optimize, rebuild, truncate, drop)
+    document.querySelectorAll('.part-action').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var op = btn.dataset.op;
+            var part = btn.dataset.part;
+            var isDanger = (op === 'drop' || op === 'truncate');
+
+            function doAction() {
+                btn.disabled = true;
+                var orig = btn.innerHTML;
+                btn.textContent = '…';
+                var fd = new FormData();
+                fd.append('action', 'partition_action');
+                fd.append('db', db);
+                fd.append('table', table);
+                fd.append('op', op);
+                fd.append('partition', part);
+                fd.append('_csrf_token', csrf);
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        btn.disabled = false;
+                        btn.innerHTML = orig;
+                        if (data.error) {
+                            if (typeof DBForge !== 'undefined') DBForge.setStatus('Error: ' + data.error);
+                        } else {
+                            if (typeof DBForge !== 'undefined') DBForge.setStatus(op.toUpperCase() + ' PARTITION ' + part + ' completed.');
+                            if (isDanger) window.location.reload();
+                        }
+                    });
+            }
+
+            if (isDanger && typeof DBForge !== 'undefined') {
+                DBForge.confirm({
+                    title: op.charAt(0).toUpperCase() + op.slice(1) + ' Partition',
+                    message: op === 'drop'
+                        ? 'Drop partition "' + part + '"? All data in this partition will be permanently deleted.'
+                        : 'Truncate partition "' + part + '"? All rows in this partition will be deleted but the partition itself remains.',
+                    confirmText: op.charAt(0).toUpperCase() + op.slice(1),
+                    danger: true,
+                }).then(function(ok) { if (ok) doAction(); });
+            } else {
+                doAction();
+            }
+        });
+    });
+
+    // Create partitioning
+    var createBtn = document.getElementById('part-create-btn');
+    if (createBtn) {
+        createBtn.addEventListener('click', function() {
+            var old = document.getElementById('dbforge-modal');
+            if (old) old.remove();
+
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.id = 'dbforge-modal';
+            overlay.innerHTML =
+                '<div class="modal-box" style="max-width:650px;">' +
+                    '<div class="modal-header"><span class="modal-title">Create Partitioning</span><button class="modal-close" data-action="cancel">&times;</button></div>' +
+                    '<div class="modal-body">' +
+                        '<div id="part-err" class="error-box" style="display:none;margin-bottom:12px;font-size:var(--font-size-xs);padding:8px 12px;"></div>' +
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">' +
+                            '<div><label class="settings-label">Method</label>' +
+                                '<select id="part-method" class="settings-input" style="width:100%;">' +
+                                    '<option value="RANGE">RANGE</option>' +
+                                    '<option value="LIST">LIST</option>' +
+                                    '<option value="HASH">HASH</option>' +
+                                    '<option value="KEY">KEY</option>' +
+                                    '<option value="RANGE COLUMNS">RANGE COLUMNS</option>' +
+                                    '<option value="LIST COLUMNS">LIST COLUMNS</option>' +
+                                '</select></div>' +
+                            '<div><label class="settings-label">Expression / Column</label>' +
+                                '<input type="text" id="part-expr" class="settings-input" placeholder="e.g. YEAR(created_at) or id" style="width:100%;"></div>' +
+                        '</div>' +
+                        '<div style="margin-bottom:12px;">' +
+                            '<label class="settings-label">Number of partitions <span style="color:var(--text-muted);font-weight:400;">(for HASH/KEY)</span></label>' +
+                            '<input type="number" id="part-count" class="settings-input" value="4" min="1" max="1024" style="width:120px;">' +
+                        '</div>' +
+                        '<div>' +
+                            '<label class="settings-label">Partition definitions <span style="color:var(--text-muted);font-weight:400;">(for RANGE/LIST)</span></label>' +
+                            '<textarea id="part-defs" class="settings-textarea" rows="6" style="font-family:var(--font-mono);font-size:var(--font-size-sm);width:100%;" placeholder="PARTITION p0 VALUES LESS THAN (2020),\nPARTITION p1 VALUES LESS THAN (2021),\nPARTITION p2 VALUES LESS THAN (2022),\nPARTITION pmax VALUES LESS THAN MAXVALUE"></textarea>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="modal-footer"><button class="btn btn-ghost modal-btn" data-action="cancel">Cancel</button><button class="btn btn-primary modal-btn" id="part-save">Create</button></div>' +
+                '</div>';
+            document.body.appendChild(overlay);
+            requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+            document.getElementById('part-save').addEventListener('click', function() {
+                var method = document.getElementById('part-method').value;
+                var expr = document.getElementById('part-expr').value.trim();
+                var count = document.getElementById('part-count').value;
+                var defs = document.getElementById('part-defs').value.trim();
+                var errEl = document.getElementById('part-err');
+                errEl.style.display = 'none';
+
+                if (!expr) { errEl.textContent = 'Expression or column is required.'; errEl.style.display = ''; return; }
+
+                var sql;
+                if (method === 'HASH' || method === 'KEY') {
+                    sql = 'PARTITION BY ' + method + ' (' + expr + ') PARTITIONS ' + count;
+                } else {
+                    if (!defs) { errEl.textContent = 'Partition definitions are required for ' + method + '.'; errEl.style.display = ''; return; }
+                    sql = 'PARTITION BY ' + method + ' (' + expr + ') (\n' + defs + '\n)';
+                }
+
+                var fd = new FormData();
+                fd.append('action', 'partition_table');
+                fd.append('db', db);
+                fd.append('table', table);
+                fd.append('sql', sql);
+                fd.append('_csrf_token', csrf);
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) { errEl.textContent = data.error; errEl.style.display = ''; return; }
+                        closeModal();
+                        window.location.reload();
+                    });
+            });
+
+            function closeModal() { overlay.classList.remove('modal-visible'); setTimeout(function() { overlay.remove(); }, 150); }
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay || (e.target.dataset && e.target.dataset.action === 'cancel') || (e.target.closest && e.target.closest('[data-action="cancel"]'))) closeModal();
+            });
+        });
+    }
+
+    // Add partition
+    var addBtn = document.getElementById('part-add-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            var old = document.getElementById('dbforge-modal');
+            if (old) old.remove();
+
+            var overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.id = 'dbforge-modal';
+            overlay.innerHTML =
+                '<div class="modal-box" style="max-width:500px;">' +
+                    '<div class="modal-header"><span class="modal-title">Add Partition</span><button class="modal-close" data-action="cancel">&times;</button></div>' +
+                    '<div class="modal-body">' +
+                        '<div id="part-add-err" class="error-box" style="display:none;margin-bottom:12px;font-size:var(--font-size-xs);padding:8px 12px;"></div>' +
+                        '<label class="settings-label">Partition definition</label>' +
+                        '<textarea id="part-add-def" class="settings-textarea" rows="3" style="font-family:var(--font-mono);font-size:var(--font-size-sm);width:100%;" placeholder="PARTITION p_new VALUES LESS THAN (2025)"></textarea>' +
+                    '</div>' +
+                    '<div class="modal-footer"><button class="btn btn-ghost modal-btn" data-action="cancel">Cancel</button><button class="btn btn-primary modal-btn" id="part-add-save">Add</button></div>' +
+                '</div>';
+            document.body.appendChild(overlay);
+            requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+            document.getElementById('part-add-save').addEventListener('click', function() {
+                var def = document.getElementById('part-add-def').value.trim();
+                var errEl = document.getElementById('part-add-err');
+                if (!def) { errEl.textContent = 'Definition is required.'; errEl.style.display = ''; return; }
+                var fd = new FormData();
+                fd.append('action', 'partition_action');
+                fd.append('db', db);
+                fd.append('table', table);
+                fd.append('op', 'add');
+                fd.append('definition', def);
+                fd.append('_csrf_token', csrf);
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) { errEl.textContent = data.error; errEl.style.display = ''; return; }
+                        closeModal();
+                        window.location.reload();
+                    });
+            });
+
+            function closeModal() { overlay.classList.remove('modal-visible'); setTimeout(function() { overlay.remove(); }, 150); }
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay || (e.target.dataset && e.target.dataset.action === 'cancel') || (e.target.closest && e.target.closest('[data-action="cancel"]'))) closeModal();
+            });
+        });
+    }
+
+    // Remove all partitioning
+    var removeBtn = document.getElementById('part-remove-btn');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', function() {
+            DBForge.confirm({
+                title: 'Remove Partitioning',
+                message: 'Remove all partitioning from this table? Data will be preserved but merged into a single unpartitioned table.',
+                confirmText: 'Remove',
+                danger: true,
+            }).then(function(ok) {
+                if (!ok) return;
+                var fd = new FormData();
+                fd.append('action', 'remove_partitioning');
+                fd.append('db', db);
+                fd.append('table', table);
+                fd.append('_csrf_token', csrf);
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) { DBForge.setStatus('Error: ' + data.error); return; }
+                        DBForge.setStatus('Partitioning removed.');
+                        window.location.reload();
+                    });
+            });
+        });
+    }
+});
 </script>
 
 <!-- ── Triggers Panel ── -->
@@ -1028,7 +1300,7 @@ try {
 </div>
 
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     var panel = document.getElementById('triggers-panel');
     if (!panel) return;
     var db = panel.dataset.db;
@@ -1036,7 +1308,7 @@ try {
 
     function openTriggerModal(mode, data) {
         // mode: 'create' or 'edit'
-        DBForge.closeModal();
+        if (typeof DBForge !== 'undefined' && DBForge.closeModal) DBForge.closeModal(); else { var old = document.getElementById('dbforge-modal'); if (old) old.remove(); }
         var overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
         overlay.id = 'dbforge-modal';
@@ -1070,7 +1342,10 @@ try {
                     '</div>' +
                     '<div class="settings-field" style="margin-top:10px;">' +
                         '<label class="settings-label">Body <span style="color:var(--text-muted);font-weight:normal;">(SQL, typically a BEGIN … END block)</span></label>' +
-                        '<textarea id="trg-body" class="settings-textarea" rows="10" style="font-family:var(--font-mono);font-size:var(--font-size-xs);line-height:1.5;" spellcheck="false" placeholder="BEGIN\n    -- Reference new values with NEW.column_name\n    -- Reference old values with OLD.column_name\nEND"></textarea>' +
+                        '<div class="mini-editor-wrap" style="min-height:180px;">' +
+                            '<div class="mini-editor-backdrop"><div class="mini-editor-highlight" id="trg-body-highlight"></div></div>' +
+                            '<textarea id="trg-body" rows="10" style="font-family:var(--font-mono);font-size:var(--font-size-xs);line-height:1.5;width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);resize:vertical;white-space:pre-wrap;word-break:break-word;min-height:180px;" spellcheck="false" placeholder="BEGIN\n    -- your trigger logic\nEND"></textarea>' +
+                        '</div>' +
                         '<div class="settings-hint">References: <code>NEW.col</code> for new values, <code>OLD.col</code> for old. Wrap multi-statement bodies in <code>BEGIN … END</code>.</div>' +
                     '</div>' +
                     '<div id="trg-err" class="error-box" style="margin-top:10px;display:none;font-size:var(--font-size-xs);padding:8px 12px;"></div>' +
@@ -1089,9 +1364,22 @@ try {
         var bodyEl = overlay.querySelector('#trg-body');
         var errEl = overlay.querySelector('#trg-err');
 
-        // Attach syntax highlighting
-        if (bodyEl && typeof DBForge !== 'undefined' && DBForge.attachHighlighter) {
-            DBForge.attachHighlighter(bodyEl);
+        // Manual syntax highlighting sync
+        var highlightEl = document.getElementById('trg-body-highlight');
+        function syncHighlight() {
+            if (bodyEl && highlightEl && typeof DBForge !== 'undefined') {
+                var tokens = DBForge.tokenize(bodyEl.value);
+                tokens = DBForge.resolveTableNames(tokens);
+                highlightEl.innerHTML = DBForge.renderTokens(tokens) + '\n';
+            }
+        }
+        if (bodyEl) {
+            bodyEl.addEventListener('input', syncHighlight);
+            bodyEl.addEventListener('scroll', function() {
+                if (highlightEl && highlightEl.parentNode) {
+                    highlightEl.parentNode.scrollTop = bodyEl.scrollTop;
+                }
+            });
         }
 
         if (mode === 'edit' && data) {
@@ -1099,8 +1387,10 @@ try {
             timingEl.value = data.timing;
             eventEl.value = data.event;
             bodyEl.value = data.body;
+            syncHighlight();
         } else {
             bodyEl.value = 'BEGIN\n    \nEND';
+            syncHighlight();
         }
         nameEl.focus();
 
@@ -1130,7 +1420,7 @@ try {
             fd.append('timing', timingEl.value);
             fd.append('event', eventEl.value);
             fd.append('body', body);
-            fd.append('_csrf_token', DBForge.getCsrfToken());
+            fd.append('_csrf_token', (document.querySelector('meta[name="csrf-token"]') || {}).content || '');
             if (mode === 'edit') fd.append('orig_name', data.name);
 
             fetch('ajax.php', { method: 'POST', body: fd })
@@ -1177,7 +1467,7 @@ try {
                 fd.append('action', 'drop_trigger');
                 fd.append('db', db);
                 fd.append('name', name);
-                fd.append('_csrf_token', DBForge.getCsrfToken());
+                fd.append('_csrf_token', (document.querySelector('meta[name="csrf-token"]') || {}).content || '');
                 fetch('ajax.php', { method: 'POST', body: fd })
                     .then(function(r) { return r.json(); })
                     .then(function(resp) {
@@ -1188,7 +1478,321 @@ try {
             });
         });
     });
-})();
+});
 </script>
 
+<?php endif; ?>
+
+<!-- ── Routines Panel (database-level) ── -->
+<?php if ($currentDb): ?>
+<div class="panel-section" style="margin-top:20px;">
+    <?php
+    $routines = [];
+    try {
+        $routines = $dbInstance->getRoutines($currentDb);
+    } catch (Exception $e) {}
+    $procedures = array_filter($routines, function($r) { return strtoupper($r['type']) === 'PROCEDURE'; });
+    $functions  = array_filter($routines, function($r) { return strtoupper($r['type']) === 'FUNCTION'; });
+    ?>
+    <div class="panel-section-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><?= icon('code', 14) ?> Routines</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:var(--font-size-xs);color:var(--text-muted);">
+                <?= count($procedures) ?> proc, <?= count($functions) ?> func
+            </span>
+            <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+            <button type="button" class="btn btn-primary btn-sm" id="rtn-add-proc"><?= icon('plus', 11) ?> Procedure</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="rtn-add-func"><?= icon('plus', 11) ?> Function</button>
+            <?php endif; ?>
+        </div>
+    </div>
+    <div style="padding:0;">
+        <?php if (empty($routines)): ?>
+        <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:var(--font-size-sm);">
+            No stored procedures or functions in this database.
+        </div>
+        <?php else: ?>
+        <table class="data-table" style="margin:0;font-size:var(--font-size-sm);">
+            <thead>
+                <tr>
+                    <th style="width:50px;">Type</th>
+                    <th>Name</th>
+                    <th>Parameters</th>
+                    <th>Returns</th>
+                    <th>Definer</th>
+                    <th>Modified</th>
+                    <th style="width:110px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($routines as $r):
+                $isProcedure = strtoupper($r['type']) === 'PROCEDURE';
+                try { $params = $dbInstance->getRoutineParams($currentDb, $r['name']); } catch(Exception $e) { $params = []; }
+                $paramStrs = [];
+                foreach ($params as $p) {
+                    if ($p['name']) $paramStrs[] = ($p['mode'] ? strtoupper($p['mode']) . ' ' : '') . $p['name'] . ' ' . ($p['full_type'] ?: $p['type']);
+                }
+            ?>
+                <tr>
+                    <td>
+                        <span style="font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;background:<?= $isProcedure ? 'rgba(96,165,250,0.1)' : 'rgba(192,132,252,0.1)' ?>;color:<?= $isProcedure ? 'var(--info)' : 'var(--purple,#c084fc)' ?>;font-family:var(--font-mono);">
+                            <?= $isProcedure ? 'PROC' : 'FUNC' ?>
+                        </span>
+                    </td>
+                    <td style="font-family:var(--font-mono);font-weight:600;"><?= h($r['name']) ?></td>
+                    <td style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--text-secondary);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        <?= $paramStrs ? h(implode(', ', $paramStrs)) : '<span style="color:var(--text-muted);">—</span>' ?>
+                    </td>
+                    <td style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--text-muted);">
+                        <?= $isProcedure ? '—' : h($r['returns_type'] ?: '—') ?>
+                    </td>
+                    <td style="font-size:var(--font-size-xs);color:var(--text-muted);"><?= h($r['definer'] ?? '') ?></td>
+                    <td style="font-size:var(--font-size-xs);color:var(--text-muted);"><?= h($r['modified'] ?? $r['created'] ?? '') ?></td>
+                    <td>
+                        <div style="display:flex;gap:4px;">
+                            <button type="button" class="btn btn-ghost btn-sm rtn-view" data-name="<?= h($r['name']) ?>" data-type="<?= h($r['type']) ?>"><?= icon('eye', 11) ?></button>
+                            <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+                            <button type="button" class="btn btn-ghost btn-sm rtn-edit" data-name="<?= h($r['name']) ?>" data-type="<?= h($r['type']) ?>"><?= icon('edit', 11) ?></button>
+                            <button type="button" class="btn btn-danger btn-sm rtn-drop" data-name="<?= h($r['name']) ?>" data-type="<?= h($r['type']) ?>"><?= icon('x', 11) ?></button>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var db = <?= json_encode($currentDb) ?>;
+    function csrf() { var m = document.querySelector('meta[name="csrf-token"]'); return m ? m.content : ''; }
+
+    function openRoutineEditor(type, editName) {
+        // Close any open modal
+        var old = document.getElementById('dbforge-modal');
+        if (old) old.remove();
+
+        type = (type || 'PROCEDURE').toUpperCase();
+        var isFunc = (type === 'FUNCTION');
+        var mode = editName ? 'edit' : 'create';
+        var title = (mode === 'create' ? 'Create ' : 'Edit ') + (isFunc ? 'Function' : 'Procedure');
+
+        var skeleton = isFunc
+            ? 'CREATE FUNCTION my_function(param1 INT)\nRETURNS VARCHAR(255)\nDETERMINISTIC\nBEGIN\n    DECLARE result VARCHAR(255);\n    SET result = CONCAT(\'Value: \', param1);\n    RETURN result;\nEND'
+            : 'CREATE PROCEDURE my_procedure(IN param1 INT, OUT result VARCHAR(255))\nBEGIN\n    SELECT name INTO result FROM my_table WHERE id = param1;\nEND';
+
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'dbforge-modal';
+        overlay.innerHTML =
+            '<div class="modal-box" style="max-width:700px;">' +
+                '<div class="modal-header"><span class="modal-title">' + title + '</span><button class="modal-close" id="rtn-cancel">&times;</button></div>' +
+                '<div class="modal-body">' +
+                    '<div id="rtn-err" class="error-box" style="display:none;margin-bottom:12px;font-size:var(--font-size-xs);padding:8px 12px;"></div>' +
+                    '<label class="settings-label" style="margin-bottom:4px;">SQL Definition</label>' +
+                    '<div style="margin-bottom:8px;">' +
+                        '<div class="mini-editor-wrap" style="min-height:220px;">' +
+                            '<div class="mini-editor-backdrop"><div class="mini-editor-highlight" id="rtn-sql-highlight"></div></div>' +
+                            '<textarea id="rtn-sql" rows="14" spellcheck="false" style="font-family:var(--font-mono);font-size:var(--font-size-xs);min-height:220px;resize:vertical;width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);line-height:1.5;tab-size:4;white-space:pre-wrap;word-break:break-word;"></textarea>' +
+                        '</div>' +
+                    '</div>' +
+                    '<p style="font-size:var(--font-size-xs);color:var(--text-muted);margin:0;">Write the full CREATE statement. Do not include DELIMITER.</p>' +
+                '</div>' +
+                '<div class="modal-footer"><button class="btn btn-ghost modal-btn" id="rtn-cancel2">Cancel</button><button class="btn btn-primary modal-btn" id="rtn-save">' + (mode === 'create' ? 'Create' : 'Save Changes') + '</button></div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+        var sqlEl = document.getElementById('rtn-sql');
+        var errEl = document.getElementById('rtn-err');
+        var rtnHighlight = document.getElementById('rtn-sql-highlight');
+
+        function syncRtnHighlight() {
+            if (sqlEl && rtnHighlight && typeof DBForge !== 'undefined') {
+                var tokens = DBForge.tokenize(sqlEl.value);
+                tokens = DBForge.resolveTableNames(tokens);
+                rtnHighlight.innerHTML = DBForge.renderTokens(tokens) + '\n';
+            }
+        }
+        sqlEl.addEventListener('input', syncRtnHighlight);
+        sqlEl.addEventListener('scroll', function() {
+            if (rtnHighlight && rtnHighlight.parentNode) rtnHighlight.parentNode.scrollTop = sqlEl.scrollTop;
+        });
+
+        // Load definition for edit mode, or set skeleton
+        if (mode === 'edit' && editName) {
+            sqlEl.value = 'Loading…';
+            sqlEl.disabled = true;
+
+            fetch('ajax.php?action=get_routine_definition&db=' + encodeURIComponent(db) + '&name=' + encodeURIComponent(editName) + '&type=' + encodeURIComponent(type))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    sqlEl.disabled = false;
+                    sqlEl.value = data.definition || skeleton;
+                    syncRtnHighlight();
+                    sqlEl.focus();
+                });
+        } else {
+            sqlEl.value = skeleton;
+            syncRtnHighlight();
+            sqlEl.focus();
+        }
+
+        // Save handler
+        document.getElementById('rtn-save').addEventListener('click', function() {
+            var sql = sqlEl.value.trim();
+            if (!sql) { errEl.textContent = 'SQL definition is required.'; errEl.style.display = ''; return; }
+            errEl.style.display = 'none';
+
+            var saveBtn = this;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving…';
+
+            // If editing, drop old first
+            var chain = Promise.resolve();
+            if (mode === 'edit' && editName) {
+                chain = chain.then(function() {
+                    var fd = new FormData();
+                    fd.append('action', 'drop_routine');
+                    fd.append('name', editName);
+                    fd.append('type', type);
+                    fd.append('_csrf_token', csrf());
+                    return fetch('ajax.php', { method: 'POST', body: fd }).then(function(r) { return r.json(); });
+                });
+            }
+
+            chain.then(function() {
+                var fd = new FormData();
+                fd.append('action', 'create_routine');
+                fd.append('sql', sql);
+                fd.append('db', db);
+                fd.append('_csrf_token', csrf());
+                return fetch('ajax.php', { method: 'POST', body: fd }).then(function(r) { return r.json(); });
+            }).then(function(data) {
+                saveBtn.disabled = false;
+                if (data.error) {
+                    errEl.style.display = '';
+                    errEl.textContent = data.error;
+                    if (mode === 'edit') errEl.textContent += ' (Original was dropped — paste the old definition and re-create manually if needed.)';
+                    saveBtn.textContent = mode === 'create' ? 'Create' : 'Save Changes';
+                } else {
+                    closeModal();
+                    window.location.reload();
+                }
+            }).catch(function(err) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = mode === 'create' ? 'Create' : 'Save Changes';
+                errEl.style.display = '';
+                errEl.textContent = 'Network error: ' + err.message;
+            });
+        });
+
+        function closeModal() {
+            overlay.classList.remove('modal-visible');
+            setTimeout(function() { overlay.remove(); }, 150);
+        }
+        document.getElementById('rtn-cancel').addEventListener('click', closeModal);
+        document.getElementById('rtn-cancel2').addEventListener('click', closeModal);
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+    }
+
+    // Create buttons
+    var addProc = document.getElementById('rtn-add-proc');
+    var addFunc = document.getElementById('rtn-add-func');
+    if (addProc) addProc.addEventListener('click', function() { openRoutineEditor('PROCEDURE'); });
+    if (addFunc) addFunc.addEventListener('click', function() { openRoutineEditor('FUNCTION'); });
+
+    // View definition
+    document.querySelectorAll('.rtn-view').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var name = this.dataset.name, type = this.dataset.type;
+            var old = document.getElementById('dbforge-modal');
+            if (old) old.remove();
+
+            fetch('ajax.php?action=get_routine_definition&db=' + encodeURIComponent(db) + '&name=' + encodeURIComponent(name) + '&type=' + encodeURIComponent(type))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var def = data.definition || 'Could not retrieve definition.';
+                    var overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay';
+                    overlay.id = 'dbforge-modal';
+                    overlay.innerHTML =
+                        '<div class="modal-box" style="max-width:750px;">' +
+                            '<div class="modal-header"><span class="modal-title">' + name + '</span><button class="modal-close" id="rtn-view-close">&times;</button></div>' +
+                            '<div class="modal-body" style="padding:0;">' +
+                                '<div class="mini-editor-wrap" style="min-height:300px;border-radius:0;">' +
+                                    '<div class="mini-editor-backdrop" style="border-radius:0;border-left:none;border-right:none;"><div class="mini-editor-highlight" id="rtn-view-highlight"></div></div>' +
+                                    '<textarea id="rtn-view-sql" readonly rows="18" spellcheck="false" style="font-family:var(--font-mono);font-size:var(--font-size-xs);width:100%;min-height:300px;max-height:500px;padding:8px 12px;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);resize:vertical;line-height:1.5;cursor:text;white-space:pre-wrap;word-break:break-word;"></textarea>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                                '<button class="btn btn-ghost modal-btn" id="rtn-view-copy">Copy</button>' +
+                                '<button class="btn btn-ghost modal-btn" id="rtn-view-close2">Close</button>' +
+                            '</div>' +
+                        '</div>';
+                    document.body.appendChild(overlay);
+                    requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+                    var sqlEl = document.getElementById('rtn-view-sql');
+                    var viewHighlight = document.getElementById('rtn-view-highlight');
+                    sqlEl.value = def;
+
+                    // Manual sync
+                    if (viewHighlight && typeof DBForge !== 'undefined') {
+                        var tokens = DBForge.tokenize(def);
+                        tokens = DBForge.resolveTableNames(tokens);
+                        viewHighlight.innerHTML = DBForge.renderTokens(tokens) + '\n';
+                    }
+                    sqlEl.addEventListener('scroll', function() {
+                        if (viewHighlight && viewHighlight.parentNode) viewHighlight.parentNode.scrollTop = sqlEl.scrollTop;
+                    });
+
+                    // Copy button
+                    document.getElementById('rtn-view-copy').addEventListener('click', function() {
+                        navigator.clipboard.writeText(def).then(function() {
+                            DBForge.setStatus('Copied to clipboard.');
+                        });
+                    });
+
+                    function closeView() { overlay.classList.remove('modal-visible'); setTimeout(function() { overlay.remove(); }, 150); }
+                    document.getElementById('rtn-view-close').addEventListener('click', closeView);
+                    document.getElementById('rtn-view-close2').addEventListener('click', closeView);
+                    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeView(); });
+                });
+        });
+    });
+
+    // Edit
+    document.querySelectorAll('.rtn-edit').forEach(function(btn) {
+        btn.addEventListener('click', function() { openRoutineEditor(this.dataset.type, this.dataset.name); });
+    });
+
+    // Drop
+    document.querySelectorAll('.rtn-drop').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var name = this.dataset.name, type = this.dataset.type;
+            var label = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+            DBForge.confirm({
+                title: 'Drop ' + label,
+                message: 'Are you sure you want to drop ' + label.toLowerCase() + ' "' + name + '"? This cannot be undone.',
+                confirmText: 'Drop',
+                danger: true,
+            }).then(function(ok) {
+                if (!ok) return;
+                var fd = new FormData();
+                fd.append('action', 'drop_routine');
+                fd.append('name', name);
+                fd.append('type', type);
+                fd.append('_csrf_token', csrf());
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) { if (data.success) window.location.reload(); });
+            });
+        });
+    });
+});
+</script>
 <?php endif; ?>

@@ -25,6 +25,10 @@ class Database
         return self::$instance;
     }
 
+    /**
+     * @param string|null $database If provided, selects this database in the DSN
+     * @return PDO Fresh connection (replaces any existing)
+     */
     public function connect(?string $database = null): PDO
     {
         $dsn = sprintf(
@@ -53,9 +57,6 @@ class Database
         return $this->pdo;
     }
 
-    /**
-     * Get all databases the user can access
-     */
     public function getDatabases(): array
     {
         $pdo = $this->connect();
@@ -63,9 +64,6 @@ class Database
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 
-    /**
-     * Get all tables in a database
-     */
     public function getTables(string $database): array
     {
         $pdo = $this->connect($database);
@@ -73,9 +71,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get all views in a database
-     */
     public function getViews(string $database): array
     {
         $pdo = $this->connect();
@@ -90,9 +85,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get a single view's definition
-     */
     public function getViewDefinition(string $database, string $view): ?string
     {
         $pdo = $this->connect($database);
@@ -101,9 +93,6 @@ class Database
         return $row['Create View'] ?? null;
     }
 
-    /**
-     * Create or replace a view
-     */
     public function createView(string $database, string $name, string $definition, bool $replace = false): bool
     {
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
@@ -115,9 +104,6 @@ class Database
         return true;
     }
 
-    /**
-     * Drop a view
-     */
     public function dropView(string $database, string $name): bool
     {
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
@@ -128,9 +114,6 @@ class Database
         return true;
     }
 
-    /**
-     * Get a single table's status row (for Info/Structure panels)
-     */
     public function getTableStatus(string $database, string $table): ?array
     {
         $pdo = $this->connect($database);
@@ -142,9 +125,6 @@ class Database
         return $row ?: null;
     }
 
-    /**
-     * Get partitioning info for a table
-     */
     public function getPartitions(string $database, string $table): array
     {
         $pdo = $this->connect();
@@ -166,9 +146,88 @@ class Database
         return $stmt->fetchAll();
     }
 
+    public function getPartitionInfo(string $database, string $table): ?array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare('
+            SELECT
+                PARTITION_METHOD,
+                PARTITION_EXPRESSION,
+                SUBPARTITION_METHOD,
+                SUBPARTITION_EXPRESSION
+            FROM information_schema.PARTITIONS
+            WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?
+            LIMIT 1
+        ');
+        $stmt->execute([$database, $table]);
+        $row = $stmt->fetch();
+        if (!$row || !$row['PARTITION_METHOD']) return null;
+        return $row;
+    }
+
     /**
-     * Run OPTIMIZE TABLE
+     * @param string $partitionSql Raw PARTITION BY clause (e.g. "PARTITION BY HASH(id) PARTITIONS 4")
      */
+    public function partitionTable(string $database, string $table, string $partitionSql): bool
+    {
+        $pdo = $this->connect($database);
+        $safe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$safe} {$partitionSql}");
+        return true;
+    }
+
+    public function removePartitioning(string $database, string $table): bool
+    {
+        $pdo = $this->connect($database);
+        $safe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$safe} REMOVE PARTITIONING");
+        return true;
+    }
+
+    public function dropPartition(string $database, string $table, string $partitionName): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $partitionName)) throw new InvalidArgumentException('Invalid partition name.');
+        $pdo = $this->connect($database);
+        $safe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$safe} DROP PARTITION `{$partitionName}`");
+        return true;
+    }
+
+    public function truncatePartition(string $database, string $table, string $partitionName): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $partitionName)) throw new InvalidArgumentException('Invalid partition name.');
+        $pdo = $this->connect($database);
+        $safe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$safe} TRUNCATE PARTITION `{$partitionName}`");
+        return true;
+    }
+
+    public function optimizePartition(string $database, string $table, string $partitionName): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $partitionName)) throw new InvalidArgumentException('Invalid partition name.');
+        $pdo = $this->connect($database);
+        $safe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$safe} OPTIMIZE PARTITION `{$partitionName}`");
+        return true;
+    }
+
+    public function rebuildPartition(string $database, string $table, string $partitionName): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $partitionName)) throw new InvalidArgumentException('Invalid partition name.');
+        $pdo = $this->connect($database);
+        $safe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$safe} REBUILD PARTITION `{$partitionName}`");
+        return true;
+    }
+
+    public function addPartition(string $database, string $table, string $partitionDef): bool
+    {
+        $pdo = $this->connect($database);
+        $safe = '`' . $this->escapeIdentifier($table) . '`';
+        $pdo->exec("ALTER TABLE {$safe} ADD PARTITION ({$partitionDef})");
+        return true;
+    }
+
     public function optimizeTable(string $database, string $table): array
     {
         $pdo = $this->connect($database);
@@ -176,9 +235,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get exact row count for a table (InnoDB estimates are unreliable)
-     */
     public function getExactRowCount(string $database, string $table): int
     {
         $pdo = $this->connect($database);
@@ -186,9 +242,6 @@ class Database
         return (int) $stmt->fetchColumn();
     }
 
-    /**
-     * Get column info for a table
-     */
     public function getColumns(string $database, string $table): array
     {
         $pdo = $this->connect($database);
@@ -197,9 +250,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get indexes for a table
-     */
     public function getIndexes(string $database, string $table): array
     {
         $pdo = $this->connect($database);
@@ -208,9 +258,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get foreign key relationships for a table
-     */
     public function getForeignKeys(string $database, string $table): array
     {
         $pdo = $this->connect($database);
@@ -236,9 +283,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get tables that reference this table (reverse FK lookup)
-     */
     public function getReferencedBy(string $database, string $table): array
     {
         $pdo = $this->connect($database);
@@ -262,9 +306,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get create statement
-     */
     public function getCreateStatement(string $database, string $table): string
     {
         $pdo = $this->connect($database);
@@ -274,7 +315,8 @@ class Database
     }
 
     /**
-     * Browse rows with pagination
+     * Paginated table browse with optional ordering, search, and FK filtering.
+     * @return array{rows: array, total: int, pages: int, page: int, columns: array}
      */
     public function browseTable(string $database, string $table, int $page = 1, int $perPage = 50, ?string $orderBy = null, string $orderDir = 'ASC', ?string $search = null, ?string $fkCol = null, ?string $fkVal = null): array
     {
@@ -346,7 +388,8 @@ class Database
     }
 
     /**
-     * Execute a raw SQL query
+     * Execute a SQL query and return results or affected row count.
+     * @return array{columns: array, rows: array, affected: int, time: float}
      */
     public function executeQuery(string $database, string $sql): array
     {
@@ -404,9 +447,6 @@ class Database
         }
     }
 
-    /**
-     * Get server variables
-     */
     public function getServerInfo(): array
     {
         $pdo = $this->connect();
@@ -433,20 +473,16 @@ class Database
     }
 
     /**
-     * Export table as SQL
+     * Generate CREATE TABLE + INSERT statements for a single table.
+     * Does not include a file header — caller is responsible for that.
      */
     public function exportTable(string $database, string $table): string
     {
         $pdo = $this->connect($database);
         $tableSafe = '`' . $this->escapeIdentifier($table) . '`';
 
-        $output = "-- DBForge SQL Export\n";
-        $output .= "-- Database: {$database}\n";
-        $output .= "-- Table: {$table}\n";
-        $output .= "-- Generated: " . date('Y-m-d H:i:s') . "\n\n";
-
         // Create statement
-        $output .= $this->getCreateStatement($database, $table) . ";\n\n";
+        $output = $this->getCreateStatement($database, $table) . ";\n\n";
 
         // Data
         $stmt = $pdo->query("SELECT * FROM {$tableSafe}");
@@ -468,9 +504,6 @@ class Database
         return $output;
     }
 
-    /**
-     * Export table as CSV
-     */
     public function exportTableCsv(string $database, string $table): string
     {
         $pdo = $this->connect($database);
@@ -492,9 +525,6 @@ class Database
         return $csv;
     }
 
-    /**
-     * Drop a table
-     */
     public function dropTable(string $database, string $table): bool
     {
         $pdo = $this->connect($database);
@@ -502,9 +532,6 @@ class Database
         return true;
     }
 
-    /**
-     * Truncate a table
-     */
     public function truncateTable(string $database, string $table): bool
     {
         $pdo = $this->connect($database);
@@ -512,9 +539,6 @@ class Database
         return true;
     }
 
-    /**
-     * Rename a table
-     */
     public function renameTable(string $database, string $oldName, string $newName): bool
     {
         $pdo = $this->connect($database);
@@ -523,7 +547,8 @@ class Database
     }
 
     /**
-     * Copy a table (structure only or with data)
+     * @param bool $withData If true, copies structure + data. If false, structure only.
+     * @param string|null $destDatabase Target database for cross-DB copy (null = same DB)
      */
     public function copyTable(string $database, string $source, string $destination, bool $withData = true, ?string $destDatabase = null): bool
     {
@@ -543,9 +568,6 @@ class Database
         return true;
     }
 
-    /**
-     * Move a table to a different database (RENAME TABLE across databases)
-     */
     public function moveTableToDatabase(string $sourceDb, string $table, string $targetDb): bool
     {
         $pdo = $this->connect();
@@ -556,7 +578,7 @@ class Database
     }
 
     /**
-     * Alter table options (engine, collation, row_format, comment)
+     * @param array $options Keys: engine, row_format, collation, comment, auto_increment
      */
     public function alterTableOptions(string $database, string $table, array $options): bool
     {
@@ -606,9 +628,6 @@ class Database
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get available storage engines
-     */
     public function getEngines(): array
     {
         $pdo = $this->connect();
@@ -623,9 +642,6 @@ class Database
         return $engines;
     }
 
-    /**
-     * Get available collations
-     */
     public function getCollations(): array
     {
         $pdo = $this->connect();
@@ -634,9 +650,6 @@ class Database
         return array_map(fn($r) => $r['Collation'], $rows);
     }
 
-    /**
-     * Get all triggers defined on a table
-     */
     public function getTriggers(string $database, string $table): array
     {
         $pdo = $this->connect();
@@ -659,7 +672,9 @@ class Database
     }
 
     /**
-     * Create a trigger
+     * @param string $timing BEFORE|AFTER
+     * @param string $event INSERT|UPDATE|DELETE
+     * @param string $body Raw SQL body (typically BEGIN...END)
      */
     public function createTrigger(
         string $database,
@@ -683,9 +698,6 @@ class Database
         return true;
     }
 
-    /**
-     * Drop a trigger
-     */
     public function dropTrigger(string $database, string $name): bool
     {
         if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
@@ -696,9 +708,80 @@ class Database
         return true;
     }
 
+    public function getRoutines(string $database): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare('
+            SELECT
+                ROUTINE_NAME      AS name,
+                ROUTINE_TYPE      AS type,
+                DTD_IDENTIFIER    AS returns_type,
+                ROUTINE_COMMENT   AS comment,
+                DEFINER           AS definer,
+                CREATED           AS created,
+                LAST_ALTERED      AS modified,
+                SECURITY_TYPE     AS security
+            FROM information_schema.ROUTINES
+            WHERE ROUTINE_SCHEMA = ?
+            ORDER BY ROUTINE_TYPE, ROUTINE_NAME
+        ');
+        $stmt->execute([$database]);
+        return $stmt->fetchAll();
+    }
+
     /**
-     * Create a new database
+     * @return string|null The full CREATE PROCEDURE/FUNCTION statement, or null if not found
      */
+    public function getRoutineDefinition(string $database, string $name, string $type = 'PROCEDURE'): ?string
+    {
+        $pdo = $this->connect($database);
+        $type = strtoupper($type);
+        $nameSafe = '`' . $this->escapeIdentifier($name) . '`';
+        if ($type === 'FUNCTION') {
+            $row = $pdo->query("SHOW CREATE FUNCTION {$nameSafe}")->fetch();
+            return $row['Create Function'] ?? null;
+        } else {
+            $row = $pdo->query("SHOW CREATE PROCEDURE {$nameSafe}")->fetch();
+            return $row['Create Procedure'] ?? null;
+        }
+    }
+
+    public function getRoutineParams(string $database, string $name): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare('
+            SELECT
+                PARAMETER_NAME AS name,
+                PARAMETER_MODE AS mode,
+                DATA_TYPE      AS type,
+                DTD_IDENTIFIER AS full_type,
+                ORDINAL_POSITION AS position
+            FROM information_schema.PARAMETERS
+            WHERE SPECIFIC_SCHEMA = ? AND SPECIFIC_NAME = ?
+            ORDER BY ORDINAL_POSITION
+        ');
+        $stmt->execute([$database, $name]);
+        return $stmt->fetchAll();
+    }
+
+    public function createRoutine(string $database, string $sql): bool
+    {
+        $pdo = $this->connect($database);
+        $pdo->exec($sql);
+        return true;
+    }
+
+    public function dropRoutine(string $database, string $name, string $type = 'PROCEDURE'): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+            throw new InvalidArgumentException('Invalid routine name.');
+        }
+        $type = strtoupper($type) === 'FUNCTION' ? 'FUNCTION' : 'PROCEDURE';
+        $pdo = $this->connect($database);
+        $pdo->exec("DROP {$type} IF EXISTS `" . $this->escapeIdentifier($name) . '`');
+        return true;
+    }
+
     public function createDatabase(string $name, string $charset = 'utf8mb4', string $collation = 'utf8mb4_general_ci'): bool
     {
         $pdo = $this->connect();
@@ -709,9 +792,6 @@ class Database
         return true;
     }
 
-    /**
-     * Drop a database
-     */
     public function dropDatabase(string $name): bool
     {
         $pdo = $this->connect();
@@ -853,9 +933,6 @@ class Database
         return $results;
     }
 
-    /**
-     * Split SQL dump into individual statements, respecting strings and delimiters.
-     */
     private function splitSqlStatements(string $sql): array
     {
         $statements = [];

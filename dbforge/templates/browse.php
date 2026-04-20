@@ -1,5 +1,5 @@
 <?php if (!$currentDb):
-    // ── Server Overview — all databases ──
+    // Server Overview — all databases
     $dbStats = [];
     $totalTables = 0;
     $totalSize = 0;
@@ -191,7 +191,7 @@
 <?php return; endif; ?>
 
 <?php if ($currentDb && !$currentTable):
-    // ── Database Overview ──
+    // Database Overview
     $isReadOnly = isset($auth) && $auth->isReadOnly();
     $favUser = (isset($auth) && $auth->isLoggedIn()) ? $auth->getUsername() : 'anonymous';
     $favSet = [];
@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var db = '<?= addslashes($currentDb) ?>';
     var csrf = DBForge.getCsrfToken();
 
-    // ── Rename ──
+    // Rename
     document.querySelectorAll('.tbl-rename-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var oldName = btn.dataset.table;
@@ -704,7 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ── Copy ──
+    // Copy
     document.querySelectorAll('.tbl-copy-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var source = btn.dataset.table;
@@ -771,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ── Drop ──
+    // Drop
     document.querySelectorAll('.tbl-drop-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var tableName = btn.dataset.table;
@@ -804,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php endif; ?>
 
 <?php
-// ── Views ──
+// Views
 $dbViews = [];
 try { $dbViews = $dbInstance->getViews($currentDb); } catch (Exception $e) {}
 ?>
@@ -850,7 +850,7 @@ try { $dbViews = $dbInstance->getViews($currentDb); } catch (Exception $e) {}
 </div>
 
 <script>
-(function() {
+document.addEventListener("DOMContentLoaded", function() {
     var db = <?= json_encode($currentDb) ?>;
 
     function openViewModal(mode, name) {
@@ -1033,7 +1033,7 @@ try { $dbViews = $dbInstance->getViews($currentDb); } catch (Exception $e) {}
             el.innerHTML = DBForge.renderTokens(tokens);
         });
     }
-})();
+});
 </script>
 
 <?php return; endif; ?>
@@ -1568,7 +1568,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <script>
-(function() {
+document.addEventListener("DOMContentLoaded", function() {
     var overlay = document.getElementById('row-detail-overlay');
     var panel = document.getElementById('row-detail-panel');
     var body = document.getElementById('row-detail-body');
@@ -1647,5 +1647,5 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && overlay.style.display !== 'none') closeDetail();
     });
-})();
+});
 </script>

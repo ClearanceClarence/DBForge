@@ -59,7 +59,7 @@ function dbforge_save_settings(array $config, $auth): array
 
     $newConfig = $config;
 
-    // ── Database ──
+    // Database
     $newConfig['db']['host']     = trim($_POST['db_host'] ?? '127.0.0.1');
     $newConfig['db']['port']     = (int)($_POST['db_port'] ?? 3306);
     $newConfig['db']['username'] = trim($_POST['db_user'] ?? 'root');
@@ -67,19 +67,19 @@ function dbforge_save_settings(array $config, $auth): array
         $newConfig['db']['password'] = $_POST['db_pass'] ?? '';
     }
 
-    // ── App ──
+    // App
     $newConfig['app']['default_theme']   = $_POST['default_theme'] ?? 'light-clean';
     $newConfig['app']['rows_per_page']   = max(10, min(500, (int)($_POST['rows_per_page'] ?? 50)));
     $newConfig['app']['enable_export']   = isset($_POST['enable_export']);
 
-    // ── Fonts ──
+    // Fonts
     $fontZones = function_exists('dbforge_font_zones') ? dbforge_font_zones() : [];
     if (!isset($newConfig['app']['fonts'])) $newConfig['app']['fonts'] = [];
     foreach ($fontZones as $zoneKey => $zone) {
         $newConfig['app']['fonts'][$zoneKey] = trim($_POST['font_' . $zoneKey] ?? '');
     }
 
-    // ── Security ──
+    // Security
     $newConfig['security']['require_auth']       = isset($_POST['require_auth']);
     $newConfig['security']['csrf_enabled']       = isset($_POST['csrf_enabled']);
     $newConfig['security']['force_https']        = isset($_POST['force_https']);
@@ -101,7 +101,7 @@ function dbforge_save_settings(array $config, $auth): array
         ? array_values(array_filter(array_map('trim', explode("\n", $hiddenRaw))))
         : [];
 
-    // ── Users ──
+    // Users
     $existingUsers = $newConfig['security']['users'] ?? [];
     $updatedUsers = [];
     $keepUsers = $_POST['keep_user'] ?? [];

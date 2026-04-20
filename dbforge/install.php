@@ -34,7 +34,7 @@ $values = [
                         : '0',
 ];
 
-// ── Step 2: Validate DB connection ──
+// Step 2: Validate DB connection
 if ($step === 2 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($values['db_host'])) $errors[] = 'Database host is required.';
     if (empty($values['db_port'])) $errors[] = 'Database port is required.';
@@ -58,7 +58,7 @@ if ($step === 2 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Step 3: Validate admin + write config ──
+// Step 3: Validate admin + write config
 if ($step === 3 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($values['admin_user'])) $errors[] = 'Admin username is required.';
     if (strlen($values['admin_user']) < 3) $errors[] = 'Username must be at least 3 characters.';
@@ -105,7 +105,7 @@ if ($step === 3 && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Load theme for styling ──
+// Load theme for styling
 $themeCss = 'themes/dark-industrial/style.css';
 $themeOverride = '';
 $cookieTheme = $_COOKIE['dbforge_theme'] ?? '';

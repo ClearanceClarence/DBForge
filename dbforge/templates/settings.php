@@ -40,7 +40,7 @@ $db  = $config['db'] ?? [];
     <?php if (isset($auth)): ?><?= $auth->csrfField() ?><?php endif; ?>
     <input type="hidden" name="_settings_action" value="save">
 
-    <!-- ═══ Database Connection ═══ -->
+    <!-- Database Connection -->
     <div class="settings-section">
         <h3 class="section-title"><?= icon('database', 16) ?> Database Connection</h3>
         <div class="settings-grid">
@@ -72,7 +72,7 @@ $db  = $config['db'] ?? [];
         </div>
     </div>
 
-    <!-- ═══ Application ═══ -->
+    <!-- Application -->
     <div class="settings-section">
         <h3 class="section-title"><?= icon('layers', 16) ?> Application</h3>
         <div class="settings-grid">
@@ -100,7 +100,7 @@ $db  = $config['db'] ?? [];
         </div>
     </div>
 
-    <!-- ═══ Authentication ═══ -->
+    <!-- Authentication -->
     <div class="settings-section">
         <h3 class="section-title"><?= icon('key', 16) ?> Authentication</h3>
         <div class="settings-check-group">
@@ -145,7 +145,7 @@ $db  = $config['db'] ?? [];
         </div>
     </div>
 
-    <!-- ═══ Users ═══ -->
+    <!-- Users -->
     <div class="settings-section">
         <h3 class="section-title"><?= icon('key', 16) ?> User Accounts</h3>
         <div class="settings-hint" style="margin-bottom:12px;">Passwords are stored as bcrypt hashes. Leave the password field empty to keep the current password.</div>
@@ -180,7 +180,7 @@ $db  = $config['db'] ?? [];
         </div>
     </div>
 
-    <!-- ═══ Fonts ═══ -->
+    <!-- Fonts -->
     <div class="settings-section">
         <h3 class="section-title"><?= icon('edit', 16) ?> Fonts</h3>
         <div class="settings-hint" style="margin-bottom:14px;">Customize fonts for different parts of the interface. Select "Theme default" to use the theme's built-in font. Google Fonts are loaded automatically.</div>
@@ -236,7 +236,7 @@ $db  = $config['db'] ?? [];
         </div>
     </div>
 
-    <!-- ═══ Access Control ═══ -->
+    <!-- Access Control -->
     <div class="settings-section">
         <h3 class="section-title"><?= icon('filter', 16) ?> Access Control</h3>
         <div class="settings-grid">
@@ -257,7 +257,7 @@ $db  = $config['db'] ?? [];
         </div>
     </div>
 
-    <!-- ═══ Save ═══ -->
+    <!-- Save -->
     <div class="settings-footer">
         <button type="submit" class="btn btn-primary">
             <?= icon('check', 14) ?> Save Settings

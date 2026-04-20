@@ -18,7 +18,7 @@ require __DIR__ . '/includes/icons.php';
 require __DIR__ . '/includes/Auth.php';
 require __DIR__ . '/includes/favorites.php';
 
-// ── Security checks ────────────────────────────────────
+// Security checks
 $auth = new Auth($config['security']);
 $auth->startSession();
 
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Database connection ────────────────────────────────
+// Database connection
 $action = $_REQUEST['action'] ?? '';
 $db = $_REQUEST['db'] ?? '';
 
@@ -63,10 +63,10 @@ try {
     exit;
 }
 
-// ── Route actions ──────────────────────────────────────
+// Route actions
 switch ($action) {
 
-    // ── Autocomplete data (GET, read-only safe) ──
+    // Autocomplete data (GET, read-only safe)
     case 'autocomplete':
         $result = [
             'databases' => [],
@@ -106,7 +106,7 @@ switch ($action) {
         echo json_encode($result);
         break;
 
-    // ── Update a single cell (POST, write) ──
+    // Update a single cell (POST, write)
     case 'update_cell':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -155,7 +155,7 @@ switch ($action) {
         }
         break;
 
-    // ── Delete a row (POST, write) ──
+    // Delete a row (POST, write)
     case 'delete_row':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -189,7 +189,7 @@ switch ($action) {
         }
         break;
 
-    // ── Delete multiple rows (POST, write) ──
+    // Delete multiple rows (POST, write)
     case 'bulk_delete':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -224,7 +224,7 @@ switch ($action) {
         }
         break;
 
-    // ── Alter a column (POST, write) ──
+    // Alter a column (POST, write)
     case 'alter_column':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -279,7 +279,7 @@ switch ($action) {
         }
         break;
 
-    // ── Drop a column (POST, write) ──
+    // Drop a column (POST, write)
     case 'drop_column':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -310,7 +310,7 @@ switch ($action) {
         }
         break;
 
-    // ── Add a column (POST, write) ──
+    // Add a column (POST, write)
     case 'add_column':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -366,7 +366,7 @@ switch ($action) {
         }
         break;
 
-    // ── Set AUTO_INCREMENT (POST, write) ──
+    // Set AUTO_INCREMENT (POST, write)
     case 'set_auto_increment':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -411,7 +411,7 @@ switch ($action) {
         }
         break;
 
-    // ── ER diagram data (GET) ──
+    // ER diagram data (GET)
     case 'er_data':
         if (!$db) {
             echo json_encode(['error' => 'No database selected.']);
@@ -465,7 +465,35 @@ switch ($action) {
         }
         break;
 
-    // ── Rename a table (POST, write) ──
+    // Save ER diagram layout (POST)
+    case 'er_save_layout':
+        if (!$db) { echo json_encode(['error' => 'No database selected.']); break; }
+        $layoutData = $_POST['layout'] ?? '';
+        if (!$layoutData) { echo json_encode(['error' => 'No layout data.']); break; }
+        $erDir = __DIR__ . '/logs/er';
+        if (!is_dir($erDir)) mkdir($erDir, 0755, true);
+        $safeDb = preg_replace('/[^a-zA-Z0-9_-]/', '_', $db);
+        $file = $erDir . '/' . $safeDb . '.json';
+        $written = file_put_contents($file, $layoutData);
+        if ($written === false) { echo json_encode(['error' => 'Could not write layout file.']); break; }
+        echo json_encode(['success' => true]);
+        break;
+
+    // Load ER diagram layout (GET)
+    case 'er_load_layout':
+        if (!$db) { echo json_encode(['error' => 'No database selected.']); break; }
+        $safeDb = preg_replace('/[^a-zA-Z0-9_-]/', '_', $db);
+        $file = __DIR__ . '/logs/er/' . $safeDb . '.json';
+        if (file_exists($file)) {
+            $data = file_get_contents($file);
+            header('Content-Type: application/json');
+            echo $data;
+        } else {
+            echo json_encode(['empty' => true]);
+        }
+        break;
+
+    // Rename a table (POST, write)
     case 'rename_table':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -490,7 +518,7 @@ switch ($action) {
         }
         break;
 
-    // ── Copy a table (POST, write) ──
+    // Copy a table (POST, write)
     case 'copy_table':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -519,7 +547,7 @@ switch ($action) {
         }
         break;
 
-    // ── Move a table to another database (POST, write) ──
+    // Move a table to another database (POST, write)
     case 'move_table':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -544,7 +572,7 @@ switch ($action) {
         }
         break;
 
-    // ── Alter table options (POST, write) ──
+    // Alter table options (POST, write)
     case 'alter_table_options':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -573,7 +601,7 @@ switch ($action) {
         }
         break;
 
-    // ── Maintenance operations: analyze / check / repair (POST) ──
+    // Maintenance operations: analyze / check / repair (POST)
     case 'analyze_table':
     case 'check_table':
     case 'repair_table':
@@ -596,7 +624,7 @@ switch ($action) {
         }
         break;
 
-    // ── Truncate a table (POST, write) ──
+    // Truncate a table (POST, write)
     case 'truncate_table':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -616,7 +644,7 @@ switch ($action) {
         }
         break;
 
-    // ── Drop a table (POST, write) ──
+    // Drop a table (POST, write)
     case 'drop_table':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -636,7 +664,7 @@ switch ($action) {
         }
         break;
 
-    // ── Search across tables (GET) ──
+    // Search across tables (GET)
     case 'search_tables':
         $searchTerm = trim($_GET['term'] ?? '');
         if (!$db) {
@@ -657,7 +685,7 @@ switch ($action) {
         }
         break;
 
-    // ── Optimize table (POST, write) ──
+    // Optimize table (POST, write)
     case 'optimize_table':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -681,7 +709,38 @@ switch ($action) {
         }
         break;
 
-    // ── List views (GET, read-safe) ──
+    // Generic table maintenance (POST, write for all except CHECK)
+    case 'maintenance':
+        $operation = strtoupper(trim($_POST['operation'] ?? ''));
+        $tableName = trim($_POST['table'] ?? '');
+        if (!in_array($operation, ['OPTIMIZE', 'ANALYZE', 'CHECK', 'REPAIR'])) {
+            echo json_encode(['error' => 'Invalid operation.']);
+            break;
+        }
+        if ($operation !== 'CHECK' && $auth->isReadOnly()) {
+            echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
+            break;
+        }
+        if (!$db || !$tableName) {
+            echo json_encode(['error' => 'Database and table required.']);
+            break;
+        }
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $tableName)) {
+            echo json_encode(['error' => 'Invalid table name.']);
+            break;
+        }
+        try {
+            $pdo = $dbInstance->connect($db);
+            $safeName = '`' . str_replace('`', '``', $tableName) . '`';
+            $rows = $pdo->query("{$operation} TABLE {$safeName}")->fetchAll(PDO::FETCH_ASSOC);
+            $auth->logActivity("{$operation} TABLE: {$db}.{$tableName}");
+            echo json_encode(['success' => true, 'result' => $rows]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // List views (GET, read-safe)
     case 'get_views':
         if (!$db) { echo json_encode(['error' => 'Database required.']); break; }
         try {
@@ -691,7 +750,7 @@ switch ($action) {
         }
         break;
 
-    // ── Get view definition (GET, read-safe) ──
+    // Get view definition (GET, read-safe)
     case 'get_view_definition':
         $name = trim($_REQUEST['name'] ?? '');
         if (!$db || !$name) { echo json_encode(['error' => 'Database and view name required.']); break; }
@@ -703,7 +762,7 @@ switch ($action) {
         }
         break;
 
-    // ── Create/replace view (POST, write) ──
+    // Create/replace view (POST, write)
     case 'create_view':
         if ($auth->isReadOnly()) { echo json_encode(['error' => 'Read-only mode.']); break; }
         $name = trim($_POST['name'] ?? '');
@@ -722,7 +781,7 @@ switch ($action) {
         }
         break;
 
-    // ── Drop view (POST, write) ──
+    // Drop view (POST, write)
     case 'drop_view':
         if ($auth->isReadOnly()) { echo json_encode(['error' => 'Read-only mode.']); break; }
         $name = trim($_POST['name'] ?? '');
@@ -736,7 +795,58 @@ switch ($action) {
         }
         break;
 
-    // ── EXPLAIN query (POST, read-safe) ──
+    // EXPLAIN query (POST, read-safe)
+    // Saved Queries: list (GET)
+    case 'get_saved_queries':
+        require_once __DIR__ . '/includes/saved_queries.php';
+        $username = isset($auth) ? $auth->getUsername() : 'anonymous';
+        $queries = dbforge_saved_queries_get($username);
+        // Optionally filter by database
+        $filterDb = $_GET['filter_db'] ?? '';
+        if ($filterDb) {
+            $queries = array_values(array_filter($queries, function($q) use ($filterDb) {
+                return $q['db'] === $filterDb;
+            }));
+        }
+        echo json_encode(['queries' => $queries]);
+        break;
+
+    // Saved Queries: save (POST)
+    case 'save_query':
+        require_once __DIR__ . '/includes/saved_queries.php';
+        $username = isset($auth) ? $auth->getUsername() : 'anonymous';
+        $name = trim($_POST['name'] ?? '');
+        $sql  = trim($_POST['sql'] ?? '');
+        $qdb  = trim($_POST['db'] ?? $db);
+        if (!$sql) { echo json_encode(['error' => 'Query is empty.']); break; }
+        if (!$name) $name = 'Query ' . date('Y-m-d H:i');
+        $entry = dbforge_saved_queries_add($username, $name, $sql, $qdb);
+        echo json_encode(['success' => true, 'query' => $entry]);
+        break;
+
+    // Saved Queries: update (POST)
+    case 'update_saved_query':
+        require_once __DIR__ . '/includes/saved_queries.php';
+        $username = isset($auth) ? $auth->getUsername() : 'anonymous';
+        $id = trim($_POST['id'] ?? '');
+        if (!$id) { echo json_encode(['error' => 'No query ID.']); break; }
+        $fields = [];
+        if (isset($_POST['name'])) $fields['name'] = trim($_POST['name']);
+        if (isset($_POST['sql']))  $fields['sql']  = trim($_POST['sql']);
+        $ok = dbforge_saved_queries_update($username, $id, $fields);
+        echo json_encode($ok ? ['success' => true] : ['error' => 'Query not found.']);
+        break;
+
+    // Saved Queries: delete (POST)
+    case 'delete_saved_query':
+        require_once __DIR__ . '/includes/saved_queries.php';
+        $username = isset($auth) ? $auth->getUsername() : 'anonymous';
+        $id = trim($_POST['id'] ?? '');
+        if (!$id) { echo json_encode(['error' => 'No query ID.']); break; }
+        $ok = dbforge_saved_queries_delete($username, $id);
+        echo json_encode($ok ? ['success' => true] : ['error' => 'Query not found.']);
+        break;
+
     case 'explain_query':
         $sql = trim($_POST['sql'] ?? '');
         if (!$db || !$sql) {
@@ -761,7 +871,7 @@ switch ($action) {
         }
         break;
 
-    // ── List triggers for a table (GET, read-safe) ──
+    // List triggers for a table (GET, read-safe)
     case 'get_triggers':
         $tableName = trim($_REQUEST['table'] ?? '');
         if (!$db || !$tableName) {
@@ -775,7 +885,7 @@ switch ($action) {
         }
         break;
 
-    // ── Create a trigger (POST, write) ──
+    // Create a trigger (POST, write)
     case 'create_trigger':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -799,7 +909,7 @@ switch ($action) {
         }
         break;
 
-    // ── Replace a trigger (POST, write) ──
+    // Replace a trigger (POST, write)
     // Drop + recreate in one call. Restores original on failure.
     case 'replace_trigger':
         if ($auth->isReadOnly()) {
@@ -846,7 +956,7 @@ switch ($action) {
         }
         break;
 
-    // ── Drop a trigger (POST, write) ──
+    // Drop a trigger (POST, write)
     case 'drop_trigger':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -866,7 +976,120 @@ switch ($action) {
         }
         break;
 
-    // ── Toggle favorite (POST) ──
+    // Get routines (GET)
+    // Get partitions (GET)
+    case 'get_partitions':
+        $tableName = trim($_GET['table'] ?? '');
+        if (!$db || !$tableName) { echo json_encode(['error' => 'Database and table required.']); break; }
+        try {
+            $partitions = $dbInstance->getPartitions($db, $tableName);
+            $info = $dbInstance->getPartitionInfo($db, $tableName);
+            echo json_encode(['success' => true, 'partitions' => $partitions, 'info' => $info]);
+        } catch (PDOException $e) { echo json_encode(['error' => $e->getMessage()]); }
+        break;
+
+    // Partition table (POST, write)
+    case 'partition_table':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Read-only mode.']); break; }
+        $tableName = trim($_POST['table'] ?? '');
+        $sql = trim($_POST['sql'] ?? '');
+        if (!$db || !$tableName || !$sql) { echo json_encode(['error' => 'All fields required.']); break; }
+        try {
+            $dbInstance->partitionTable($db, $tableName, $sql);
+            $auth->logActivity("Partitioned table: {$db}.{$tableName}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) { echo json_encode(['error' => $e->getMessage()]); }
+        break;
+
+    // Remove partitioning (POST, write)
+    case 'remove_partitioning':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Read-only mode.']); break; }
+        $tableName = trim($_POST['table'] ?? '');
+        if (!$db || !$tableName) { echo json_encode(['error' => 'Database and table required.']); break; }
+        try {
+            $dbInstance->removePartitioning($db, $tableName);
+            $auth->logActivity("Removed partitioning: {$db}.{$tableName}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) { echo json_encode(['error' => $e->getMessage()]); }
+        break;
+
+    // Partition action: drop, truncate, optimize, rebuild, add (POST, write)
+    case 'partition_action':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Read-only mode.']); break; }
+        $tableName = trim($_POST['table'] ?? '');
+        $action = strtolower(trim($_POST['op'] ?? ''));
+        $partName = trim($_POST['partition'] ?? '');
+        $partDef = trim($_POST['definition'] ?? '');
+        if (!$db || !$tableName || !$action) { echo json_encode(['error' => 'Fields required.']); break; }
+        try {
+            switch ($action) {
+                case 'drop':      $dbInstance->dropPartition($db, $tableName, $partName); break;
+                case 'truncate':  $dbInstance->truncatePartition($db, $tableName, $partName); break;
+                case 'optimize':  $dbInstance->optimizePartition($db, $tableName, $partName); break;
+                case 'rebuild':   $dbInstance->rebuildPartition($db, $tableName, $partName); break;
+                case 'add':       $dbInstance->addPartition($db, $tableName, $partDef); break;
+                default: echo json_encode(['error' => 'Unknown action.']); break 2;
+            }
+            $auth->logActivity("{$action} partition on {$db}.{$tableName}" . ($partName ? ": {$partName}" : ''));
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) { echo json_encode(['error' => $e->getMessage()]); }
+        break;
+
+    case 'get_routines':
+        if (!$db) { echo json_encode(['error' => 'No database selected.']); break; }
+        try {
+            $routines = $dbInstance->getRoutines($db);
+            echo json_encode(['success' => true, 'routines' => $routines]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Get routine definition (GET)
+    case 'get_routine_definition':
+        if (!$db) { echo json_encode(['error' => 'No database selected.']); break; }
+        $name = trim($_GET['name'] ?? '');
+        $type = trim($_GET['type'] ?? 'PROCEDURE');
+        if (!$name) { echo json_encode(['error' => 'Name required.']); break; }
+        try {
+            $def = $dbInstance->getRoutineDefinition($db, $name, $type);
+            $params = $dbInstance->getRoutineParams($db, $name);
+            echo json_encode(['success' => true, 'definition' => $def, 'params' => $params]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Create routine (POST, write)
+    case 'create_routine':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Write operations are disabled in read-only mode.']); break; }
+        $sql = trim($_POST['sql'] ?? '');
+        if (!$db || !$sql) { echo json_encode(['error' => 'Database and SQL required.']); break; }
+        try {
+            $dbInstance->createRoutine($db, $sql);
+            $auth->logActivity("Created routine in {$db}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Drop routine (POST, write)
+    case 'drop_routine':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Write operations are disabled in read-only mode.']); break; }
+        $name = trim($_POST['name'] ?? '');
+        $type = trim($_POST['type'] ?? 'PROCEDURE');
+        if (!$db || !$name) { echo json_encode(['error' => 'Database and name required.']); break; }
+        try {
+            $dbInstance->dropRoutine($db, $name, $type);
+            $auth->logActivity("Dropped {$type}: {$db}.{$name}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Toggle favorite (POST)
     case 'toggle_favorite':
         $favDb    = trim($_POST['db'] ?? '');
         $favTable = trim($_POST['table'] ?? '');
@@ -883,7 +1106,7 @@ switch ($action) {
         ]);
         break;
 
-    // ── 2FA: Generate setup (POST) ──
+    // 2FA: Generate setup (POST)
     case 'setup_2fa':
         if (!isset($auth) || !$auth->isLoggedIn()) {
             echo json_encode(['error' => 'Not authenticated.']);
@@ -896,7 +1119,7 @@ switch ($action) {
         echo json_encode(['success' => true, 'secret' => $secret, 'uri' => $uri]);
         break;
 
-    // ── 2FA: Confirm and save (POST) ──
+    // 2FA: Confirm and save (POST)
     case 'confirm_2fa':
         if (!isset($auth) || !$auth->isLoggedIn()) {
             echo json_encode(['error' => 'Not authenticated.']);
@@ -931,7 +1154,7 @@ switch ($action) {
         echo json_encode(['success' => true]);
         break;
 
-    // ── 2FA: Disable (POST) ──
+    // 2FA: Disable (POST)
     case 'disable_2fa':
         if (!isset($auth) || !$auth->isLoggedIn()) {
             echo json_encode(['error' => 'Not authenticated.']);
@@ -952,7 +1175,7 @@ switch ($action) {
         echo json_encode(['success' => true]);
         break;
 
-    // ── Change current user's password (POST) ──
+    // Change current user's password (POST)
     case 'change_password':
         if (!isset($auth) || !$auth->isLoggedIn()) {
             echo json_encode(['error' => 'Not authenticated.']);
@@ -1012,13 +1235,13 @@ switch ($action) {
         echo json_encode(['success' => true]);
         break;
 
-    // ── Clear query history (POST) ──
+    // Clear query history (POST)
     case 'clear_history':
         $_SESSION['dbforge_query_history'] = [];
         echo json_encode(['success' => true]);
         break;
 
-    // ── Delete single history item (POST) ──
+    // Delete single history item (POST)
     case 'delete_history_item':
         $idx = (int)($_POST['idx'] ?? -1);
         if (isset($_SESSION['dbforge_query_history'][$idx])) {
@@ -1029,7 +1252,7 @@ switch ($action) {
         }
         break;
 
-    // ── Insert a row (POST, write) ──
+    // Insert a row (POST, write)
     case 'insert_row':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -1075,7 +1298,7 @@ switch ($action) {
         }
         break;
 
-    // ── Execute arbitrary SQL (POST, write) ──
+    // Execute arbitrary SQL (POST, write)
     case 'execute_sql':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -1107,7 +1330,7 @@ switch ($action) {
         }
         break;
 
-    // ── Create a database (POST, write) ──
+    // Create a database (POST, write)
     case 'create_database':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);
@@ -1136,7 +1359,7 @@ switch ($action) {
         }
         break;
 
-    // ── Drop a database (POST, write) ──
+    // Drop a database (POST, write)
     case 'drop_database':
         if ($auth->isReadOnly()) {
             echo json_encode(['error' => 'Write operations are disabled in read-only mode.']);

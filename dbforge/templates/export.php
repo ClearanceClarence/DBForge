@@ -1,6 +1,6 @@
 <?php
 if (!$currentDb):
-    // ── No database selected — show all databases for export ──
+    // No database selected — show all databases for export
 ?>
 
 <!-- Header -->
@@ -102,7 +102,7 @@ try {
 </div>
 
 <?php if ($currentTable && $tableInfo): ?>
-<!-- ═══ Table Export ═══ -->
+<!-- Table Export -->
 <h3 class="section-title" style="margin-top:20px;">
     <?= icon('table', 16) ?> Table: <span class="highlight"><?= h($currentTable) ?></span>
 </h3>
@@ -150,7 +150,7 @@ try {
 </div>
 <?php endif; ?>
 
-<!-- ═══ Database Export ═══ -->
+<!-- Database Export -->
 <h3 class="section-title" style="margin-top:28px;">
     <?= icon('database', 16) ?> Database: <span class="highlight"><?= h($currentDb) ?></span>
 </h3>

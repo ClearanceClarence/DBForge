@@ -216,10 +216,11 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
 </div>
 
 <script>
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
     var db = <?= json_encode($currentDb) ?>;
     var table = <?= json_encode($currentTable) ?>;
-    var csrf = DBForge.getCsrfToken();
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var csrf = csrfMeta ? csrfMeta.content : '';
     var resultEl = document.getElementById('ops-maint-result');
 
     function post(action, params) {
@@ -239,7 +240,7 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
         resultEl.classList.toggle('is-error', !!isError);
     }
 
-    // ── Alter ──
+    // Alter
     var alterBtn = document.getElementById('op-alter-btn');
     if (alterBtn) {
         alterBtn.addEventListener('click', function() {
@@ -259,7 +260,7 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
         });
     }
 
-    // ── Rename ──
+    // Rename
     document.getElementById('op-rename-btn').addEventListener('click', function() {
         var newName = document.getElementById('op-rename-name').value.trim();
         if (!newName || newName === table) return;
@@ -270,7 +271,7 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
         });
     });
 
-    // ── Move ──
+    // Move
     document.getElementById('op-move-btn').addEventListener('click', function() {
         var target = document.getElementById('op-move-db').value;
         if (!target) return;
@@ -289,7 +290,7 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
         });
     });
 
-    // ── Copy ──
+    // Copy
     document.getElementById('op-copy-btn').addEventListener('click', function() {
         var dest = document.getElementById('op-copy-name').value.trim();
         var destDb = document.getElementById('op-copy-db').value;
@@ -304,7 +305,7 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
         });
     });
 
-    // ── Maintenance ──
+    // Maintenance
     document.querySelectorAll('.ops-maint-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
             var op = btn.dataset.op;
@@ -323,7 +324,7 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
         });
     });
 
-    // ── Truncate ──
+    // Truncate
     document.getElementById('op-truncate-btn').addEventListener('click', function() {
         DBForge.confirm({
             title: 'Truncate table',
@@ -340,7 +341,7 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
         });
     });
 
-    // ── Drop ──
+    // Drop
     document.getElementById('op-drop-btn').addEventListener('click', function() {
         DBForge.confirm({
             title: 'Drop table',
@@ -356,5 +357,5 @@ $otherDatabases = array_filter($databases, fn($d) => $d !== $currentDb);
             });
         });
     });
-})();
+});
 </script>

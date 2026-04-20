@@ -3808,7 +3808,7 @@ select.settings-input option {
     position: relative;
     z-index: 2;
     background: transparent !important;
-    color: transparent;
+    color: transparent !important;
     caret-color: var(--text-primary);
     resize: vertical;
 }

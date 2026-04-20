@@ -1,7 +1,4 @@
 <?php
-/**
- * DBForge — Security & Authentication
- */
 
 class Auth
 {
@@ -14,7 +11,7 @@ class Auth
         $this->lockFile = sys_get_temp_dir() . '/dbforge_lockout.json';
     }
 
-    // ── Session Management ───────────────────────────────
+    // Session Management
 
     public function startSession(): void
     {
@@ -56,7 +53,7 @@ class Auth
         }
     }
 
-    // ── Authentication ───────────────────────────────────
+    // Authentication
 
     public function isAuthRequired(): bool
     {
@@ -126,7 +123,8 @@ class Auth
     }
 
     /**
-     * Verify TOTP code for a pending 2FA login
+     * Verify a TOTP code for a pending 2FA login.
+     * @return bool|string True on success, error message string on failure
      */
     public function verify2fa(string $code): string|bool
     {
@@ -168,17 +166,11 @@ class Auth
         return true;
     }
 
-    /**
-     * Check if 2FA verification is pending
-     */
     public function is2faPending(): bool
     {
         return !empty($_SESSION['dbforge_2fa_pending']);
     }
 
-    /**
-     * Complete the login (set session vars, log activity)
-     */
     private function completeLogin(string $username, string $ip): void
     {
         $this->clearFailedAttempts($ip);
@@ -191,9 +183,6 @@ class Auth
         $this->logActivity('Login successful', $username);
     }
 
-    /**
-     * Get the TOTP secret for a user (null if not configured)
-     */
     public function getUserTotpSecret(string $username): ?string
     {
         $users = $this->config['users'] ?? [];
@@ -204,9 +193,6 @@ class Auth
         return null;
     }
 
-    /**
-     * Get the password hash for a user (handles both formats)
-     */
     public function getUserPasswordHash(string $username): ?string
     {
         $users = $this->config['users'] ?? [];
@@ -235,7 +221,7 @@ class Auth
         }
     }
 
-    // ── CSRF Protection ──────────────────────────────────
+    // CSRF Protection
 
     public function csrfEnabled(): bool
     {
@@ -262,6 +248,9 @@ class Auth
         return '<meta name="csrf-token" content="' . htmlspecialchars($token) . '">';
     }
 
+    /**
+     * Checks $_POST['_csrf_token'] or X-CSRF-Token header against the session token.
+     */
     public function validateCsrf(): bool
     {
         if (!$this->csrfEnabled()) return true;
@@ -277,7 +266,7 @@ class Auth
         return hash_equals($_SESSION['dbforge_csrf_token'], $token);
     }
 
-    // ── IP Whitelist ─────────────────────────────────────
+    // IP Whitelist
 
     public function isIpAllowed(): bool
     {
@@ -298,7 +287,7 @@ class Auth
         return false;
     }
 
-    // ── HTTPS Enforcement ────────────────────────────────
+    // HTTPS Enforcement
 
     public function shouldForceHttps(): bool
     {
@@ -312,7 +301,7 @@ class Auth
             || (!empty($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
     }
 
-    // ── Read-Only Mode ───────────────────────────────────
+    // Read-Only Mode
 
     public function isReadOnly(): bool
     {
@@ -320,7 +309,7 @@ class Auth
     }
 
     /**
-     * Check if a SQL query is a write operation
+     * Detect INSERT/UPDATE/DELETE/ALTER/DROP/CREATE/TRUNCATE/RENAME/GRANT/REVOKE.
      */
     public function isWriteQuery(string $sql): bool
     {
@@ -334,8 +323,11 @@ class Auth
         return false;
     }
 
-    // ── Hidden Databases ─────────────────────────────────
+    // Hidden Databases
 
+    /**
+     * Remove hidden databases (mysql, information_schema, etc.) based on config.
+     */
     public function filterDatabases(array $databases): array
     {
         $hidden = array_map('strtolower', $this->config['hidden_databases'] ?? []);
@@ -352,8 +344,11 @@ class Auth
         return in_array(strtolower($db), $hidden);
     }
 
-    // ── Query Logging ────────────────────────────────────
+    // Query Logging
 
+    /**
+     * Append to logs/queries.log. Silently fails if log dir is not writable.
+     */
     public function logQuery(string $db, string $sql, float $time): void
     {
         if (empty($this->config['query_log'])) return;
@@ -393,7 +388,7 @@ class Auth
         @file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
     }
 
-    // ── Brute Force Protection ───────────────────────────
+    // Brute Force Protection
 
     private function getAttempts(): array
     {
@@ -425,6 +420,9 @@ class Auth
         $this->saveAttempts($data);
     }
 
+    /**
+     * Check if an IP has exceeded max_attempts within lockout_time seconds.
+     */
     public function isLockedOut(string $ip): bool
     {
         $data = $this->getAttempts();
@@ -455,7 +453,7 @@ class Auth
         return max(0, $lockoutDuration - $elapsed);
     }
 
-    // ── Helpers ──────────────────────────────────────────
+    // Helpers
 
     public function getClientIp(): string
     {

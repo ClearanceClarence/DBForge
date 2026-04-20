@@ -1,10 +1,7 @@
 <?php
-/**
- * DBForge - Helper Functions
- */
 
 /**
- * Load the theme system - returns available themes and active theme info
+ * Scan themes directory and return array of {key, name, variant, style_path}.
  */
 function dbforge_load_themes(string $themesDir, string $defaultTheme): array
 {
@@ -32,9 +29,6 @@ function dbforge_load_themes(string $themesDir, string $defaultTheme): array
     ];
 }
 
-/**
- * Format bytes to human readable
- */
 function format_bytes(int $bytes, int $precision = 2): string
 {
     $units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -45,17 +39,11 @@ function format_bytes(int $bytes, int $precision = 2): string
     return round($bytes, $precision) . ' ' . $units[$pow];
 }
 
-/**
- * Format number with separator
- */
 function format_number($num): string
 {
     return number_format((int) $num, 0, '.', ',');
 }
 
-/**
- * Format uptime seconds to human string
- */
 function format_uptime(int $seconds): string
 {
     $days = floor($seconds / 86400);
@@ -68,17 +56,11 @@ function format_uptime(int $seconds): string
     return implode(' ', $parts) ?: '< 1m';
 }
 
-/**
- * Escape HTML output
- */
 function h(string $str): string
 {
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
 
-/**
- * Truncate string
- */
 function truncate(string $str, int $len = 60): string
 {
     if (mb_strlen($str) <= $len) return $str;
@@ -86,7 +68,7 @@ function truncate(string $str, int $len = 60): string
 }
 
 /**
- * Detect column value type for styling
+ * Return a CSS class for a data cell based on its value (null, numeric, empty).
  */
 function cell_class($value, string $columnKey = ''): string
 {
@@ -98,17 +80,11 @@ function cell_class($value, string $columnKey = ''): string
     return '';
 }
 
-/**
- * Get a safe request parameter
- */
 function input(string $key, $default = null)
 {
     return $_GET[$key] ?? $_POST[$key] ?? $default;
 }
 
-/**
- * Human-readable time ago
- */
 function dbforge_time_ago(int $timestamp): string
 {
     $diff = time() - $timestamp;
@@ -163,9 +139,6 @@ function dbforge_font_catalog(): array
     ];
 }
 
-/**
- * Font zones — which config key maps to which CSS variable and which catalog to use.
- */
 function dbforge_font_zones(): array
 {
     return [
