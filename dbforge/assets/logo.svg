@@ -11,51 +11,51 @@
         isolation: isolate;
       }
 
-      .st0, .st2 {
+      .st0, .st3 {
         font-family: CourierNewPS-BoldMT, 'Courier New';
         font-size: 24px;
         font-weight: 700;
         letter-spacing: 0em;
       }
 
-      .st1 {
-        opacity: .3;
-        stroke-width: 1.3px;
+      .st4 {
+        stroke-width: 1.7px;
       }
 
-      .st1, .st4, .st5 {
+      .st4, .st5, .st2 {
         fill: none;
-        stroke: #68c07a;
+        stroke: #4ade80;
       }
 
-      .st1, .st5 {
+      .st4, .st2 {
         stroke-miterlimit: 3.4;
       }
 
-      .st4 {
+      .st5 {
         stroke-linecap: round;
         stroke-linejoin: round;
         stroke-width: 2.1px;
       }
 
       .st2 {
-        fill: #68c07a;
+        opacity: .3;
+        stroke-width: 1.3px;
       }
 
-      .st5 {
-        stroke-width: 1.7px;
+      .st3 {
+        fill: #4ade80;
       }
     </style>
   </defs>
   <g>
-    <path class="st4" d="M8.5,4.6H3.4v23.8h5.1"/>
-    <path class="st4" d="M30.6,4.6h5.1v23.8h-5.1"/>
-    <ellipse class="st5" cx="19.6" cy="12.2" rx="6.8" ry="2.6"/>
-    <path class="st5" d="M12.8,12.2v4.7c0,1.4,3,2.6,6.8,2.6s6.8-1.1,6.8-2.6v-4.7"/>
-    <path class="st1" d="M12.8,16.9v4.7c0,1.4,3,2.6,6.8,2.6s6.8-1.1,6.8-2.6v-4.7"/>
+    <path class="st5" d="M8.5,4.6H3.4v23.8h5.1"/>
+    <path class="st5" d="M30.6,4.6h5.1v23.8h-5.1"/>
+    <ellipse class="st4" cx="19.6" cy="12.2" rx="6.8" ry="2.6"/>
+    <path class="st4" d="M12.8,12.2v4.7c0,1.4,3,2.6,6.8,2.6s6.8-1.1,6.8-2.6v-4.7"/>
+    <path class="st2" d="M12.8,16.9v4.7c0,1.4,3,2.6,6.8,2.6s6.8-1.1,6.8-2.6v-4.7"/>
   </g>
-  <g class="st3">
+  <g class="st1">
     <text class="st0" transform="translate(42 26)"><tspan x="0" y="0">DB</tspan></text>
-    <text class="st2" transform="translate(69.8 26)"><tspan x="0" y="0">Forge</tspan></text>
+    <text class="st3" transform="translate(69.8 26)"><tspan x="0" y="0">Forge</tspan></text>
   </g>
 </svg>
