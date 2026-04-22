@@ -1630,10 +1630,10 @@ footer {
          ═══════════════════════════════════════════════════════════ */
 .feature-picker {
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: minmax(280px, 360px) 1fr;
   gap: 24px;
   align-items: stretch;
-  min-height: 560px;
+  min-height: clamp(560px, 60vh, 720px);
 }
 .fp-tablist {
   display: flex;
@@ -1706,7 +1706,7 @@ footer {
 }
 .fp-tab-title {
   font-weight: 700;
-  font-size: 14px;
+  font-size: clamp(14px, 0.95vw, 16px);
   color: var(--c-text);
   margin-bottom: 2px;
   display: flex;
@@ -1715,7 +1715,7 @@ footer {
 }
 .fp-tab-title .fp-new-badge {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: clamp(9px, 0.65vw, 11px);
   font-weight: 700;
   padding: 2px 6px;
   background: var(--c-green-glow);
@@ -1725,7 +1725,7 @@ footer {
   letter-spacing: 0.08em;
 }
 .fp-tab-tagline {
-  font-size: 12px;
+  font-size: clamp(12px, 0.85vw, 14px);
   color: var(--c-text2);
   line-height: 1.4;
 }
@@ -1783,9 +1783,9 @@ footer {
 }
 .fp-panel-sub {
   color: var(--c-text2);
-  font-size: 15px;
+  font-size: clamp(15px, 1vw, 17px);
   line-height: 1.6;
-  max-width: 540px;
+  max-width: 640px;
 }
 .fp-panel-meta {
   display: flex;
@@ -1795,7 +1795,7 @@ footer {
 }
 .fp-tag {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: clamp(10px, 0.7vw, 12px);
   font-weight: 700;
   padding: 5px 10px;
   background: var(--c-surface2);
@@ -1808,9 +1808,10 @@ footer {
 
 .fp-panel-body {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(24px, 2.5vw, 48px);
+  align-items: start;
+  align-content: start;
 }
 .fp-bullets {
   display: flex;
@@ -1821,7 +1822,7 @@ footer {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  font-size: 14px;
+  font-size: clamp(14px, 0.95vw, 16px);
   line-height: 1.6;
 }
 .fp-bullet-mark {
@@ -1855,18 +1856,20 @@ footer {
   border: 1px solid var(--c-border);
   border-radius: 12px;
   overflow: hidden;
-  min-height: 260px;
+  min-height: clamp(260px, 32vh, 420px);
   display: flex;
   align-items: stretch;
+  min-width: 0;
 }
 .fp-visual-code {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: clamp(12.5px, 0.85vw, 15px);
   line-height: 1.7;
-  padding: 20px 22px;
+  padding: clamp(16px, 1.5vw, 24px);
   color: var(--c-text2);
   width: 100%;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 .fp-visual-code .line {
   display: block;
