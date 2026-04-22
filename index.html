@@ -64,29 +64,11 @@
             aria-label="Toggle theme"
             title="Toggle light/dark theme"
           >
-            <svg
-              class="sun-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="4" />
-              <path
-                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
-              />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
             </svg>
-            <svg
-              class="moon-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           </button>
@@ -104,34 +86,19 @@
               rel="noopener"
             >
               <span class="hero-badge__part hero-badge__status">LIVE</span>
-              <span class="hero-badge__part hero-badge__version"
-                >v1.8.0-alpha</span
-              >
+              <span class="hero-badge__part hero-badge__version">v1.8.0-alpha</span>
               <span class="hero-badge__part hero-badge__link"
-                >What's new<svg
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                >
+                >What's new<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                   <path d="M3 6h6M6 3l3 3-3 3" />
                 </svg>
               </span>
             </a>
-            <h1
-              class="kinetic-title in-view"
-              style="font-size: clamp(48px, 6vw, 80px); max-width: 600px"
-            >
-              <span class="word" style="--word-index: 0">The</span>
-              <span class="word" style="--word-index: 1">database</span>
-              <span class="word" style="--word-index: 2">tool</span>
-              <span class="word struck" style="--word-index: 3"
-                >phpMyAdmin</span
-              >
-              <span class="word emph kinetic-cycle" style="--word-index: 5"
-                >should have been.</span
-              >
+            <h1 class="kinetic-title in-view" style="font-size: clamp(48px, 6vw, 80px); max-width: 600px;">
+              <span class="word" style="--word-index:0">The</span>
+              <span class="word" style="--word-index:1">database</span>
+              <span class="word" style="--word-index:2">tool</span>
+              <span class="word struck" style="--word-index:3">phpMyAdmin</span>
+              <span class="word emph kinetic-cycle" style="--word-index:5">should have been.</span>
             </h1>
             <p class="hero-sub">
               Drop a folder. Run the installer. Manage your databases. Zero
@@ -164,278 +131,123 @@
             >
               <!-- ═══ FK LINES (drawn first so tables render on top) ═══ -->
               <!-- users(1) → subscriptions  (right edge of users → left of subs) -->
-              <path
-                class="er-line er-line-1"
-                d="M 200 90 L 260 90 L 260 150 L 360 150"
-              />
+              <path class="er-line er-line-1" d="M 200 90 L 260 90 L 260 150 L 360 150" />
               <!-- users(1) → invoices -->
-              <path
-                class="er-line er-line-2"
-                d="M 200 130 L 240 130 L 240 320 L 360 320"
-              />
+              <path class="er-line er-line-2" d="M 200 130 L 240 130 L 240 320 L 360 320" />
               <!-- users(1) → projects -->
-              <path
-                class="er-line er-line-3"
-                d="M 100 210 L 100 430 L 170 430"
-              />
+              <path class="er-line er-line-3" d="M 100 210 L 100 430 L 170 430" />
               <!-- projects → tasks -->
-              <path
-                class="er-line er-line-4"
-                d="M 280 480 L 320 480 L 320 520 L 390 520"
-              />
+              <path class="er-line er-line-4" d="M 280 480 L 320 480 L 320 520 L 390 520" />
               <!-- subscriptions → invoices (one-to-many down the right column) -->
-              <path
-                class="er-line er-line-5"
-                d="M 480 260 L 480 280 L 480 300"
-              />
+              <path class="er-line er-line-5" d="M 480 260 L 480 280 L 480 300" />
 
               <!-- Crow's-foot markers at FK ends -->
               <g class="er-fk-marker">
                 <!-- users → subscriptions crow's-foot -->
-                <path
-                  d="M 354 144 L 360 150 L 354 156 M 354 146 L 360 150 M 354 150 L 360 150"
-                  stroke="var(--c-diagram-line)"
-                  stroke-width="1.5"
-                  fill="none"
-                />
+                <path d="M 354 144 L 360 150 L 354 156 M 354 146 L 360 150 M 354 150 L 360 150" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
                 <!-- users → invoices crow's-foot -->
-                <path
-                  d="M 354 314 L 360 320 L 354 326 M 354 316 L 360 320 M 354 320 L 360 320"
-                  stroke="var(--c-diagram-line)"
-                  stroke-width="1.5"
-                  fill="none"
-                />
+                <path d="M 354 314 L 360 320 L 354 326 M 354 316 L 360 320 M 354 320 L 360 320" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
                 <!-- users → projects crow's-foot -->
-                <path
-                  d="M 164 424 L 170 430 L 164 436 M 164 426 L 170 430 M 164 430 L 170 430"
-                  stroke="var(--c-diagram-line)"
-                  stroke-width="1.5"
-                  fill="none"
-                />
+                <path d="M 164 424 L 170 430 L 164 436 M 164 426 L 170 430 M 164 430 L 170 430" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
                 <!-- projects → tasks crow's-foot -->
-                <path
-                  d="M 384 514 L 390 520 L 384 526 M 384 516 L 390 520 M 384 520 L 390 520"
-                  stroke="var(--c-diagram-line)"
-                  stroke-width="1.5"
-                  fill="none"
-                />
+                <path d="M 384 514 L 390 520 L 384 526 M 384 516 L 390 520 M 384 520 L 390 520" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
                 <!-- subs → invoices crow's-foot (vertical) -->
-                <path
-                  d="M 474 294 L 480 300 L 486 294 M 476 294 L 480 300 M 480 294 L 480 300"
-                  stroke="var(--c-diagram-line)"
-                  stroke-width="1.5"
-                  fill="none"
-                />
+                <path d="M 474 294 L 480 300 L 486 294 M 476 294 L 480 300 M 480 294 L 480 300" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
               </g>
 
               <!-- ═══ USERS TABLE ═══ -->
               <g class="er-table-group">
-                <rect
-                  class="er-table-rect"
-                  x="20"
-                  y="20"
-                  width="180"
-                  height="210"
-                />
-                <rect
-                  class="er-table-header"
-                  x="20"
-                  y="20"
-                  width="180"
-                  height="28"
-                  rx="6"
-                />
+                <rect class="er-table-rect" x="20" y="20" width="180" height="210" />
+                <rect class="er-table-header" x="20" y="20" width="180" height="28" rx="6" />
                 <text class="er-table-name" x="38" y="39">users</text>
                 <!-- columns -->
                 <text class="er-col-pk" x="32" y="68">⚷</text>
                 <text class="er-col-name" x="48" y="68">id</text>
-                <text class="er-col-type" x="196" y="68" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="196" y="68" text-anchor="end">BIGINT</text>
                 <text class="er-col-name" x="48" y="92">email</text>
-                <text class="er-col-type" x="196" y="92" text-anchor="end">
-                  VARCHAR(255)
-                </text>
+                <text class="er-col-type" x="196" y="92" text-anchor="end">VARCHAR(255)</text>
                 <text class="er-col-name" x="48" y="116">full_name</text>
-                <text class="er-col-type" x="196" y="116" text-anchor="end">
-                  VARCHAR(100)
-                </text>
+                <text class="er-col-type" x="196" y="116" text-anchor="end">VARCHAR(100)</text>
                 <text class="er-col-name" x="48" y="140">plan</text>
-                <text class="er-col-type" x="196" y="140" text-anchor="end">
-                  ENUM
-                </text>
+                <text class="er-col-type" x="196" y="140" text-anchor="end">ENUM</text>
                 <text class="er-col-name" x="48" y="164">created_at</text>
-                <text class="er-col-type" x="196" y="164" text-anchor="end">
-                  DATETIME
-                </text>
+                <text class="er-col-type" x="196" y="164" text-anchor="end">DATETIME</text>
                 <text class="er-col-name" x="48" y="188">last_login</text>
-                <text class="er-col-type" x="196" y="188" text-anchor="end">
-                  DATETIME
-                </text>
+                <text class="er-col-type" x="196" y="188" text-anchor="end">DATETIME</text>
                 <text class="er-col-name" x="48" y="212">active</text>
-                <text class="er-col-type" x="196" y="212" text-anchor="end">
-                  TINYINT
-                </text>
+                <text class="er-col-type" x="196" y="212" text-anchor="end">TINYINT</text>
               </g>
 
               <!-- ═══ SUBSCRIPTIONS TABLE ═══ -->
               <g class="er-table-group">
-                <rect
-                  class="er-table-rect"
-                  x="360"
-                  y="40"
-                  width="220"
-                  height="220"
-                />
-                <rect
-                  class="er-table-header"
-                  x="360"
-                  y="40"
-                  width="220"
-                  height="28"
-                  rx="6"
-                />
+                <rect class="er-table-rect" x="360" y="40" width="220" height="220" />
+                <rect class="er-table-header" x="360" y="40" width="220" height="28" rx="6" />
                 <text class="er-table-name" x="378" y="59">subscriptions</text>
                 <text class="er-col-pk" x="372" y="88">⚷</text>
                 <text class="er-col-name" x="388" y="88">id</text>
-                <text class="er-col-type" x="576" y="88" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="576" y="88" text-anchor="end">BIGINT</text>
                 <text class="er-col-fk" x="372" y="112">FK</text>
                 <text class="er-col-name" x="388" y="112">user_id</text>
-                <text class="er-col-type" x="576" y="112" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="576" y="112" text-anchor="end">BIGINT</text>
                 <text class="er-col-name" x="388" y="136">plan</text>
-                <text class="er-col-type" x="576" y="136" text-anchor="end">
-                  VARCHAR(40)
-                </text>
+                <text class="er-col-type" x="576" y="136" text-anchor="end">VARCHAR(40)</text>
                 <text class="er-col-name" x="388" y="160">status</text>
-                <text class="er-col-type" x="576" y="160" text-anchor="end">
-                  ENUM
-                </text>
+                <text class="er-col-type" x="576" y="160" text-anchor="end">ENUM</text>
                 <text class="er-col-name" x="388" y="184">renews_at</text>
-                <text class="er-col-type" x="576" y="184" text-anchor="end">
-                  DATETIME
-                </text>
+                <text class="er-col-type" x="576" y="184" text-anchor="end">DATETIME</text>
                 <text class="er-col-name" x="388" y="208">amount_cents</text>
-                <text class="er-col-type" x="576" y="208" text-anchor="end">
-                  INT
-                </text>
+                <text class="er-col-type" x="576" y="208" text-anchor="end">INT</text>
                 <text class="er-col-name" x="388" y="232">currency</text>
-                <text class="er-col-type" x="576" y="232" text-anchor="end">
-                  CHAR(3)
-                </text>
+                <text class="er-col-type" x="576" y="232" text-anchor="end">CHAR(3)</text>
               </g>
 
               <!-- ═══ INVOICES TABLE ═══ -->
               <g class="er-table-group">
-                <rect
-                  class="er-table-rect"
-                  x="360"
-                  y="300"
-                  width="220"
-                  height="180"
-                />
-                <rect
-                  class="er-table-header"
-                  x="360"
-                  y="300"
-                  width="220"
-                  height="28"
-                  rx="6"
-                />
+                <rect class="er-table-rect" x="360" y="300" width="220" height="180" />
+                <rect class="er-table-header" x="360" y="300" width="220" height="28" rx="6" />
                 <text class="er-table-name" x="378" y="319">invoices</text>
                 <text class="er-col-pk" x="372" y="348">⚷</text>
                 <text class="er-col-name" x="388" y="348">id</text>
-                <text class="er-col-type" x="576" y="348" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="576" y="348" text-anchor="end">BIGINT</text>
                 <text class="er-col-fk" x="372" y="372">FK</text>
                 <text class="er-col-name" x="388" y="372">user_id</text>
-                <text class="er-col-type" x="576" y="372" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="576" y="372" text-anchor="end">BIGINT</text>
                 <text class="er-col-fk" x="372" y="396">FK</text>
                 <text class="er-col-name" x="388" y="396">subscription_id</text>
-                <text class="er-col-type" x="576" y="396" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="576" y="396" text-anchor="end">BIGINT</text>
                 <text class="er-col-name" x="388" y="420">total_cents</text>
-                <text class="er-col-type" x="576" y="420" text-anchor="end">
-                  INT
-                </text>
+                <text class="er-col-type" x="576" y="420" text-anchor="end">INT</text>
                 <text class="er-col-name" x="388" y="444">issued_at</text>
-                <text class="er-col-type" x="576" y="444" text-anchor="end">
-                  DATETIME
-                </text>
+                <text class="er-col-type" x="576" y="444" text-anchor="end">DATETIME</text>
               </g>
 
               <!-- ═══ PROJECTS TABLE ═══ -->
               <g class="er-table-group">
-                <rect
-                  class="er-table-rect"
-                  x="170"
-                  y="370"
-                  width="210"
-                  height="150"
-                />
-                <rect
-                  class="er-table-header"
-                  x="170"
-                  y="370"
-                  width="210"
-                  height="28"
-                  rx="6"
-                />
+                <rect class="er-table-rect" x="170" y="370" width="210" height="150" />
+                <rect class="er-table-header" x="170" y="370" width="210" height="28" rx="6" />
                 <text class="er-table-name" x="188" y="389">projects</text>
                 <text class="er-col-pk" x="182" y="418">⚷</text>
                 <text class="er-col-name" x="198" y="418">id</text>
-                <text class="er-col-type" x="376" y="418" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="376" y="418" text-anchor="end">BIGINT</text>
                 <text class="er-col-fk" x="182" y="442">FK</text>
                 <text class="er-col-name" x="198" y="442">owner_id</text>
-                <text class="er-col-type" x="376" y="442" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="376" y="442" text-anchor="end">BIGINT</text>
                 <text class="er-col-name" x="198" y="466">name</text>
-                <text class="er-col-type" x="376" y="466" text-anchor="end">
-                  VARCHAR(120)
-                </text>
+                <text class="er-col-type" x="376" y="466" text-anchor="end">VARCHAR(120)</text>
                 <text class="er-col-name" x="198" y="490">created_at</text>
-                <text class="er-col-type" x="376" y="490" text-anchor="end">
-                  DATETIME
-                </text>
+                <text class="er-col-type" x="376" y="490" text-anchor="end">DATETIME</text>
               </g>
 
               <!-- ═══ TASKS TABLE ═══ -->
               <g class="er-table-group">
-                <rect
-                  class="er-table-rect"
-                  x="390"
-                  y="490"
-                  width="210"
-                  height="80"
-                />
-                <rect
-                  class="er-table-header"
-                  x="390"
-                  y="490"
-                  width="210"
-                  height="28"
-                  rx="6"
-                />
+                <rect class="er-table-rect" x="390" y="490" width="210" height="80" />
+                <rect class="er-table-header" x="390" y="490" width="210" height="28" rx="6" />
                 <text class="er-table-name" x="408" y="509">tasks</text>
                 <text class="er-col-fk" x="402" y="538">FK</text>
                 <text class="er-col-name" x="418" y="538">project_id</text>
-                <text class="er-col-type" x="596" y="538" text-anchor="end">
-                  BIGINT
-                </text>
+                <text class="er-col-type" x="596" y="538" text-anchor="end">BIGINT</text>
                 <text class="er-col-name" x="418" y="562">status</text>
-                <text class="er-col-type" x="596" y="562" text-anchor="end">
-                  ENUM
-                </text>
+                <text class="er-col-type" x="596" y="562" text-anchor="end">ENUM</text>
               </g>
             </svg>
           </div>
@@ -469,10 +281,10 @@
         <div class="features-header reveal">
           <div class="kinetic-label">Features</div>
           <div class="kinetic-title">
-            <span class="word" style="--word-index: 0">Everything</span>
-            <span class="word" style="--word-index: 1">you</span>
-            <span class="word emph" style="--word-index: 2">actually</span>
-            <span class="word" style="--word-index: 3">need.</span>
+            <span class="word" style="--word-index:0">Everything</span>
+            <span class="word" style="--word-index:1">you</span>
+            <span class="word emph" style="--word-index:2">actually</span>
+            <span class="word" style="--word-index:3">need.</span>
           </div>
           <div class="section-sub">
             Not a stripped-down toy. Not a bloated framework. Every feature is
@@ -482,86 +294,46 @@
         </div>
         <div class="feature-picker reveal" id="feature-picker">
           <div class="fp-tablist" role="tablist">
-            <button
-              type="button"
-              class="fp-tab active"
-              data-panel="fp-sql"
-              role="tab"
-              aria-selected="true"
-            >
+            <button type="button" class="fp-tab active" data-panel="fp-sql" role="tab" aria-selected="true">
               <div class="fp-tab-icon">✏️</div>
               <div class="fp-tab-body">
                 <div class="fp-tab-title">Real SQL Editor</div>
-                <div class="fp-tab-tagline">
-                  612-token tokenizer, autocomplete, EXPLAIN
-                </div>
+                <div class="fp-tab-tagline">612-token tokenizer, autocomplete, EXPLAIN</div>
               </div>
             </button>
             <button type="button" class="fp-tab" data-panel="fp-er" role="tab">
               <div class="fp-tab-icon">📊</div>
               <div class="fp-tab-body">
                 <div class="fp-tab-title">ER Diagram</div>
-                <div class="fp-tab-tagline">
-                  Live schema visualization with FK tracing
-                </div>
+                <div class="fp-tab-tagline">Live schema visualization with FK tracing</div>
               </div>
             </button>
-            <button
-              type="button"
-              class="fp-tab"
-              data-panel="fp-proc"
-              role="tab"
-            >
+            <button type="button" class="fp-tab" data-panel="fp-proc" role="tab">
               <div class="fp-tab-icon">⚡</div>
               <div class="fp-tab-body">
-                <div class="fp-tab-title">
-                  Live Processes <span class="fp-new-badge">New</span>
-                </div>
-                <div class="fp-tab-tagline">
-                  Auto-refresh, color-scaled, one-click kill
-                </div>
+                <div class="fp-tab-title">Live Processes <span class="fp-new-badge">New</span></div>
+                <div class="fp-tab-tagline">Auto-refresh, color-scaled, one-click kill</div>
               </div>
             </button>
-            <button
-              type="button"
-              class="fp-tab"
-              data-panel="fp-hist"
-              role="tab"
-            >
+            <button type="button" class="fp-tab" data-panel="fp-hist" role="tab">
               <div class="fp-tab-icon">🕘</div>
               <div class="fp-tab-body">
-                <div class="fp-tab-title">
-                  Query History <span class="fp-new-badge">New</span>
-                </div>
+                <div class="fp-tab-title">Query History <span class="fp-new-badge">New</span></div>
                 <div class="fp-tab-tagline">Expand for errors and results</div>
               </div>
             </button>
-            <button
-              type="button"
-              class="fp-tab"
-              data-panel="fp-schema"
-              role="tab"
-            >
+            <button type="button" class="fp-tab" data-panel="fp-schema" role="tab">
               <div class="fp-tab-icon">🧱</div>
               <div class="fp-tab-body">
                 <div class="fp-tab-title">Schema Objects</div>
-                <div class="fp-tab-tagline">
-                  Views, Triggers, Routines, Events
-                </div>
+                <div class="fp-tab-tagline">Views, Triggers, Routines, Events</div>
               </div>
             </button>
-            <button
-              type="button"
-              class="fp-tab"
-              data-panel="fp-themes"
-              role="tab"
-            >
+            <button type="button" class="fp-tab" data-panel="fp-themes" role="tab">
               <div class="fp-tab-icon">🎨</div>
               <div class="fp-tab-body">
                 <div class="fp-tab-title">20 Themes</div>
-                <div class="fp-tab-tagline">
-                  Complete design systems, not palettes
-                </div>
+                <div class="fp-tab-tagline">Complete design systems, not palettes</div>
               </div>
             </button>
           </div>
@@ -571,14 +343,11 @@
             <div class="fp-panel active" id="fp-sql" role="tabpanel">
               <div class="fp-panel-header">
                 <div>
-                  <div class="fp-panel-title">
-                    An editor that <em>actually knows SQL.</em>
-                  </div>
+                  <div class="fp-panel-title">An editor that <em>actually knows SQL.</em></div>
                   <div class="fp-panel-sub">
-                    Custom 612-token tokenizer with context-aware autocomplete.
-                    Type a table alias and a dot — you get its columns. Type
-                    inside a function — you get its signature. Ctrl+Enter runs
-                    it.
+                    Custom 612-token tokenizer with context-aware autocomplete. Type a table
+                    alias and a dot — you get its columns. Type inside a function — you get
+                    its signature. Ctrl+Enter runs it.
                   </div>
                 </div>
                 <div class="fp-panel-meta">
@@ -591,93 +360,23 @@
                 <div class="fp-bullets">
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Alias-aware.</strong>
-                      <span class="fp-inline"
-                        >Type <code>u.</code> after <code>users u</code> in the
-                        FROM, get columns from users — not every table in the
-                        database.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Alias-aware.</strong> <span class="fp-inline">Type <code>u.</code> after <code>users u</code> in the FROM, get columns from users — not every table in the database.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Persistent drafts.</strong>
-                      <span class="fp-inline"
-                        >Close the tab mid-query. Come back tomorrow. Your draft
-                        is still there.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Persistent drafts.</strong> <span class="fp-inline">Close the tab mid-query. Come back tomorrow. Your draft is still there.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>One-click EXPLAIN.</strong>
-                      <span class="fp-inline"
-                        >Color-coded access types, warning badges on filesort
-                        and temporary tables.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>One-click EXPLAIN.</strong> <span class="fp-inline">Color-coded access types, warning badges on filesort and temporary tables.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Shortcuts that exist.</strong>
-                      <span class="fp-inline"
-                        >Ctrl+Enter runs, Ctrl+/ comments, Ctrl+Space forces
-                        completion.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Shortcuts that exist.</strong> <span class="fp-inline">Ctrl+Enter runs, Ctrl+/ comments, Ctrl+Space forces completion.</span></div>
                   </div>
                 </div>
                 <div class="fp-visual">
-                  <div class="fp-visual-code">
-                    <span class="line"
-                      ><span class="kw">SELECT</span> u.<span class="col"
-                        >email</span
-                      >,</span
-                    ><span class="line">
-                      <span class="fn">COUNT</span>(o.<span class="col">id</span
-                      >) <span class="kw">AS</span> orders,</span
-                    ><span class="line">
-                      <span class="fn">SUM</span>(o.<span class="col"
-                        >total</span
-                      >) <span class="kw">AS</span> spent</span
-                    ><span class="line"
-                      ><span class="kw">FROM</span>
-                      <span class="tbl">users</span> u</span
-                    ><span class="line"
-                      ><span class="kw">LEFT JOIN</span>
-                      <span class="tbl">orders</span> o</span
-                    ><span class="line">
-                      <span class="kw">ON</span> o.<span class="col"
-                        >user_id</span
-                      >
-                      = u.<span class="col">id</span></span
-                    ><span class="line"
-                      ><span class="kw">WHERE</span> u.<span class="col"
-                        >created_at</span
-                      >
-                      &gt; <span class="str">'2026-01-01'</span></span
-                    ><span class="line"
-                      ><span class="kw">GROUP BY</span> u.<span class="col"
-                        >id</span
-                      ></span
-                    ><span class="line"
-                      ><span class="kw">HAVING</span> spent &gt;
-                      <span class="num">500</span></span
-                    ><span class="line"
-                      ><span class="kw">ORDER BY</span> spent
-                      <span class="kw">DESC</span></span
-                    ><span class="line"
-                      ><span class="kw">LIMIT</span>
-                      <span class="num">25</span>;<span
-                        class="cursor"
-                      ></span></span
-                    ><span class="line"
-                      ><span class="cm">-- ⚡ Ctrl+Enter to execute</span></span
-                    >
+                  <div class="fp-visual-code"><span class="line"><span class="kw">SELECT</span> u.<span class="col">email</span>,</span><span class="line">  <span class="fn">COUNT</span>(o.<span class="col">id</span>) <span class="kw">AS</span> orders,</span><span class="line">  <span class="fn">SUM</span>(o.<span class="col">total</span>) <span class="kw">AS</span> spent</span><span class="line"><span class="kw">FROM</span> <span class="tbl">users</span> u</span><span class="line"><span class="kw">LEFT JOIN</span> <span class="tbl">orders</span> o</span><span class="line">  <span class="kw">ON</span> o.<span class="col">user_id</span> = u.<span class="col">id</span></span><span class="line"><span class="kw">WHERE</span> u.<span class="col">created_at</span> &gt; <span class="str">'2026-01-01'</span></span><span class="line"><span class="kw">GROUP BY</span> u.<span class="col">id</span></span><span class="line"><span class="kw">HAVING</span> spent &gt; <span class="num">500</span></span><span class="line"><span class="kw">ORDER BY</span> spent <span class="kw">DESC</span></span><span class="line"><span class="kw">LIMIT</span> <span class="num">25</span>;<span class="cursor"></span></span><span class="line"><span class="cm">-- ⚡ Ctrl+Enter to execute</span></span>
                   </div>
                 </div>
               </div>
@@ -687,14 +386,11 @@
             <div class="fp-panel" id="fp-er" role="tabpanel">
               <div class="fp-panel-header">
                 <div>
-                  <div class="fp-panel-title">
-                    The ER diagram <em>every DB tool promised.</em>
-                  </div>
+                  <div class="fp-panel-title">The ER diagram <em>every DB tool promised.</em></div>
                   <div class="fp-panel-sub">
-                    Pure SVG, introspected from INFORMATION_SCHEMA. Crow's-foot
-                    notation, draggable tables, three line styles, auto-save per
-                    database. No external diagram engine, no weird export
-                    quirks.
+                    Pure SVG, introspected from INFORMATION_SCHEMA. Crow's-foot notation,
+                    draggable tables, three line styles, auto-save per database. No external
+                    diagram engine, no weird export quirks.
                   </div>
                 </div>
                 <div class="fp-panel-meta">
@@ -707,283 +403,53 @@
                 <div class="fp-bullets">
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Real FKs, not guesses.</strong>
-                      <span class="fp-inline"
-                        >Relationships come from INFORMATION_SCHEMA, not naming
-                        conventions.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Real FKs, not guesses.</strong> <span class="fp-inline">Relationships come from INFORMATION_SCHEMA, not naming conventions.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Three line styles.</strong>
-                      <span class="fp-inline"
-                        >Straight, orthogonal, or curved — switch freely.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Three line styles.</strong> <span class="fp-inline">Straight, orthogonal, or curved — switch freely.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Hover to trace.</strong>
-                      <span class="fp-inline"
-                        >Hover any table — related ones highlight, the rest
-                        dim.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Hover to trace.</strong> <span class="fp-inline">Hover any table — related ones highlight, the rest dim.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Right-click to act.</strong>
-                      <span class="fp-inline"
-                        >Context menu with Browse / Edit / Structure / Drop for
-                        every table.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Right-click to act.</strong> <span class="fp-inline">Context menu with Browse / Edit / Structure / Drop for every table.</span></div>
                   </div>
                 </div>
                 <div class="fp-visual">
                   <div class="fp-er-mini">
-                    <svg
-                      viewBox="0 0 340 220"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M 80 60 L 130 60 L 130 110 L 180 110"
-                        stroke="var(--c-diagram-line)"
-                        stroke-width="1.5"
-                        fill="none"
-                      />
-                      <path
-                        d="M 80 100 L 110 100 L 110 170 L 180 170"
-                        stroke="var(--c-diagram-line)"
-                        stroke-width="1.5"
-                        fill="none"
-                      />
-                      <path
-                        d="M 174 104 L 180 110 L 174 116 M 174 106 L 180 110 M 174 110 L 180 110"
-                        stroke="var(--c-diagram-line)"
-                        stroke-width="1.5"
-                        fill="none"
-                      />
-                      <path
-                        d="M 174 164 L 180 170 L 174 176 M 174 166 L 180 170 M 174 170 L 180 170"
-                        stroke="var(--c-diagram-line)"
-                        stroke-width="1.5"
-                        fill="none"
-                      />
+                    <svg viewBox="0 0 340 220" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M 80 60 L 130 60 L 130 110 L 180 110" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
+                      <path d="M 80 100 L 110 100 L 110 170 L 180 170" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
+                      <path d="M 174 104 L 180 110 L 174 116 M 174 106 L 180 110 M 174 110 L 180 110" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
+                      <path d="M 174 164 L 180 170 L 174 176 M 174 166 L 180 170 M 174 170 L 180 170" stroke="var(--c-diagram-line)" stroke-width="1.5" fill="none" />
 
-                      <rect
-                        x="20"
-                        y="30"
-                        width="80"
-                        height="100"
-                        rx="4"
-                        fill="var(--c-diagram-table-bg)"
-                        stroke="var(--c-diagram-table-border)"
-                        stroke-width="1.5"
-                      />
-                      <rect
-                        x="20"
-                        y="30"
-                        width="80"
-                        height="16"
-                        rx="4"
-                        fill="var(--c-gold)"
-                        opacity="0.12"
-                      />
-                      <text
-                        x="28"
-                        y="41"
-                        font-family="monospace"
-                        font-size="9"
-                        font-weight="700"
-                        fill="var(--c-gold)"
-                      >
-                        users
-                      </text>
-                      <text
-                        x="28"
-                        y="58"
-                        font-family="monospace"
-                        font-size="8"
-                        fill="var(--c-gold)"
-                      >
-                        ⚷
-                      </text>
-                      <text
-                        x="38"
-                        y="58"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        id
-                      </text>
-                      <text
-                        x="28"
-                        y="72"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        email
-                      </text>
-                      <text
-                        x="28"
-                        y="86"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        name
-                      </text>
-                      <text
-                        x="28"
-                        y="100"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        plan
-                      </text>
-                      <text
-                        x="28"
-                        y="114"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        created_at
-                      </text>
+                      <rect x="20" y="30" width="80" height="100" rx="4" fill="var(--c-diagram-table-bg)" stroke="var(--c-diagram-table-border)" stroke-width="1.5" />
+                      <rect x="20" y="30" width="80" height="16" rx="4" fill="var(--c-gold)" opacity="0.12" />
+                      <text x="28" y="41" font-family="monospace" font-size="9" font-weight="700" fill="var(--c-gold)">users</text>
+                      <text x="28" y="58" font-family="monospace" font-size="8" fill="var(--c-gold)">⚷</text>
+                      <text x="38" y="58" font-family="monospace" font-size="7.5" fill="var(--c-text)">id</text>
+                      <text x="28" y="72" font-family="monospace" font-size="7.5" fill="var(--c-text)">email</text>
+                      <text x="28" y="86" font-family="monospace" font-size="7.5" fill="var(--c-text)">name</text>
+                      <text x="28" y="100" font-family="monospace" font-size="7.5" fill="var(--c-text)">plan</text>
+                      <text x="28" y="114" font-family="monospace" font-size="7.5" fill="var(--c-text)">created_at</text>
 
-                      <rect
-                        x="180"
-                        y="80"
-                        width="140"
-                        height="60"
-                        rx="4"
-                        fill="var(--c-diagram-table-bg)"
-                        stroke="var(--c-diagram-table-border)"
-                        stroke-width="1.5"
-                      />
-                      <rect
-                        x="180"
-                        y="80"
-                        width="140"
-                        height="16"
-                        rx="4"
-                        fill="var(--c-gold)"
-                        opacity="0.12"
-                      />
-                      <text
-                        x="188"
-                        y="91"
-                        font-family="monospace"
-                        font-size="9"
-                        font-weight="700"
-                        fill="var(--c-gold)"
-                      >
-                        subscriptions
-                      </text>
-                      <text
-                        x="186"
-                        y="108"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-cyan)"
-                        font-weight="700"
-                      >
-                        FK
-                      </text>
-                      <text
-                        x="202"
-                        y="108"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        user_id
-                      </text>
-                      <text
-                        x="186"
-                        y="122"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        plan
-                      </text>
-                      <text
-                        x="186"
-                        y="135"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        renews_at
-                      </text>
+                      <rect x="180" y="80" width="140" height="60" rx="4" fill="var(--c-diagram-table-bg)" stroke="var(--c-diagram-table-border)" stroke-width="1.5" />
+                      <rect x="180" y="80" width="140" height="16" rx="4" fill="var(--c-gold)" opacity="0.12" />
+                      <text x="188" y="91" font-family="monospace" font-size="9" font-weight="700" fill="var(--c-gold)">subscriptions</text>
+                      <text x="186" y="108" font-family="monospace" font-size="7.5" fill="var(--c-cyan)" font-weight="700">FK</text>
+                      <text x="202" y="108" font-family="monospace" font-size="7.5" fill="var(--c-text)">user_id</text>
+                      <text x="186" y="122" font-family="monospace" font-size="7.5" fill="var(--c-text)">plan</text>
+                      <text x="186" y="135" font-family="monospace" font-size="7.5" fill="var(--c-text)">renews_at</text>
 
-                      <rect
-                        x="180"
-                        y="150"
-                        width="140"
-                        height="50"
-                        rx="4"
-                        fill="var(--c-diagram-table-bg)"
-                        stroke="var(--c-diagram-table-border)"
-                        stroke-width="1.5"
-                      />
-                      <rect
-                        x="180"
-                        y="150"
-                        width="140"
-                        height="16"
-                        rx="4"
-                        fill="var(--c-gold)"
-                        opacity="0.12"
-                      />
-                      <text
-                        x="188"
-                        y="161"
-                        font-family="monospace"
-                        font-size="9"
-                        font-weight="700"
-                        fill="var(--c-gold)"
-                      >
-                        invoices
-                      </text>
-                      <text
-                        x="186"
-                        y="178"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-cyan)"
-                        font-weight="700"
-                      >
-                        FK
-                      </text>
-                      <text
-                        x="202"
-                        y="178"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        user_id
-                      </text>
-                      <text
-                        x="186"
-                        y="192"
-                        font-family="monospace"
-                        font-size="7.5"
-                        fill="var(--c-text)"
-                      >
-                        total_cents
-                      </text>
+                      <rect x="180" y="150" width="140" height="50" rx="4" fill="var(--c-diagram-table-bg)" stroke="var(--c-diagram-table-border)" stroke-width="1.5" />
+                      <rect x="180" y="150" width="140" height="16" rx="4" fill="var(--c-gold)" opacity="0.12" />
+                      <text x="188" y="161" font-family="monospace" font-size="9" font-weight="700" fill="var(--c-gold)">invoices</text>
+                      <text x="186" y="178" font-family="monospace" font-size="7.5" fill="var(--c-cyan)" font-weight="700">FK</text>
+                      <text x="202" y="178" font-family="monospace" font-size="7.5" fill="var(--c-text)">user_id</text>
+                      <text x="186" y="192" font-family="monospace" font-size="7.5" fill="var(--c-text)">total_cents</text>
                     </svg>
                   </div>
                 </div>
@@ -994,14 +460,11 @@
             <div class="fp-panel" id="fp-proc" role="tabpanel">
               <div class="fp-panel-header">
                 <div>
-                  <div class="fp-panel-title">
-                    See what's running. <em>Kill what shouldn't be.</em>
-                  </div>
+                  <div class="fp-panel-title">See what's running. <em>Kill what shouldn't be.</em></div>
                   <div class="fp-panel-sub">
-                    Live <code>SHOW FULL PROCESSLIST</code> with 2/5/10-second
-                    auto-refresh. Query durations scale from gold (3s) to red
-                    (60s+). One-click kill with a confirmation showing the exact
-                    query being terminated.
+                    Live <code>SHOW FULL PROCESSLIST</code> with 2/5/10-second auto-refresh. Query
+                    durations scale from gold (3s) to red (60s+). One-click kill with a
+                    confirmation showing the exact query being terminated.
                   </div>
                 </div>
                 <div class="fp-panel-meta">
@@ -1014,81 +477,40 @@
                 <div class="fp-bullets">
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Live stats header.</strong>
-                      <span class="fp-inline"
-                        >Total, active, sleeping, longest-running — all update
-                        in real time.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Live stats header.</strong> <span class="fp-inline">Total, active, sleeping, longest-running — all update in real time.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Hide sleeping connections.</strong>
-                      <span class="fp-inline"
-                        >One toggle. See only what's actually doing
-                        something.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Hide sleeping connections.</strong> <span class="fp-inline">One toggle. See only what's actually doing something.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Your session marked.</strong>
-                      <span class="fp-inline"
-                        >A star shows which row is you. You can't kill yourself
-                        by accident.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Your session marked.</strong> <span class="fp-inline">A star shows which row is you. You can't kill yourself by accident.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Normalized across forks.</strong>
-                      <span class="fp-inline"
-                        >Works identically on MySQL and MariaDB.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Normalized across forks.</strong> <span class="fp-inline">Works identically on MySQL and MariaDB.</span></div>
                   </div>
                 </div>
                 <div class="fp-visual">
-                  <div style="width: 100%">
+                  <div style="width: 100%;">
                     <div class="fp-proc-row header">
-                      <div>ID</div>
-                      <div>TIME</div>
-                      <div>QUERY</div>
-                      <div></div>
+                      <div>ID</div><div>TIME</div><div>QUERY</div><div></div>
                     </div>
                     <div class="fp-proc-row">
-                      <div class="p-id">142</div>
-                      <div class="p-time-ok">0s</div>
-                      <div class="p-q">Sleep</div>
-                      <div></div>
+                      <div class="p-id">142</div><div class="p-time-ok">0s</div><div class="p-q">Sleep</div><div></div>
                     </div>
                     <div class="fp-proc-row">
-                      <div class="p-id">157</div>
-                      <div class="p-time-ok">1s</div>
-                      <div class="p-q">SELECT * FROM orders WHERE...</div>
-                      <div><button class="p-kill">KILL</button></div>
+                      <div class="p-id">157</div><div class="p-time-ok">1s</div><div class="p-q">SELECT * FROM orders WHERE...</div><div><button class="p-kill">KILL</button></div>
                     </div>
                     <div class="fp-proc-row">
-                      <div class="p-id">163</div>
-                      <div class="p-time-med">7s</div>
-                      <div class="p-q">UPDATE inventory SET stock...</div>
-                      <div><button class="p-kill">KILL</button></div>
+                      <div class="p-id">163</div><div class="p-time-med">7s</div><div class="p-q">UPDATE inventory SET stock...</div><div><button class="p-kill">KILL</button></div>
                     </div>
                     <div class="fp-proc-row">
-                      <div class="p-id">171</div>
-                      <div class="p-time-hi">84s</div>
-                      <div class="p-q">SELECT ... JOIN ... JOIN ...</div>
-                      <div><button class="p-kill">KILL</button></div>
+                      <div class="p-id">171</div><div class="p-time-hi">84s</div><div class="p-q">SELECT ... JOIN ... JOIN ...</div><div><button class="p-kill">KILL</button></div>
                     </div>
                     <div class="fp-proc-row">
-                      <div class="p-id">180 ★</div>
-                      <div class="p-time-ok">0s</div>
-                      <div class="p-q">SHOW FULL PROCESSLIST</div>
-                      <div></div>
+                      <div class="p-id">180 ★</div><div class="p-time-ok">0s</div><div class="p-q">SHOW FULL PROCESSLIST</div><div></div>
                     </div>
                   </div>
                 </div>
@@ -1099,14 +521,11 @@
             <div class="fp-panel" id="fp-hist" role="tabpanel">
               <div class="fp-panel-header">
                 <div>
-                  <div class="fp-panel-title">
-                    History that <em>remembers why it failed.</em>
-                  </div>
+                  <div class="fp-panel-title">History that <em>remembers why it failed.</em></div>
                   <div class="fp-panel-sub">
-                    Every query you run is logged with outcome, row count, and
-                    full PDO error text on failure. Green tint for success, red
-                    for errors. Expand any entry to see details. One click
-                    reloads it into the editor.
+                    Every query you run is logged with outcome, row count, and full PDO error
+                    text on failure. Green tint for success, red for errors. Expand any entry
+                    to see details. One click reloads it into the editor.
                   </div>
                 </div>
                 <div class="fp-panel-meta">
@@ -1119,60 +538,31 @@
                 <div class="fp-bullets">
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Outcome, not just text.</strong>
-                      <span class="fp-inline"
-                        >Knows if it was a SELECT or modify, rows returned or
-                        affected.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Outcome, not just text.</strong> <span class="fp-inline">Knows if it was a SELECT or modify, rows returned or affected.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Full error messages.</strong>
-                      <span class="fp-inline"
-                        >No more "something went wrong" — the actual PDO error,
-                        verbatim.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Full error messages.</strong> <span class="fp-inline">No more "something went wrong" — the actual PDO error, verbatim.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Tinted, scannable.</strong>
-                      <span class="fp-inline"
-                        >Green rows succeeded, red rows failed. Spot the problem
-                        row instantly.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Tinted, scannable.</strong> <span class="fp-inline">Green rows succeeded, red rows failed. Spot the problem row instantly.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>One-click reload.</strong>
-                      <span class="fp-inline"
-                        >Get any past query back in the editor without
-                        copy-paste gymnastics.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>One-click reload.</strong> <span class="fp-inline">Get any past query back in the editor without copy-paste gymnastics.</span></div>
                   </div>
                 </div>
                 <div class="fp-visual">
-                  <div style="width: 100%">
+                  <div style="width: 100%;">
                     <div class="fp-hist-row ok">
                       <span class="h-dot"></span>
-                      <span class="h-q"
-                        >SELECT * FROM users WHERE active = TRUE</span
-                      >
+                      <span class="h-q">SELECT * FROM users WHERE active = TRUE</span>
                       <span class="h-meta">247 rows</span>
                     </div>
                     <div class="fp-hist-row ok">
                       <span class="h-dot"></span>
-                      <span class="h-q"
-                        >UPDATE invoices SET paid_at = NOW() WHERE id =
-                        812</span
-                      >
+                      <span class="h-q">UPDATE invoices SET paid_at = NOW() WHERE id = 812</span>
                       <span class="h-meta">1 row</span>
                     </div>
                     <div class="fp-hist-row err">
@@ -1187,16 +577,12 @@
                     </div>
                     <div class="fp-hist-row err">
                       <span class="h-dot"></span>
-                      <span class="h-q"
-                        >INSERT INTO users (email) VALUES ('dup@ex.com')</span
-                      >
+                      <span class="h-q">INSERT INTO users (email) VALUES ('dup@ex.com')</span>
                       <span class="h-meta">Duplicate entry</span>
                     </div>
                     <div class="fp-hist-row ok">
                       <span class="h-dot"></span>
-                      <span class="h-q"
-                        >DELETE FROM sessions WHERE expires_at &lt; NOW()</span
-                      >
+                      <span class="h-q">DELETE FROM sessions WHERE expires_at &lt; NOW()</span>
                       <span class="h-meta">43 rows</span>
                     </div>
                   </div>
@@ -1208,14 +594,11 @@
             <div class="fp-panel" id="fp-schema" role="tabpanel">
               <div class="fp-panel-header">
                 <div>
-                  <div class="fp-panel-title">
-                    Full CRUD for <em>every schema object.</em>
-                  </div>
+                  <div class="fp-panel-title">Full CRUD for <em>every schema object.</em></div>
                   <div class="fp-panel-sub">
-                    Views, triggers, stored procedures, functions, and scheduled
-                    events — all managed through the same syntax-highlighted
-                    editor. Skeleton templates pre-fill the grammar.
-                    Transactions keep triggers from ending up half-applied.
+                    Views, triggers, stored procedures, functions, and scheduled events — all
+                    managed through the same syntax-highlighted editor. Skeleton templates
+                    pre-fill the grammar. Transactions keep triggers from ending up half-applied.
                   </div>
                 </div>
                 <div class="fp-panel-meta">
@@ -1229,87 +612,23 @@
                 <div class="fp-bullets">
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Same editor everywhere.</strong>
-                      <span class="fp-inline"
-                        >The SQL tokenizer powers every object editor — same
-                        autocomplete, same shortcuts.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Same editor everywhere.</strong> <span class="fp-inline">The SQL tokenizer powers every object editor — same autocomplete, same shortcuts.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Trigger safety.</strong>
-                      <span class="fp-inline"
-                        >DROP + CREATE wrapped — if CREATE fails, the old
-                        trigger is restored.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Trigger safety.</strong> <span class="fp-inline">DROP + CREATE wrapped — if CREATE fails, the old trigger is restored.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Scheduler-aware events.</strong>
-                      <span class="fp-inline"
-                        >Warns when <code>event_scheduler</code> is OFF so your
-                        events don't silently fail.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Scheduler-aware events.</strong> <span class="fp-inline">Warns when <code>event_scheduler</code> is OFF so your events don't silently fail.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>DELIMITER just works.</strong>
-                      <span class="fp-inline"
-                        >Paste a multi-statement procedure with BEGIN/END. It
-                        parses correctly.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>DELIMITER just works.</strong> <span class="fp-inline">Paste a multi-statement procedure with BEGIN/END. It parses correctly.</span></div>
                   </div>
                 </div>
                 <div class="fp-visual">
-                  <div class="fp-visual-code">
-                    <span class="line"
-                      ><span class="kw">CREATE EVENT</span>
-                      <span class="tbl">tick_stock_prices</span></span
-                    ><span class="line"
-                      ><span class="kw">ON SCHEDULE EVERY</span>
-                      <span class="num">5</span>
-                      <span class="kw">MINUTE</span></span
-                    ><span class="line"
-                      ><span class="kw">STARTS</span>
-                      <span class="fn">CURRENT_TIMESTAMP</span></span
-                    ><span class="line"><span class="kw">DO BEGIN</span></span
-                    ><span class="line">
-                      <span class="kw">UPDATE</span>
-                      <span class="tbl">stocks</span>
-                      <span class="kw">SET</span></span
-                    ><span class="line">
-                      <span class="col">price</span> =
-                      <span class="fn">GREATEST</span>(</span
-                    ><span class="line">
-                      <span class="col">min_price</span>,</span
-                    ><span class="line">
-                      <span class="col">price</span> * (<span class="num"
-                        >1</span
-                      >
-                      + <span class="fn">RAND</span>() *
-                      <span class="num">0.06</span> -
-                      <span class="num">0.03</span>)</span
-                    ><span class="line"> );</span
-                    ><span class="line">
-                      <span class="kw">INSERT INTO</span>
-                      <span class="tbl">price_history</span></span
-                    ><span class="line">
-                      <span class="kw">SELECT</span>
-                      <span class="col">id</span>,
-                      <span class="col">price</span>,
-                      <span class="fn">NOW</span>() <span class="kw">FROM</span>
-                      <span class="tbl">stocks</span>;</span
-                    ><span class="line"
-                      ><span class="kw">END</span>;<span class="cursor"></span
-                    ></span>
+                  <div class="fp-visual-code"><span class="line"><span class="kw">CREATE EVENT</span> <span class="tbl">tick_stock_prices</span></span><span class="line"><span class="kw">ON SCHEDULE EVERY</span> <span class="num">5</span> <span class="kw">MINUTE</span></span><span class="line"><span class="kw">STARTS</span> <span class="fn">CURRENT_TIMESTAMP</span></span><span class="line"><span class="kw">DO BEGIN</span></span><span class="line">  <span class="kw">UPDATE</span> <span class="tbl">stocks</span> <span class="kw">SET</span></span><span class="line">    <span class="col">price</span> = <span class="fn">GREATEST</span>(</span><span class="line">      <span class="col">min_price</span>,</span><span class="line">      <span class="col">price</span> * (<span class="num">1</span> + <span class="fn">RAND</span>() * <span class="num">0.06</span> - <span class="num">0.03</span>)</span><span class="line">    );</span><span class="line">  <span class="kw">INSERT INTO</span> <span class="tbl">price_history</span></span><span class="line">    <span class="kw">SELECT</span> <span class="col">id</span>, <span class="col">price</span>, <span class="fn">NOW</span>() <span class="kw">FROM</span> <span class="tbl">stocks</span>;</span><span class="line"><span class="kw">END</span>;<span class="cursor"></span></span>
                   </div>
                 </div>
               </div>
@@ -1319,14 +638,11 @@
             <div class="fp-panel" id="fp-themes" role="tabpanel">
               <div class="fp-panel-header">
                 <div>
-                  <div class="fp-panel-title">
-                    20 themes. <em>Complete design systems.</em>
-                  </div>
+                  <div class="fp-panel-title">20 themes. <em>Complete design systems.</em></div>
                   <div class="fp-panel-sub">
-                    Not "three shades of blue." Every theme covers 20+ syntax
-                    tokens, data tables, modals, panels, badges, and buttons. 10
-                    dark variants (Dracula, Tokyo Night, Monokai Pro…) and 10
-                    light variants (GitHub, Atom One, Clean…).
+                    Not "three shades of blue." Every theme covers 20+ syntax tokens, data
+                    tables, modals, panels, badges, and buttons. 10 dark variants (Dracula,
+                    Tokyo Night, Monokai Pro…) and 10 light variants (GitHub, Atom One, Clean…).
                   </div>
                 </div>
                 <div class="fp-panel-meta">
@@ -1339,207 +655,35 @@
                 <div class="fp-bullets">
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Syntax-aware.</strong>
-                      <span class="fp-inline"
-                        >Keywords, functions, types, strings, numbers, operators
-                        — each gets its own color in every theme.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Syntax-aware.</strong> <span class="fp-inline">Keywords, functions, types, strings, numbers, operators — each gets its own color in every theme.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Fully themed.</strong>
-                      <span class="fp-inline"
-                        >The chrome changes with the theme: table rows, modals,
-                        buttons, borders.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Fully themed.</strong> <span class="fp-inline">The chrome changes with the theme: table rows, modals, buttons, borders.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>Instant preview.</strong>
-                      <span class="fp-inline"
-                        >The theme dropdown shows a live preview before you
-                        commit.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>Instant preview.</strong> <span class="fp-inline">The theme dropdown shows a live preview before you commit.</span></div>
                   </div>
                   <div class="fp-bullet">
                     <div class="fp-bullet-mark">▸</div>
-                    <div class="fp-bullet-text">
-                      <strong>CSS variables.</strong>
-                      <span class="fp-inline"
-                        >Every theme is one CSS file. Fork any of them to build
-                        your own.</span
-                      >
-                    </div>
+                    <div class="fp-bullet-text"><strong>CSS variables.</strong> <span class="fp-inline">Every theme is one CSS file. Fork any of them to build your own.</span></div>
                   </div>
                 </div>
                 <div class="fp-visual">
                   <div class="fp-theme-strip">
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #282a36 0%,
-                          #44475a 100%
-                        );
-                      "
-                    >
-                      <span class="s-label">Dracula</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #1a1b26 0%,
-                          #7aa2f7 140%
-                        );
-                      "
-                    >
-                      <span class="s-label">Tokyo</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #272822 0%,
-                          #a9dc76 140%
-                        );
-                      "
-                    >
-                      <span class="s-label">Monokai</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #282828 0%,
-                          #b8bb26 140%
-                        );
-                      "
-                    >
-                      <span class="s-label">Gruvbox</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #1e1e2e 0%,
-                          #cba6f7 140%
-                        );
-                      "
-                    >
-                      <span class="s-label">Catppuccin</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #002b36 0%,
-                          #2aa198 140%
-                        );
-                      "
-                    >
-                      <span class="s-label">Solarized</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #2e3440 0%,
-                          #88c0d0 140%
-                        );
-                      "
-                    >
-                      <span class="s-label">Nord</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #161b22 0%,
-                          #58a6ff 140%
-                        );
-                      "
-                    >
-                      <span class="s-label">GitHub</span>
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #ffffff 0%,
-                          #3b82f6 120%
-                        );
-                      "
-                    >
-                      <span
-                        class="s-label"
-                        style="color: #000; text-shadow: none"
-                        >Clean</span
-                      >
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #faf8f6 0%,
-                          #907aa9 140%
-                        );
-                      "
-                    >
-                      <span
-                        class="s-label"
-                        style="color: #000; text-shadow: none"
-                        >Rosé</span
-                      >
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #fafafa 0%,
-                          #4078f2 140%
-                        );
-                      "
-                    >
-                      <span
-                        class="s-label"
-                        style="color: #000; text-shadow: none"
-                        >Atom</span
-                      >
-                    </div>
-                    <div
-                      class="fp-theme-swatch"
-                      style="
-                        background: linear-gradient(
-                          135deg,
-                          #eff1f5 0%,
-                          #8839ef 140%
-                        );
-                      "
-                    >
-                      <span
-                        class="s-label"
-                        style="color: #000; text-shadow: none"
-                        >Latte</span
-                      >
-                    </div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #282a36 0%, #44475a 100%);"><span class="s-label">Dracula</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #1a1b26 0%, #7aa2f7 140%);"><span class="s-label">Tokyo</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #272822 0%, #a9dc76 140%);"><span class="s-label">Monokai</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #282828 0%, #b8bb26 140%);"><span class="s-label">Gruvbox</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #1e1e2e 0%, #cba6f7 140%);"><span class="s-label">Catppuccin</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #002b36 0%, #2aa198 140%);"><span class="s-label">Solarized</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #2e3440 0%, #88c0d0 140%);"><span class="s-label">Nord</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #161b22 0%, #58a6ff 140%);"><span class="s-label">GitHub</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #ffffff 0%, #3b82f6 120%);"><span class="s-label" style="color: #000; text-shadow: none;">Clean</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #faf8f6 0%, #907aa9 140%);"><span class="s-label" style="color: #000; text-shadow: none;">Rosé</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #fafafa 0%, #4078f2 140%);"><span class="s-label" style="color: #000; text-shadow: none;">Atom</span></div>
+                    <div class="fp-theme-swatch" style="background: linear-gradient(135deg, #eff1f5 0%, #8839ef 140%);"><span class="s-label" style="color: #000; text-shadow: none;">Latte</span></div>
                   </div>
                 </div>
               </div>
@@ -1553,28 +697,21 @@
         <div class="features-header reveal">
           <div class="kinetic-label">Comparison</div>
           <div class="kinetic-title">
-            <span class="word struck" style="--word-index: 0">phpMyAdmin</span>
-            <span class="word" style="--word-index: 1">had</span>
-            <span class="word" style="--word-index: 2">20</span>
-            <span class="word" style="--word-index: 3">years.</span>
+            <span class="word struck" style="--word-index:0">phpMyAdmin</span>
+            <span class="word" style="--word-index:1">had</span>
+            <span class="word" style="--word-index:2">20</span>
+            <span class="word" style="--word-index:3">years.</span>
             <br />
-            <span class="word" style="--word-index: 4">We</span>
-            <span class="word emph" style="--word-index: 5">started</span>
-            <span class="word emph" style="--word-index: 6">over.</span>
+            <span class="word" style="--word-index:4">We</span>
+            <span class="word emph" style="--word-index:5">started</span>
+            <span class="word emph" style="--word-index:6">over.</span>
           </div>
         </div>
         <div class="reveal">
           <!-- Controls: search + filter chips -->
           <div class="cmp-controls">
             <div class="cmp-search" id="cmp-search">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
@@ -1584,765 +721,252 @@
                 placeholder="Search features — try 'schema', 'docker', 'auth'..."
                 aria-label="Search comparison"
               />
-              <button
-                type="button"
-                class="cmp-clear"
-                id="cmp-clear"
-                aria-label="Clear search"
-              >
-                ×
-              </button>
+              <button type="button" class="cmp-clear" id="cmp-clear" aria-label="Clear search">×</button>
             </div>
             <div class="cmp-filters" role="tablist">
-              <button type="button" class="cmp-chip active" data-cat="all">
-                All
-              </button>
-              <button type="button" class="cmp-chip" data-cat="setup">
-                Setup
-              </button>
-              <button type="button" class="cmp-chip" data-cat="data">
-                Data
-              </button>
-              <button type="button" class="cmp-chip" data-cat="schema">
-                Schema
-              </button>
+              <button type="button" class="cmp-chip active" data-cat="all">All</button>
+              <button type="button" class="cmp-chip" data-cat="setup">Setup</button>
+              <button type="button" class="cmp-chip" data-cat="data">Data</button>
+              <button type="button" class="cmp-chip" data-cat="schema">Schema</button>
               <button type="button" class="cmp-chip" data-cat="ops">Ops</button>
-              <button type="button" class="cmp-chip" data-cat="security">
-                Security
-              </button>
+              <button type="button" class="cmp-chip" data-cat="security">Security</button>
             </div>
             <div class="cmp-count" id="cmp-count">19 / 19</div>
           </div>
 
           <!-- Comparison list -->
           <div class="cmp-list" id="cmp-list">
-            <div
-              class="cmp-row"
-              data-cat="setup"
-              data-keywords="install setup configure folder wizard"
-            >
+            <div class="cmp-row" data-cat="setup" data-keywords="install setup configure folder wizard">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Setup</span>Install
-                </div>
-                <div class="cmp-row-pma">
-                  Download, extract, edit config.inc.php, set blowfish secret
-                </div>
-                <div class="cmp-row-dbf">
-                  Drop folder → browser → 3-step wizard
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Setup</span>Install</div>
+                <div class="cmp-row-pma">Download, extract, edit config.inc.php, set blowfish secret</div>
+                <div class="cmp-row-dbf">Drop folder → browser → 3-step wizard</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Why it matters</div>
-                  <div>
-                    phpMyAdmin's config.inc.php is 400+ lines and requires a
-                    blowfish secret you'll immediately forget. DBForge detects a
-                    missing config on first request and runs an interactive
-                    installer that writes the file for you. No shell, no manual
-                    edits.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Why it matters</div>
+                <div>phpMyAdmin's config.inc.php is 400+ lines and requires a blowfish secret you'll immediately forget. DBForge detects a missing config on first request and runs an interactive installer that writes the file for you. No shell, no manual edits.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="setup"
-              data-keywords="dependencies composer npm zero"
-            >
+            <div class="cmp-row" data-cat="setup" data-keywords="dependencies composer npm zero">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Setup</span>Dependencies
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Setup</span>Dependencies</div>
                 <div class="cmp-row-pma">Requires Composer (v5.2+)</div>
                 <div class="cmp-row-dbf">Zero. Pure PHP + vanilla JS</div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Why it matters</div>
-                  <div>
-                    No <code>composer install</code>, no
-                    <code>npm install</code>, no build step, no vendor directory
-                    bloat. The entire frontend is hand-written vanilla JS with a
-                    custom SQL tokenizer. The repo is exactly the files that
-                    ship.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Why it matters</div>
+                <div>No <code>composer install</code>, no <code>npm install</code>, no build step, no vendor directory bloat. The entire frontend is hand-written vanilla JS with a custom SQL tokenizer. The repo is exactly the files that ship.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="setup"
-              data-keywords="docker container compose"
-            >
+            <div class="cmp-row" data-cat="setup" data-keywords="docker container compose">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Setup</span>Docker
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Setup</span>Docker</div>
                 <div class="cmp-row-pma cross">Not included</div>
-                <div class="cmp-row-dbf">
-                  docker-compose up — running in 30 seconds
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">docker-compose up — running in 30 seconds</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">What's in the box</div>
-                  <div>
-                    A complete docker-compose.yml with DBForge + MySQL 8.0,
-                    healthchecks, persistent volumes for data and config,
-                    environment overrides, and a quick-start README. One command
-                    to a working database + UI.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">What's in the box</div>
+                <div>A complete docker-compose.yml with DBForge + MySQL 8.0, healthchecks, persistent volumes for data and config, environment overrides, and a quick-start README. One command to a working database + UI.</div>
+              </div></div>
             </div>
 
-            <div
-              class="cmp-row"
-              data-cat="data"
-              data-keywords="sql editor autocomplete tokenizer explain"
-            >
+            <div class="cmp-row" data-cat="data" data-keywords="sql editor autocomplete tokenizer explain">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Data</span>SQL Editor
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Data</span>SQL Editor</div>
                 <div class="cmp-row-pma">Textarea with color</div>
-                <div class="cmp-row-dbf">
-                  612-token tokenizer, autocomplete, EXPLAIN
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">612-token tokenizer, autocomplete, EXPLAIN</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Under the hood</div>
-                  <div>
-                    Custom-written SQL tokenizer with 612 entries (keywords,
-                    functions, types, operators). Autocomplete triggers on
-                    dot-access showing columns per table, on FROM showing every
-                    table, on function names showing signatures. Ctrl+Enter runs
-                    the query; Ctrl+Space forces completion; Ctrl+/ toggles
-                    comments.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Under the hood</div>
+                <div>Custom-written SQL tokenizer with 612 entries (keywords, functions, types, operators). Autocomplete triggers on dot-access showing columns per table, on FROM showing every table, on function names showing signatures. Ctrl+Enter runs the query; Ctrl+Space forces completion; Ctrl+/ toggles comments.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="data"
-              data-keywords="edit inline cell ajax"
-            >
+            <div class="cmp-row" data-cat="data" data-keywords="edit inline cell ajax">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Data</span>Edit Data
-                </div>
-                <div class="cmp-row-pma">
-                  Click Edit → form → submit → reload
-                </div>
-                <div class="cmp-row-dbf">
-                  Click cell → type → Enter. AJAX. No reload
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Data</span>Edit Data</div>
+                <div class="cmp-row-pma">Click Edit → form → submit → reload</div>
+                <div class="cmp-row-dbf">Click cell → type → Enter. AJAX. No reload</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Flow</div>
-                  <div>
-                    Click any cell to enter edit mode. Short values use a text
-                    input, long values auto-switch to a textarea. Press Enter or
-                    click away to save via AJAX. Escape to cancel. Failed edits
-                    show the PDO error inline without losing your input. Bulk
-                    select + delete with confirmation modal.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Flow</div>
+                <div>Click any cell to enter edit mode. Short values use a text input, long values auto-switch to a textarea. Press Enter or click away to save via AJAX. Escape to cancel. Failed edits show the PDO error inline without losing your input. Bulk select + delete with confirmation modal.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="data"
-              data-keywords="fk foreign key navigate jump"
-            >
+            <div class="cmp-row" data-cat="data" data-keywords="fk foreign key navigate jump">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Data</span>FK Navigation
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Data</span>FK Navigation</div>
                 <div class="cmp-row-pma cross">Not available</div>
                 <div class="cmp-row-dbf">Click FK value → jump to row</div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Why it matters</div>
-                  <div>
-                    Any foreign-key column in a browse view becomes clickable —
-                    jump straight to the referenced row in the parent table.
-                    This is the one feature every DB tool should have and almost
-                    none do. Drill from orders → users → subscriptions →
-                    invoices in four clicks.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Why it matters</div>
+                <div>Any foreign-key column in a browse view becomes clickable — jump straight to the referenced row in the parent table. This is the one feature every DB tool should have and almost none do. Drill from orders → users → subscriptions → invoices in four clicks.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="data"
-              data-keywords="search value multiple tables"
-            >
+            <div class="cmp-row" data-cat="data" data-keywords="search value multiple tables">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Data</span>Search
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Data</span>Search</div>
                 <div class="cmp-row-pma">One table at a time</div>
                 <div class="cmp-row-dbf">Every table simultaneously</div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">How it works</div>
-                  <div>
-                    One search box. Enter a value. DBForge introspects every
-                    text-compatible column across every table in the current
-                    database, runs LIKE queries in parallel, and returns grouped
-                    results with matching columns highlighted. Click any result
-                    to jump to that row.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">How it works</div>
+                <div>One search box. Enter a value. DBForge introspects every text-compatible column across every table in the current database, runs LIKE queries in parallel, and returns grouped results with matching columns highlighted. Click any result to jump to that row.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="data"
-              data-keywords="history query log errors"
-            >
+            <div class="cmp-row" data-cat="data" data-keywords="history query log errors">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Data</span>Query History
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Data</span>Query History</div>
                 <div class="cmp-row-pma cross">Not available</div>
-                <div class="cmp-row-dbf">
-                  Expand for errors &amp; results, per-entry load, tinted rows
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Expand for errors &amp; results, per-entry load, tinted rows</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Details per entry</div>
-                  <div>
-                    Every query you run in the session is logged with timestamp,
-                    type (select/modify), row count, execution result, and full
-                    PDO error text on failure. Rows are tinted green/red by
-                    outcome. Click any entry to expand; click the load button to
-                    drop it back into the editor.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Details per entry</div>
+                <div>Every query you run in the session is logged with timestamp, type (select/modify), row count, execution result, and full PDO error text on failure. Rows are tinted green/red by outcome. Click any entry to expand; click the load button to drop it back into the editor.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="data"
-              data-keywords="saved bookmark queries favorites"
-            >
+            <div class="cmp-row" data-cat="data" data-keywords="saved bookmark queries favorites">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Data</span>Saved Queries
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Data</span>Saved Queries</div>
                 <div class="cmp-row-pma">Bookmarks (limited)</div>
-                <div class="cmp-row-dbf">
-                  Save, rename, delete, click to load
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Save, rename, delete, click to load</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Extras</div>
-                  <div>
-                    Named, persistent per-user saved queries. Star tables for
-                    quick sidebar access. The SQL editor keeps persistent drafts
-                    across sessions — close the browser, come back, your
-                    half-written query is still there.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Extras</div>
+                <div>Named, persistent per-user saved queries. Star tables for quick sidebar access. The SQL editor keeps persistent drafts across sessions — close the browser, come back, your half-written query is still there.</div>
+              </div></div>
             </div>
 
-            <div
-              class="cmp-row"
-              data-cat="schema"
-              data-keywords="views view definer"
-            >
+            <div class="cmp-row" data-cat="schema" data-keywords="views view definer">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Schema</span>Views
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Schema</span>Views</div>
                 <div class="cmp-row-pma">Basic listing</div>
-                <div class="cmp-row-dbf">
-                  Full CRUD with syntax highlighting
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Full CRUD with syntax highlighting</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Details</div>
-                  <div>
-                    Create, edit, and drop views with the same
-                    syntax-highlighted editor as the main SQL console. Edit
-                    performs a CREATE OR REPLACE atomically. Skeleton template
-                    pre-fills the CREATE VIEW statement so you don't have to
-                    remember the grammar.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Details</div>
+                <div>Create, edit, and drop views with the same syntax-highlighted editor as the main SQL console. Edit performs a CREATE OR REPLACE atomically. Skeleton template pre-fills the CREATE VIEW statement so you don't have to remember the grammar.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="schema"
-              data-keywords="triggers before after insert update delete"
-            >
+            <div class="cmp-row" data-cat="schema" data-keywords="triggers before after insert update delete">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Schema</span>Triggers
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Schema</span>Triggers</div>
                 <div class="cmp-row-pma">Basic listing</div>
                 <div class="cmp-row-dbf">CRUD with rollback on failure</div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Safety</div>
-                  <div>
-                    Editing a trigger requires DROP + CREATE (MySQL doesn't
-                    support ALTER TRIGGER). DBForge wraps this in a
-                    transaction-like flow: the old trigger is saved, dropped,
-                    the new one is created, and if creation fails, the old
-                    version is restored automatically. No more silently broken
-                    triggers.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Safety</div>
+                <div>Editing a trigger requires DROP + CREATE (MySQL doesn't support ALTER TRIGGER). DBForge wraps this in a transaction-like flow: the old trigger is saved, dropped, the new one is created, and if creation fails, the old version is restored automatically. No more silently broken triggers.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="schema"
-              data-keywords="routines procedure function stored"
-            >
+            <div class="cmp-row" data-cat="schema" data-keywords="routines procedure function stored">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Schema</span>Routines
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Schema</span>Routines</div>
                 <div class="cmp-row-pma">Basic listing</div>
-                <div class="cmp-row-dbf">
-                  Full CRUD with syntax-highlighted editor
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Full CRUD with syntax-highlighted editor</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Details</div>
-                  <div>
-                    Stored procedures and functions share the same editor flow.
-                    Skeleton templates for both forms. DELIMITER handling is
-                    automatic — paste a multi-statement procedure with BEGIN/END
-                    and it just works. Dropping is confirmed with the routine's
-                    full signature shown in the dialog.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Details</div>
+                <div>Stored procedures and functions share the same editor flow. Skeleton templates for both forms. DELIMITER handling is automatic — paste a multi-statement procedure with BEGIN/END and it just works. Dropping is confirmed with the routine's full signature shown in the dialog.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="schema"
-              data-keywords="events scheduler cron"
-            >
+            <div class="cmp-row" data-cat="schema" data-keywords="events scheduler cron">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Schema</span>Events
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Schema</span>Events</div>
                 <div class="cmp-row-pma">Basic listing</div>
-                <div class="cmp-row-dbf">
-                  Full CRUD, scheduler-status badge, one-click enable/disable
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Full CRUD, scheduler-status badge, one-click enable/disable</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Scheduler awareness</div>
-                  <div>
-                    DBForge checks <code>@@event_scheduler</code> on every visit
-                    to the Events panel. If it's OFF, you see a red warning
-                    banner explaining your events won't fire. Individual events
-                    can be enabled or disabled with a toggle. The definition
-                    editor shows skeleton examples for both one-shot (AT) and
-                    recurring (EVERY) schedules.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Scheduler awareness</div>
+                <div>DBForge checks <code>@@event_scheduler</code> on every visit to the Events panel. If it's OFF, you see a red warning banner explaining your events won't fire. Individual events can be enabled or disabled with a toggle. The definition editor shows skeleton examples for both one-shot (AT) and recurring (EVERY) schedules.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="schema"
-              data-keywords="er diagram relationships crow foot"
-            >
+            <div class="cmp-row" data-cat="schema" data-keywords="er diagram relationships crow foot">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Schema</span>ER Diagram
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Schema</span>ER Diagram</div>
                 <div class="cmp-row-pma cross">Not available</div>
-                <div class="cmp-row-dbf">
-                  Crow's foot notation, auto-save, 3 line styles
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Crow's foot notation, auto-save, 3 line styles</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Features</div>
-                  <div>
-                    Pure SVG diagram generator, no libraries. Introspects FKs
-                    from INFORMATION_SCHEMA and renders tables with columns,
-                    PK/FK markers, and relationship lines in your choice of
-                    straight, orthogonal, or curved style. Drag tables to
-                    reposition. Layout auto-saves per database. Right-click any
-                    table for a context menu with edit/drop/browse.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Features</div>
+                <div>Pure SVG diagram generator, no libraries. Introspects FKs from INFORMATION_SCHEMA and renders tables with columns, PK/FK markers, and relationship lines in your choice of straight, orthogonal, or curved style. Drag tables to reposition. Layout auto-saves per database. Right-click any table for a context menu with edit/drop/browse.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="schema"
-              data-keywords="partitions range list hash"
-            >
+            <div class="cmp-row" data-cat="schema" data-keywords="partitions range list hash">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Schema</span>Partitions
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Schema</span>Partitions</div>
                 <div class="cmp-row-pma">View only</div>
-                <div class="cmp-row-dbf">
-                  Create, add, drop, truncate, optimize, rebuild
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Create, add, drop, truncate, optimize, rebuild</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Operations</div>
-                  <div>
-                    Full partition management through the UI — partition an
-                    unpartitioned table, add a new partition to an existing
-                    scheme, drop or truncate individual partitions, optimize or
-                    rebuild in place. Per-partition row counts shown in the
-                    panel. All generated SQL is previewable before execution.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Operations</div>
+                <div>Full partition management through the UI — partition an unpartitioned table, add a new partition to an existing scheme, drop or truncate individual partitions, optimize or rebuild in place. Per-partition row counts shown in the panel. All generated SQL is previewable before execution.</div>
+              </div></div>
             </div>
 
-            <div
-              class="cmp-row"
-              data-cat="ops"
-              data-keywords="processes processlist kill queries running"
-            >
+            <div class="cmp-row" data-cat="ops" data-keywords="processes processlist kill queries running">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Ops</span>Processes
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Ops</span>Processes</div>
                 <div class="cmp-row-pma">Separate tab, manual refresh</div>
-                <div class="cmp-row-dbf">
-                  Live auto-refresh, color-scaled timings, one-click kill
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Live auto-refresh, color-scaled timings, one-click kill</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">What you see</div>
-                  <div>
-                    SHOW FULL PROCESSLIST rendered with live stats (total,
-                    active, sleeping, longest-running), 2/5/10-second
-                    auto-refresh, text filter, hide-sleeping toggle, and a
-                    marker on your current session. Query duration is
-                    color-scaled: gold at 3 seconds, amber at 10, red at 60.
-                    One-click kill with a confirmation modal showing the exact
-                    query being terminated. Self-session kill is blocked.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">What you see</div>
+                <div>SHOW FULL PROCESSLIST rendered with live stats (total, active, sleeping, longest-running), 2/5/10-second auto-refresh, text filter, hide-sleeping toggle, and a marker on your current session. Query duration is color-scaled: gold at 3 seconds, amber at 10, red at 60. One-click kill with a confirmation modal showing the exact query being terminated. Self-session kill is blocked.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="ops"
-              data-keywords="maintenance optimize analyze check repair"
-            >
+            <div class="cmp-row" data-cat="ops" data-keywords="maintenance optimize analyze check repair">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Ops</span>Maintenance
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Ops</span>Maintenance</div>
                 <div class="cmp-row-pma">Optimize only</div>
-                <div class="cmp-row-dbf">
-                  Optimize, analyze, check, repair in one panel
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">Optimize, analyze, check, repair in one panel</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">Per-table actions</div>
-                  <div>
-                    OPTIMIZE, ANALYZE, CHECK, and REPAIR all accessible
-                    per-table from the Operations panel. Results are shown with
-                    full server output including any warnings. Bulk operations
-                    let you run analyze or optimize across every table in a
-                    database with a single click.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">Per-table actions</div>
+                <div>OPTIMIZE, ANALYZE, CHECK, and REPAIR all accessible per-table from the Operations panel. Results are shown with full server output including any warnings. Bulk operations let you run analyze or optimize across every table in a database with a single click.</div>
+              </div></div>
             </div>
 
-            <div
-              class="cmp-row"
-              data-cat="security"
-              data-keywords="auth login bcrypt totp 2fa"
-            >
+            <div class="cmp-row" data-cat="security" data-keywords="auth login bcrypt totp 2fa">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Security</span>Authentication
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Security</span>Authentication</div>
                 <div class="cmp-row-pma">HTTP Basic or cookie</div>
                 <div class="cmp-row-dbf">Bcrypt + optional TOTP 2FA</div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">What's built in</div>
-                  <div>
-                    Per-user accounts with bcrypt-hashed passwords (cost 12).
-                    Optional per-user TOTP 2FA — scan a QR code with Google
-                    Authenticator or any RFC 6238 client. Session tokens, CSRF
-                    tokens on every mutating request, lockout after failed
-                    attempts, password reset flow. No defaults, no "restrict at
-                    the web server level" cop-outs.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">What's built in</div>
+                <div>Per-user accounts with bcrypt-hashed passwords (cost 12). Optional per-user TOTP 2FA — scan a QR code with Google Authenticator or any RFC 6238 client. Session tokens, CSRF tokens on every mutating request, lockout after failed attempts, password reset flow. No defaults, no "restrict at the web server level" cop-outs.</div>
+              </div></div>
             </div>
-            <div
-              class="cmp-row"
-              data-cat="security"
-              data-keywords="themes dark light color"
-            >
+            <div class="cmp-row" data-cat="security" data-keywords="themes dark light color">
               <div class="cmp-row-main" role="button" tabindex="0">
-                <div class="cmp-row-feature">
-                  <span class="cmp-cat">Ops</span>Themes
-                </div>
+                <div class="cmp-row-feature"><span class="cmp-cat">Ops</span>Themes</div>
                 <div class="cmp-row-pma">3 color schemes</div>
-                <div class="cmp-row-dbf">
-                  20 themes (Dracula, GitHub, Gruvbox…)
-                </div>
-                <div class="cmp-row-toggle">
-                  <svg
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                  >
-                    <path d="M3 5l3 3 3-3" />
-                  </svg>
-                </div>
+                <div class="cmp-row-dbf">20 themes (Dracula, GitHub, Gruvbox…)</div>
+                <div class="cmp-row-toggle"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5l3 3 3-3" /></svg></div>
               </div>
-              <div class="cmp-row-detail">
-                <div class="cmp-row-detail-inner">
-                  <div class="cmp-row-detail-label">
-                    What "theme" means here
-                  </div>
-                  <div>
-                    Each of the 20 themes is a complete design system — not just
-                    accent colors. Covers syntax tokens (20+), data table rows,
-                    modal chrome, buttons, badges, panels, editors, and more. 10
-                    dark variants (Dracula, Tokyo Night, Monokai Pro…) and 10
-                    light variants (GitHub Light, Atom One Light, Clean…).
-                    Switch instantly from the header dropdown.
-                  </div>
-                </div>
-              </div>
+              <div class="cmp-row-detail"><div class="cmp-row-detail-inner">
+                <div class="cmp-row-detail-label">What "theme" means here</div>
+                <div>Each of the 20 themes is a complete design system — not just accent colors. Covers syntax tokens (20+), data table rows, modal chrome, buttons, badges, panels, editors, and more. 10 dark variants (Dracula, Tokyo Night, Monokai Pro…) and 10 light variants (GitHub Light, Atom One Light, Clean…). Switch instantly from the header dropdown.</div>
+              </div></div>
             </div>
           </div>
 
@@ -2357,14 +981,14 @@
         <div class="features-header reveal">
           <div class="kinetic-label">Themes</div>
           <div class="kinetic-title">
-            <span class="word emph" style="--word-index: 0">20</span>
-            <span class="word" style="--word-index: 1">themes.</span>
+            <span class="word emph" style="--word-index:0">20</span>
+            <span class="word" style="--word-index:1">themes.</span>
             <br />
-            <span class="word" style="--word-index: 2">Your</span>
-            <span class="word" style="--word-index: 3">eyes</span>
-            <span class="word" style="--word-index: 4">will</span>
-            <span class="word" style="--word-index: 5">thank</span>
-            <span class="word" style="--word-index: 6">you.</span>
+            <span class="word" style="--word-index:2">Your</span>
+            <span class="word" style="--word-index:3">eyes</span>
+            <span class="word" style="--word-index:4">will</span>
+            <span class="word" style="--word-index:5">thank</span>
+            <span class="word" style="--word-index:6">you.</span>
           </div>
           <div class="section-sub">
             10 light. 10 dark. Every one covers syntax tokens, data tables,
@@ -2474,12 +1098,12 @@
         <div class="features-header reveal">
           <div class="kinetic-label">Security</div>
           <div class="kinetic-title">
-            <span class="word emph" style="--word-index: 0">12</span>
-            <span class="word" style="--word-index: 1">layers.</span>
+            <span class="word emph" style="--word-index:0">12</span>
+            <span class="word" style="--word-index:1">layers.</span>
             <br />
-            <span class="word" style="--word-index: 2">Not</span>
-            <span class="word" style="--word-index: 3">bolted</span>
-            <span class="word" style="--word-index: 4">on.</span>
+            <span class="word" style="--word-index:2">Not</span>
+            <span class="word" style="--word-index:3">bolted</span>
+            <span class="word" style="--word-index:4">on.</span>
           </div>
           <div class="section-sub">
             From bcrypt hashing to TOTP 2FA, every layer is built in. No default
@@ -2543,12 +1167,12 @@
         <div class="features-header reveal">
           <div class="kinetic-label">Get Started</div>
           <div class="kinetic-title">
-            <span class="word emph" style="--word-index: 0">Three</span>
-            <span class="word" style="--word-index: 1">steps.</span>
+            <span class="word emph" style="--word-index:0">Three</span>
+            <span class="word" style="--word-index:1">steps.</span>
             <br />
-            <span class="word" style="--word-index: 2">Under</span>
-            <span class="word" style="--word-index: 3">a</span>
-            <span class="word" style="--word-index: 4">minute.</span>
+            <span class="word" style="--word-index:2">Under</span>
+            <span class="word" style="--word-index:3">a</span>
+            <span class="word" style="--word-index:4">minute.</span>
           </div>
         </div>
         <div class="install-grid reveal">
