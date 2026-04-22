@@ -2,8 +2,6 @@
   <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg" alt="DBForge" width="520">
 </p>
 
-<h1 align="center">DBForge</h1>
-
 <p align="center">
   <strong>The database tool phpMyAdmin should have been.</strong>
 </p>
