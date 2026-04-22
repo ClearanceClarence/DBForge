@@ -46,7 +46,7 @@
           ><img
             src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg"
             alt=""
-          /></a
+          />DBForge</a
         >
         <div class="nav-links">
           <a href="#features">Features</a><a href="#compare">Compare</a
@@ -637,54 +637,45 @@
                       ><span class="kw">SELECT</span> u.<span class="col"
                         >email</span
                       >,</span
-                    >
-                    <span class="line">
+                    ><span class="line">
                       <span class="fn">COUNT</span>(o.<span class="col">id</span
                       >) <span class="kw">AS</span> orders,</span
-                    >
-                    <span class="line">
+                    ><span class="line">
                       <span class="fn">SUM</span>(o.<span class="col"
                         >total</span
                       >) <span class="kw">AS</span> spent</span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">FROM</span>
                       <span class="tbl">users</span> u</span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">LEFT JOIN</span>
                       <span class="tbl">orders</span> o</span
-                    >
-                    <span class="line">
+                    ><span class="line">
                       <span class="kw">ON</span> o.<span class="col"
                         >user_id</span
                       >
                       = u.<span class="col">id</span></span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">WHERE</span> u.<span class="col"
                         >created_at</span
                       >
                       &gt; <span class="str">'2026-01-01'</span></span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">GROUP BY</span> u.<span class="col"
                         >id</span
                       ></span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">HAVING</span> spent &gt;
                       <span class="num">500</span></span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">ORDER BY</span> spent
                       <span class="kw">DESC</span></span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">LIMIT</span>
-                      <span class="num">25</span>;<span class="cursor"></span
-                    ></span>
-                    <span class="line"
+                      <span class="num">25</span>;<span
+                        class="cursor"
+                      ></span></span
+                    ><span class="line"
                       ><span class="cm">-- ⚡ Ctrl+Enter to execute</span></span
                     >
                   </div>
@@ -1282,50 +1273,41 @@
                     <span class="line"
                       ><span class="kw">CREATE EVENT</span>
                       <span class="tbl">tick_stock_prices</span></span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">ON SCHEDULE EVERY</span>
                       <span class="num">5</span>
                       <span class="kw">MINUTE</span></span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">STARTS</span>
                       <span class="fn">CURRENT_TIMESTAMP</span></span
-                    >
-                    <span class="line"><span class="kw">DO BEGIN</span></span>
-                    <span class="line">
+                    ><span class="line"><span class="kw">DO BEGIN</span></span
+                    ><span class="line">
                       <span class="kw">UPDATE</span>
                       <span class="tbl">stocks</span>
                       <span class="kw">SET</span></span
-                    >
-                    <span class="line">
+                    ><span class="line">
                       <span class="col">price</span> =
                       <span class="fn">GREATEST</span>(</span
-                    >
-                    <span class="line">
+                    ><span class="line">
                       <span class="col">min_price</span>,</span
-                    >
-                    <span class="line">
+                    ><span class="line">
                       <span class="col">price</span> * (<span class="num"
                         >1</span
                       >
                       + <span class="fn">RAND</span>() *
                       <span class="num">0.06</span> -
                       <span class="num">0.03</span>)</span
-                    >
-                    <span class="line"> );</span>
-                    <span class="line">
+                    ><span class="line"> );</span
+                    ><span class="line">
                       <span class="kw">INSERT INTO</span>
                       <span class="tbl">price_history</span></span
-                    >
-                    <span class="line">
+                    ><span class="line">
                       <span class="kw">SELECT</span>
                       <span class="col">id</span>,
                       <span class="col">price</span>,
                       <span class="fn">NOW</span>() <span class="kw">FROM</span>
                       <span class="tbl">stocks</span>;</span
-                    >
-                    <span class="line"
+                    ><span class="line"
                       ><span class="kw">END</span>;<span class="cursor"></span
                     ></span>
                   </div>
