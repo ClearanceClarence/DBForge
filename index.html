@@ -65,18 +65,6 @@
         overflow-x: hidden;
         -webkit-font-smoothing: antialiased;
       }
-      body::after {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        z-index: 9999;
-        opacity: 0.025;
-        background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      }
       a {
         color: var(--c-green);
         text-decoration: none;
@@ -872,7 +860,7 @@
       <div class="container">
         <div class="hero-grid">
           <div>
-            <div class="hero-badge">v1.6.0-alpha · Open Source</div>
+            <div class="hero-badge">v1.8.0-alpha · Open Source</div>
             <h1 class="hero-title">
               The database tool phpMyAdmin <em>should have been.</em>
             </h1>
@@ -1041,11 +1029,13 @@
           </div>
           <div class="feature-card">
             <div class="feature-icon fi-blue">👁</div>
-            <div class="feature-title">Views, Triggers & Routines</div>
+            <div class="feature-title">
+              Views, Triggers, Routines &amp; Events
+            </div>
             <div class="feature-desc">
-              Full CRUD for views, triggers, stored procedures, and functions.
-              Syntax-highlighted editors with skeleton templates. Edit triggers
-              with automatic rollback on failure.
+              Full CRUD for every MySQL schema object. Syntax-highlighted
+              editors with skeleton templates. Scheduled events with live
+              scheduler-status detection and one-click enable/disable.
             </div>
           </div>
           <div class="feature-card">
@@ -1073,6 +1063,16 @@
               Alter engine, collation, row format. Rename, move, copy tables.
               Optimize, analyze, check, repair in one panel. Partition
               management: create, drop, truncate, rebuild.
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon fi-red">⚡</div>
+            <div class="feature-title">Live Processes</div>
+            <div class="feature-desc">
+              SHOW FULL PROCESSLIST with 2/5/10s auto-refresh. Color-scaled
+              query duration (gold at 3s, red at 60s). One-click kill with
+              self-session guard. Filter, hide-sleeping toggle, current
+              connection marker.
             </div>
           </div>
           <div class="feature-card">
@@ -1152,6 +1152,13 @@
                 <td>Full CRUD with syntax-highlighted editor</td>
               </tr>
               <tr>
+                <td>Events</td>
+                <td>Basic listing</td>
+                <td>
+                  Full CRUD, scheduler-status badge, one-click enable/disable
+                </td>
+              </tr>
+              <tr>
                 <td>Saved Queries</td>
                 <td>Bookmarks (limited)</td>
                 <td>Save, rename, delete, click to load</td>
@@ -1177,9 +1184,16 @@
                 <td>Optimize, analyze, check, repair in one panel</td>
               </tr>
               <tr>
+                <td>Processes</td>
+                <td>Separate tab, manual refresh</td>
+                <td>Live auto-refresh, color-scaled timings, one-click kill</td>
+              </tr>
+              <tr>
                 <td>Query History</td>
                 <td class="cross">Not available</td>
-                <td>Searchable, re-runnable, persistent drafts</td>
+                <td>
+                  Expand for errors &amp; results, per-entry load, tinted rows
+                </td>
               </tr>
               <tr>
                 <td>Authentication</td>
@@ -1545,7 +1559,7 @@
             src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg"
             alt=""
             style="height: 18px"
-          /><span>DBForge v1.6.0-alpha</span>
+          /><span>DBForge v1.8.0-alpha</span>
         </div>
         <div class="footer-links">
           <a href="https://github.com/ClearanceClarence/DBForge">GitHub</a
