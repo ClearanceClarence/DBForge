@@ -160,7 +160,7 @@
         </div>
 
         <div class="login-footer">
-            <?= h($appName) ?> v<?= h($config['app']['version']) ?>
+            <?= h($appName) ?> v<?= h(DBFORGE_VERSION) ?>
         </div>
     </div>
 </div>

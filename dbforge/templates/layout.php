@@ -137,6 +137,9 @@
                     <a href="?tab=server" class="tab-btn <?= $activeTab === 'server' ? 'active' : '' ?>" data-tab="server">
                         <?= icon('server', 14) ?> Server
                     </a>
+                    <a href="?tab=processes" class="tab-btn <?= $activeTab === 'processes' ? 'active' : '' ?>" data-tab="processes">
+                        <?= icon('activity', 14) ?> Processes
+                    </a>
                     <a href="?tab=settings" class="tab-btn <?= $activeTab === 'settings' ? 'active' : '' ?>" data-tab="settings">
                         <?= icon('settings', 14) ?> Settings
                     </a>

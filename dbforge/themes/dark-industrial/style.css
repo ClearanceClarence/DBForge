@@ -2758,6 +2758,21 @@ textarea.inline-input {
 .history-item:last-child { border-bottom: none; }
 .history-item:hover { background: var(--bg-hover); }
 
+/* Weak tinted backgrounds — keep them subtle so the panel still reads as a list.
+   Using color-mix where supported; falls back to the plain hover above otherwise. */
+.history-item-ok {
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+.history-item-ok:hover {
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.history-item-err {
+    background: color-mix(in srgb, var(--danger) 6%, transparent);
+}
+.history-item-err:hover {
+    background: color-mix(in srgb, var(--danger) 14%, transparent);
+}
+
 .history-item-status {
     flex-shrink: 0;
     width: 20px;
@@ -2773,6 +2788,23 @@ textarea.inline-input {
 .history-item-err .history-item-status {
     background: var(--danger-bg);
     color: var(--danger);
+}
+
+.history-item-result {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    color: var(--accent);
+    opacity: 0.85;
+    margin-top: 2px;
+}
+.history-item-error {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    color: var(--danger);
+    opacity: 0.9;
+    margin-top: 2px;
+    word-break: break-word;
+    white-space: pre-wrap;
 }
 
 .history-item-body {
@@ -2803,7 +2835,15 @@ textarea.inline-input {
 
 .history-item-db { color: var(--warning); }
 
-.history-delete-btn {
+.history-item-actions {
+    flex-shrink: 0;
+    display: flex;
+    gap: 4px;
+    margin-top: 1px;
+}
+
+.history-delete-btn,
+.history-load-btn {
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -2818,12 +2858,29 @@ textarea.inline-input {
     opacity: 0;
     transition: opacity 0.1s, color 0.1s, background 0.1s;
     padding: 0;
-    margin-top: 1px;
 }
-.history-item:hover .history-delete-btn { opacity: 1; }
+.history-item:hover .history-delete-btn,
+.history-item:hover .history-load-btn { opacity: 1; }
 .history-delete-btn:hover {
     color: var(--danger);
     background: var(--danger-bg);
+}
+.history-load-btn:hover {
+    color: var(--accent);
+    background: var(--accent-bg);
+}
+
+/* Expanded row gets a slightly stronger tint + left accent bar */
+.history-item-expanded.history-item-ok {
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+.history-item-expanded.history-item-err {
+    background: color-mix(in srgb, var(--danger) 11%, transparent);
+    box-shadow: inset 3px 0 0 var(--danger);
+}
+.history-item-detail {
+    margin-top: 2px;
 }
 
 /* ═══ Quick Queries ══════════════════════════════════════ */

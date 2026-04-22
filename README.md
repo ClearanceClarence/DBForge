@@ -2,12 +2,14 @@
   <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg" alt="DBForge" width="520">
 </p>
 
+<h1 align="center">DBForge</h1>
+
 <p align="center">
   <strong>The database tool phpMyAdmin should have been.</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.6.0--alpha-4ade80?style=flat-square" alt="Version 1.6.0-alpha">
+  <img src="https://img.shields.io/badge/Version-1.8.0--alpha-4ade80?style=flat-square" alt="Version 1.8.0-alpha">
   <img src="https://img.shields.io/badge/PHP-7.4+-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP">
   <img src="https://img.shields.io/badge/MySQL-5.7+-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL">
   <img src="https://img.shields.io/badge/MariaDB-10.3+-003545?style=flat-square&logo=mariadb&logoColor=white" alt="MariaDB">
@@ -29,8 +31,9 @@
   <a href="#-data-browsing--editing">Browse & Edit</a> · 
   <a href="#-search-across-tables">Search</a> · 
   <a href="#-er-diagram">ER Diagram</a> · 
-  <a href="#-views-triggers--routines">Views, Triggers & Routines</a> · 
+  <a href="#-views-triggers-routines--events">Views, Triggers, Routines & Events</a> · 
   <a href="#-saved-queries">Saved Queries</a> · 
+  <a href="#-processes">Processes</a> · 
   <a href="#-table-management">Tables</a> · 
   <a href="#-import--export">Import/Export</a> · 
   <a href="#-security--2fa">Security & 2FA</a> · 
@@ -55,12 +58,14 @@ DBForge is a ground-up replacement that keeps the one thing phpMyAdmin gets righ
 | **Views** | Basic listing | Full CRUD with syntax-highlighted definitions, sidebar integration |
 | **Triggers** | Basic listing | Create, edit (drop+recreate with rollback), drop. Color-coded badges |
 | **Routines** | Basic listing | Full CRUD for stored procedures and functions. Syntax-highlighted editor with skeleton templates |
+| **Events** | Basic listing | Full CRUD with schedule display, one-click enable/disable, scheduler status warning when `event_scheduler = OFF` |
 | **Search** | Search within one table at a time | Search across every table in the database simultaneously |
 | **ER Diagram** | Not available | Interactive SVG with drag, zoom, auto-layout, crow's foot notation, save/load per database |
-| **Query History** | Not available | Session-stored with syntax highlighting, search, click to re-run, persistent drafts |
+| **Query History** | Not available | Session-stored with syntax highlighting, search, expand-on-click detail with error messages and result summaries, per-entry load/delete, tinted rows |
 | **Saved Queries** | Bookmarks with limited UI | Save, rename, delete, organize. Click to load. Per-user storage |
 | **Table Ops** | Scattered across Operations, Structure, and SQL tabs | Dedicated Operations tab + overview row actions. Favorites system |
 | **Maintenance** | Optimize only in some views | Optimize, Analyze, Check, Repair — all in one panel with inline results |
+| **Processes** | Separate Status → Processes tab, requires refresh | Live processlist with 2/5/10s auto-refresh, color-scaled query time, kill button, filter, current-session marker |
 | **Partitions** | View only | Full management: create, add, drop, truncate, optimize, rebuild, remove all |
 | **Import** | Standard form | Drag-and-drop SQL/CSV with syntax-highlighted preview |
 | **Auth** | HTTP Basic or cookie-based with manual config | Bcrypt + optional TOTP 2FA, brute force lockout, CSRF, IP whitelist |
@@ -250,7 +255,7 @@ Open the **ER Diagram tab** and every table in the database is displayed as a ca
 
 ---
 
-## 👁 Views, Triggers & Routines
+## 👁 Views, Triggers, Routines & Events
 
 ### Views
 
@@ -281,6 +286,17 @@ Routines panel appears on the Structure tab for any selected database.
 - **Edit** — loads the current CREATE statement, drops the old routine and creates from the new SQL
 - **Drop** — danger confirm modal
 
+### Scheduled Events
+
+Events panel sits below Routines on the Structure tab. MySQL's event scheduler runs SQL on a schedule — perfect for maintenance jobs, cleanups, and periodic aggregations.
+
+- **List** — status badge (ENABLED = green, DISABLED = gray), name, type badge (RECURRING = blue, ONE TIME = purple), full schedule (`EVERY 1 DAY`, `AT 2026-05-01 00:00:00`, plus starts/ends for recurring), last executed timestamp, modified date
+- **Scheduler status badge** — header shows the live value of `event_scheduler`. If events exist but the scheduler is `OFF`, a red warning banner appears with the exact command to enable it (easy to miss otherwise — events defined without the scheduler running never fire)
+- **View** — syntax-highlighted viewer with Copy
+- **Create / Edit** — SQL editor with a skeleton covering the common daily-recurring case with `ON COMPLETION PRESERVE`, `ENABLE`, `COMMENT`, and a `BEGIN ... END` block
+- **Enable / Disable** — one-click toggle button per row (runs `ALTER EVENT ... ENABLE/DISABLE` without opening the definition)
+- **Drop** — danger confirm modal
+
 ---
 
 ## 💾 Saved Queries
@@ -296,26 +312,46 @@ Save frequently-used queries with a name for quick access later. Click the **Sav
 
 ---
 
+## ⚡ Processes
+
+Live view of `SHOW FULL PROCESSLIST` from a dedicated top-level tab. Turns DBForge from a schema editor into a tool you keep open to watch what's happening on your server.
+
+- **Header stats** — Total connections, Active (non-Sleep), Sleeping, and the duration of the longest-running query. All refresh live.
+- **Color-coded commands** — Sleep is muted, Query is green, Connect is blue, Killed is red, Binlog Dump is purple, everything else is gold. At a glance you see where attention is needed.
+- **Color-scaled time** — query duration turns gold at 3s, amber at 10s, red at 60s. Sleeping connections stay dim regardless of how long they've been idle.
+- **Auto-refresh** — Off (default), 2s, 5s, or 10s. Filter and scroll position are preserved across refreshes. A pulsing indicator shows when a fetch is in flight.
+- **Filter** — live text filter across user, host, database, state, and the full query text. Plus a "Hide sleeping" checkbox that cuts through the noise on quiet servers where 90% of connections are idle.
+- **Current session marker** — a green star next to the row representing your own DBForge connection (matched against `CONNECTION_ID()`). Self-kill is blocked in the UI *and* enforced server-side.
+- **Kill button** — red danger action with a confirm modal that shows the query being terminated so you don't kill the wrong thing. Disabled in read-only mode.
+
+Requires the `PROCESS` privilege to see other users' threads, and `SUPER` or `CONNECTION_ADMIN` to kill them. With a plain user, you'll see only your own sessions.
+
+---
+
 ## 📜 Query History
 
 Every query executed from the SQL tab is saved to the PHP session:
 
-- **SQL text** — the full query
+- **SQL text** — the full query, syntax-highlighted with the same tokenizer as the editor
 - **Target database** — which database it ran against
 - **Execution time** — in seconds with millisecond precision
-- **Row count** — rows returned (SELECT) or affected (INSERT/UPDATE/DELETE)
-- **Success/error** — green check or red × icon
+- **Result** — rows returned (SELECT) or affected (INSERT/UPDATE/DELETE), including the zero-rows case
+- **Error message** — on failure, the full database error is captured and displayed inline
+- **Success/error** — green check or red × icon plus a subtle tinted row background (success green, error red) that automatically adopts each theme's colors
 - **Timestamp** — displayed as relative time ("just now", "2m ago", "1h ago")
 
-The **history panel** is a collapsible section below the SQL editor. Each entry is syntax-highlighted using the same tokenizer as the editor. Features:
+The **history panel** is a collapsible section below the SQL editor. Features:
 
-- **Click to load** — click an entry and the SQL is pasted into the editor with highlighting applied. Editor scrolls into view.
+- **Click to expand** — click any row to reveal its result summary or error message. A stronger tint and left-edge accent bar mark the expanded state. Click again to collapse.
+- **Load button** — a pencil icon on hover pastes the SQL into the editor (kept separate from row click so you don't accidentally overwrite in-progress work while inspecting history)
 - **Search/filter** — text input filters entries in real-time by SQL content
 - **Delete individual** — × button on hover removes a single entry with a fade-out animation
 - **Clear all** — trash button with confirmation modal wipes the session history
 - **Duplicate suppression** — re-running the exact same query updates the existing entry's timestamp instead of creating a new one at the top
 
 History is capped at `max_query_history` in config (default 50). Session-scoped — survives page navigations but clears on logout.
+
+**Persistent drafts:** the SQL editor's current content auto-saves to `sessionStorage` keyed by database. Navigate away and back and your in-progress query is still there. Cleared after successful execution.
 
 ---
 
@@ -648,7 +684,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full version history.
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/refs/heads/main/dbforge/assets/logo.svg" alt="DBForge" width="320">
+  <img src="https://raw.githubusercontent.com/ClearanceClarence/DBForge/main/assets/logo.svg" alt="DBForge" width="320">
   <br>
   <sub>Built with PHP, vanilla JS, and zero external dependencies.</sub>
   <br>

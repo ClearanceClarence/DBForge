@@ -3,6 +3,12 @@
  * DBForge — Database Management Tool
  */
 
+// Single source of truth for the app version. Intentionally NOT read from
+// config.php — config is per-install and never updated on upgrade, so
+// keeping version here ensures the running code and the displayed version
+// can never drift apart.
+const DBFORGE_VERSION = '1.8.0-alpha';
+
 // Error Handling
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
@@ -58,7 +64,7 @@ $themes      = $themeData['list'];
 $activeTheme = $themeData['active'];
 
 $appName    = $config['app']['name'];
-$appVersion = $config['app']['version'];
+$appVersion = DBFORGE_VERSION;
 $serverHost = $config['db']['host'];
 
 // Authentication
@@ -208,7 +214,7 @@ if ($action && $connected) {
                     echo "--  Server:       {$serverVersion}\n";
                     echo "--  Exported by:  " . (isset($auth) ? ($auth->getUsername() ?: 'anonymous') : 'anonymous') . "\n";
                     echo "--  Date:         " . date('Y-m-d H:i:s T') . "\n";
-                    echo "--  Generator:    DBForge v" . ($config['app']['version'] ?? '1.6.0') . "\n";
+                    echo "--  Generator:    DBForge v" . (DBFORGE_VERSION) . "\n";
                     echo "--\n";
                     echo "-- {$line}\n\n";
 
@@ -260,7 +266,7 @@ if ($action && $connected) {
                     echo "--  Total rows:   " . number_format($totalRows) . "\n";
                     echo "--  Exported by:  " . ($auth->getUsername() ?: 'anonymous') . "\n";
                     echo "--  Date:         " . date('Y-m-d H:i:s T') . "\n";
-                    echo "--  Generator:    DBForge v" . ($config['app']['version'] ?? '1.6.0') . "\n";
+                    echo "--  Generator:    DBForge v" . (DBFORGE_VERSION) . "\n";
                     echo "--\n";
                     echo "-- {$line}\n\n";
 
@@ -343,6 +349,8 @@ if ($activeTab === 'settings') {
     $contentTemplate = __DIR__ . '/templates/connection_error.php';
 } elseif ($activeTab === 'server') {
     $contentTemplate = __DIR__ . '/templates/server_info.php';
+} elseif ($activeTab === 'processes') {
+    $contentTemplate = __DIR__ . '/templates/processes.php';
 } elseif ($activeTab === 'sql') {
     $contentTemplate = __DIR__ . '/templates/sql.php';
 } elseif ($activeTab === 'structure' && $currentTable) {

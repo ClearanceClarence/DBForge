@@ -48,24 +48,42 @@ function dbforge_record_history(string $sql, ?string $db, array $result, int $ma
         $_SESSION['dbforge_query_history'] = [];
     }
 
+    // Build a result summary string based on what executeQuery returned
+    $success = (bool)($result['success'] ?? false);
+    $error = $success ? null : ($result['error'] ?? 'Unknown error');
+    $resultType = $result['type'] ?? null;
+    $affected = $result['affected'] ?? null;
+    $count = $result['count'] ?? null;
+
+    // Rows value used by the row count badge: prefer SELECT count, fall back to affected
+    $rowsForBadge = $count ?? $affected ?? 0;
+
     // Don't duplicate the exact same query at position 0
     if (!empty($_SESSION['dbforge_query_history']) && $_SESSION['dbforge_query_history'][0]['sql'] === $sql) {
         // Update the existing entry
         $_SESSION['dbforge_query_history'][0]['timestamp'] = time();
         $_SESSION['dbforge_query_history'][0]['db'] = $db;
-        $_SESSION['dbforge_query_history'][0]['success'] = $result['success'];
+        $_SESSION['dbforge_query_history'][0]['success'] = $success;
         $_SESSION['dbforge_query_history'][0]['time'] = $result['time'] ?? 0;
-        $_SESSION['dbforge_query_history'][0]['rows'] = $result['count'] ?? ($result['affected'] ?? 0);
+        $_SESSION['dbforge_query_history'][0]['rows'] = $rowsForBadge;
+        $_SESSION['dbforge_query_history'][0]['result_type'] = $resultType;
+        $_SESSION['dbforge_query_history'][0]['affected'] = $affected;
+        $_SESSION['dbforge_query_history'][0]['count'] = $count;
+        $_SESSION['dbforge_query_history'][0]['error'] = $error;
         return;
     }
 
     array_unshift($_SESSION['dbforge_query_history'], [
-        'sql'       => $sql,
-        'db'        => $db,
-        'success'   => $result['success'],
-        'time'      => $result['time'] ?? 0,
-        'rows'      => $result['count'] ?? ($result['affected'] ?? 0),
-        'timestamp' => time(),
+        'sql'         => $sql,
+        'db'          => $db,
+        'success'     => $success,
+        'time'        => $result['time'] ?? 0,
+        'rows'        => $rowsForBadge,
+        'result_type' => $resultType,
+        'affected'    => $affected,
+        'count'       => $count,
+        'error'       => $error,
+        'timestamp'   => time(),
     ]);
 
     // Trim to max
@@ -165,25 +183,47 @@ if (window.location.search.includes('sql=')) {
         </div>
     </div>
     <div class="history-list" id="history-list" style="display:none;">
-        <?php foreach ($queryHistory as $i => $hq): ?>
-        <div class="history-item <?= $hq['success'] ? '' : 'history-item-err' ?>" data-sql="<?= h($hq['sql']) ?>" data-idx="<?= $i ?>">
+        <?php foreach ($queryHistory as $i => $hq):
+            // Build the result summary shown under the SQL
+            $resultSummary = null;
+            if ($hq['success']) {
+                if (($hq['result_type'] ?? null) === 'select') {
+                    $c = (int)($hq['count'] ?? 0);
+                    $resultSummary = $c === 1 ? '1 row returned' : format_number($c) . ' rows returned';
+                } elseif (($hq['result_type'] ?? null) === 'modify') {
+                    $a = (int)($hq['affected'] ?? 0);
+                    $resultSummary = $a === 1 ? '1 row affected' : format_number($a) . ' rows affected';
+                }
+            }
+            $hasDetail = !$hq['success'] ? !empty($hq['error']) : !empty($resultSummary);
+        ?>
+        <div class="history-item <?= $hq['success'] ? 'history-item-ok' : 'history-item-err' ?>" data-sql="<?= h($hq['sql']) ?>" data-idx="<?= $i ?>">
             <span class="history-item-status"><?= $hq['success'] ? icon('check', 10) : icon('x', 10) ?></span>
             <div class="history-item-body">
                 <code class="history-item-sql" id="hq-<?= $i ?>"><?= h(truncate($hq['sql'], 150)) ?></code>
+                <?php if ($hasDetail): ?>
+                <div class="history-item-detail" style="display:none;">
+                    <?php if (!$hq['success'] && !empty($hq['error'])): ?>
+                    <div class="history-item-error"><?= h($hq['error']) ?></div>
+                    <?php elseif ($resultSummary): ?>
+                    <div class="history-item-result"><?= h($resultSummary) ?></div>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
                 <div class="history-item-meta">
                     <?php if ($hq['db']): ?>
                     <span class="history-item-db"><?= icon('database', 9) ?> <?= h($hq['db']) ?></span>
                     <?php endif; ?>
                     <span><?= number_format($hq['time'], 3) ?>s</span>
-                    <?php if ($hq['rows']): ?>
-                    <span><?= format_number($hq['rows']) ?> rows</span>
-                    <?php endif; ?>
                     <span class="history-item-time" title="<?= date('Y-m-d H:i:s', $hq['timestamp']) ?>">
                         <?= dbforge_time_ago($hq['timestamp']) ?>
                     </span>
                 </div>
             </div>
-            <button type="button" class="history-delete-btn" data-idx="<?= $i ?>" title="Remove"><?= icon('x', 10) ?></button>
+            <div class="history-item-actions">
+                <button type="button" class="history-load-btn" data-idx="<?= $i ?>" title="Load into editor"><?= icon('edit', 11) ?></button>
+                <button type="button" class="history-delete-btn" data-idx="<?= $i ?>" title="Remove"><?= icon('x', 10) ?></button>
+            </div>
         </div>
         <?php endforeach; ?>
     </div>
@@ -216,10 +256,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Click history item → load into editor (ignore delete button clicks)
+    // Click history item → toggle expanded detail (ignore action button clicks)
     list.addEventListener('click', function(e) {
         if (e.target.closest('.history-delete-btn')) return;
+        if (e.target.closest('.history-load-btn')) return;
         var item = e.target.closest('.history-item');
+        if (!item) return;
+        var detail = item.querySelector('.history-item-detail');
+        if (!detail) return; // nothing to show
+        var isOpen = detail.style.display !== 'none';
+        detail.style.display = isOpen ? 'none' : '';
+        item.classList.toggle('history-item-expanded', !isOpen);
+    });
+
+    // Load button → paste SQL into editor
+    list.addEventListener('click', function(e) {
+        var btn = e.target.closest('.history-load-btn');
+        if (!btn) return;
+        e.stopPropagation();
+        var item = btn.closest('.history-item');
         if (!item) return;
         var sql = item.dataset.sql;
         var editor = document.getElementById('sql-editor');

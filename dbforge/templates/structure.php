@@ -1796,3 +1796,379 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif; ?>
+
+<!-- ── Events Panel (database-level) ── -->
+<?php if ($currentDb): ?>
+<div class="panel-section" style="margin-top:20px;">
+    <?php
+    $events = [];
+    $schedulerStatus = 'OFF';
+    try {
+        $events = $dbInstance->getEvents($currentDb);
+        $schedulerStatus = $dbInstance->getEventSchedulerStatus();
+    } catch (Exception $e) {}
+    $enabled  = array_filter($events, function($e) { return strtoupper($e['status']) === 'ENABLED'; });
+    $disabled = array_filter($events, function($e) { return strtoupper($e['status']) !== 'ENABLED'; });
+    ?>
+    <div class="panel-section-header" style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="display:flex;align-items:center;gap:8px;"><?= icon('clock', 14) ?> Events</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:var(--font-size-xs);color:var(--text-muted);">
+                <?= count($enabled) ?> enabled, <?= count($disabled) ?> disabled
+            </span>
+            <span style="font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;background:<?= $schedulerStatus === 'ON' ? 'rgba(74,222,128,0.1)' : 'rgba(239,68,68,0.1)' ?>;color:<?= $schedulerStatus === 'ON' ? 'var(--success,#4ade80)' : 'var(--danger,#ef4444)' ?>;font-family:var(--font-mono);" title="MySQL event_scheduler variable">
+                scheduler: <?= h($schedulerStatus) ?>
+            </span>
+            <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+            <button type="button" class="btn btn-primary btn-sm" id="evt-add"><?= icon('plus', 11) ?> Event</button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <?php if ($schedulerStatus !== 'ON' && !empty($events)): ?>
+    <div style="padding:10px 16px;background:rgba(239,68,68,0.06);border-top:1px solid var(--border);border-bottom:1px solid var(--border);font-size:var(--font-size-xs);color:var(--text-secondary);display:flex;align-items:flex-start;gap:8px;">
+        <span style="color:var(--danger,#ef4444);font-weight:700;flex-shrink:0;">⚠</span>
+        <span>
+            <strong>The MySQL event scheduler is <?= h($schedulerStatus) ?>.</strong>
+            Events defined here will not fire automatically. To enable it globally, run
+            <code style="font-family:var(--font-mono);background:var(--bg-panel);padding:1px 5px;border-radius:3px;">SET GLOBAL event_scheduler = ON;</code>
+            or set <code style="font-family:var(--font-mono);background:var(--bg-panel);padding:1px 5px;border-radius:3px;">event_scheduler=ON</code> in my.cnf.
+        </span>
+    </div>
+    <?php endif; ?>
+
+    <div style="padding:0;">
+        <?php if (empty($events)): ?>
+        <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:var(--font-size-sm);">
+            No scheduled events in this database.
+        </div>
+        <?php else: ?>
+        <table class="data-table" style="margin:0;font-size:var(--font-size-sm);">
+            <thead>
+                <tr>
+                    <th style="width:80px;">Status</th>
+                    <th>Name</th>
+                    <th style="width:90px;">Type</th>
+                    <th>Schedule</th>
+                    <th>Last Executed</th>
+                    <th>Modified</th>
+                    <th style="width:150px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($events as $ev):
+                $isEnabled = strtoupper($ev['status']) === 'ENABLED';
+                $isRecurring = strtoupper($ev['type']) === 'RECURRING';
+                if ($isRecurring) {
+                    $intervalVal = $ev['interval_value'] ?? '';
+                    $intervalField = strtoupper($ev['interval_field'] ?? '');
+                    $schedule = 'EVERY ' . h($intervalVal) . ' ' . h($intervalField);
+                    if (!empty($ev['starts'])) $schedule .= '<br><span style="color:var(--text-muted);">starts ' . h($ev['starts']) . '</span>';
+                    if (!empty($ev['ends']))   $schedule .= '<br><span style="color:var(--text-muted);">ends ' . h($ev['ends']) . '</span>';
+                } else {
+                    $schedule = 'AT ' . h($ev['execute_at'] ?? '—');
+                }
+                $statusColor = $isEnabled ? 'var(--success,#4ade80)' : 'var(--text-muted)';
+                $statusBg    = $isEnabled ? 'rgba(74,222,128,0.1)' : 'rgba(148,163,184,0.1)';
+            ?>
+                <tr>
+                    <td>
+                        <span style="font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;background:<?= $statusBg ?>;color:<?= $statusColor ?>;font-family:var(--font-mono);">
+                            <?= h($ev['status']) ?>
+                        </span>
+                    </td>
+                    <td style="font-family:var(--font-mono);font-weight:600;"><?= h($ev['name']) ?></td>
+                    <td>
+                        <span style="font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;background:<?= $isRecurring ? 'rgba(96,165,250,0.1)' : 'rgba(192,132,252,0.1)' ?>;color:<?= $isRecurring ? 'var(--info)' : 'var(--purple,#c084fc)' ?>;font-family:var(--font-mono);">
+                            <?= $isRecurring ? 'RECURRING' : 'ONE TIME' ?>
+                        </span>
+                    </td>
+                    <td style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--text-secondary);">
+                        <?= $schedule ?>
+                    </td>
+                    <td style="font-size:var(--font-size-xs);color:var(--text-muted);">
+                        <?= !empty($ev['last_executed']) ? h($ev['last_executed']) : '<span style="color:var(--text-muted);">never</span>' ?>
+                    </td>
+                    <td style="font-size:var(--font-size-xs);color:var(--text-muted);"><?= h($ev['modified'] ?? $ev['created'] ?? '') ?></td>
+                    <td>
+                        <div style="display:flex;gap:4px;">
+                            <button type="button" class="btn btn-ghost btn-sm evt-view" data-name="<?= h($ev['name']) ?>" title="View definition"><?= icon('eye', 11) ?></button>
+                            <?php if (!(isset($auth) && $auth->isReadOnly())): ?>
+                            <button type="button" class="btn btn-ghost btn-sm evt-toggle" data-name="<?= h($ev['name']) ?>" data-enabled="<?= $isEnabled ? '1' : '0' ?>" title="<?= $isEnabled ? 'Disable' : 'Enable' ?>">
+                                <?= icon($isEnabled ? 'x' : 'play', 11) ?>
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-sm evt-edit" data-name="<?= h($ev['name']) ?>" title="Edit"><?= icon('edit', 11) ?></button>
+                            <button type="button" class="btn btn-danger btn-sm evt-drop" data-name="<?= h($ev['name']) ?>" title="Drop"><?= icon('trash', 11) ?></button>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var db = <?= json_encode($currentDb) ?>;
+    function csrf() { var m = document.querySelector('meta[name="csrf-token"]'); return m ? m.content : ''; }
+
+    function openEventEditor(editName) {
+        var old = document.getElementById('dbforge-modal');
+        if (old) old.remove();
+
+        var mode = editName ? 'edit' : 'create';
+        var title = mode === 'create' ? 'Create Event' : 'Edit Event';
+
+        var skeleton =
+            'CREATE EVENT my_event\n' +
+            'ON SCHEDULE EVERY 1 DAY\n' +
+            'STARTS CURRENT_TIMESTAMP\n' +
+            'ON COMPLETION PRESERVE\n' +
+            'ENABLE\n' +
+            'COMMENT \'Daily maintenance task\'\n' +
+            'DO\n' +
+            'BEGIN\n' +
+            '    -- Your SQL here, e.g.:\n' +
+            '    DELETE FROM sessions WHERE last_seen < NOW() - INTERVAL 30 DAY;\n' +
+            'END';
+
+        var overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'dbforge-modal';
+        overlay.innerHTML =
+            '<div class="modal-box" style="max-width:720px;">' +
+                '<div class="modal-header"><span class="modal-title">' + title + '</span><button class="modal-close" id="evt-cancel">&times;</button></div>' +
+                '<div class="modal-body">' +
+                    '<div id="evt-err" class="error-box" style="display:none;margin-bottom:12px;font-size:var(--font-size-xs);padding:8px 12px;"></div>' +
+                    '<label class="settings-label" style="margin-bottom:4px;">SQL Definition</label>' +
+                    '<div style="margin-bottom:8px;">' +
+                        '<div class="mini-editor-wrap" style="min-height:260px;">' +
+                            '<div class="mini-editor-backdrop"><div class="mini-editor-highlight" id="evt-sql-highlight"></div></div>' +
+                            '<textarea id="evt-sql" rows="16" spellcheck="false" style="font-family:var(--font-mono);font-size:var(--font-size-xs);min-height:260px;resize:vertical;width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-md);line-height:1.5;tab-size:4;white-space:pre-wrap;word-break:break-word;"></textarea>' +
+                        '</div>' +
+                    '</div>' +
+                    '<p style="font-size:var(--font-size-xs);color:var(--text-muted);margin:0;">' +
+                        'Write the full <code>CREATE EVENT</code> statement. Use <code>ON SCHEDULE EVERY ... </code> for recurring or <code>ON SCHEDULE AT ...</code> for one-time. ' +
+                        '<code>ON COMPLETION PRESERVE</code> keeps the event after its last run; omit to auto-drop.' +
+                    '</p>' +
+                '</div>' +
+                '<div class="modal-footer"><button class="btn btn-ghost modal-btn" id="evt-cancel2">Cancel</button><button class="btn btn-primary modal-btn" id="evt-save">' + (mode === 'create' ? 'Create' : 'Save Changes') + '</button></div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+        requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+        var sqlEl = document.getElementById('evt-sql');
+        var errEl = document.getElementById('evt-err');
+        var highlight = document.getElementById('evt-sql-highlight');
+
+        function syncHighlight() {
+            if (sqlEl && highlight && typeof DBForge !== 'undefined') {
+                var tokens = DBForge.tokenize(sqlEl.value);
+                tokens = DBForge.resolveTableNames(tokens);
+                highlight.innerHTML = DBForge.renderTokens(tokens) + '\n';
+            }
+        }
+        sqlEl.addEventListener('input', syncHighlight);
+        sqlEl.addEventListener('scroll', function() {
+            if (highlight && highlight.parentNode) highlight.parentNode.scrollTop = sqlEl.scrollTop;
+        });
+
+        if (mode === 'edit' && editName) {
+            sqlEl.value = 'Loading…';
+            sqlEl.disabled = true;
+            fetch('ajax.php?action=get_event_definition&db=' + encodeURIComponent(db) + '&name=' + encodeURIComponent(editName))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    sqlEl.disabled = false;
+                    sqlEl.value = data.definition || skeleton;
+                    syncHighlight();
+                    sqlEl.focus();
+                });
+        } else {
+            sqlEl.value = skeleton;
+            syncHighlight();
+            sqlEl.focus();
+        }
+
+        document.getElementById('evt-save').addEventListener('click', function() {
+            var sql = sqlEl.value.trim();
+            if (!sql) { errEl.textContent = 'SQL definition is required.'; errEl.style.display = ''; return; }
+            errEl.style.display = 'none';
+            var saveBtn = this;
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving…';
+
+            var chain = Promise.resolve();
+            if (mode === 'edit' && editName) {
+                chain = chain.then(function() {
+                    var fd = new FormData();
+                    fd.append('action', 'drop_event');
+                    fd.append('name', editName);
+                    fd.append('db', db);
+                    fd.append('_csrf_token', csrf());
+                    return fetch('ajax.php', { method: 'POST', body: fd }).then(function(r) { return r.json(); });
+                });
+            }
+
+            chain.then(function() {
+                var fd = new FormData();
+                fd.append('action', 'create_event');
+                fd.append('sql', sql);
+                fd.append('db', db);
+                fd.append('_csrf_token', csrf());
+                return fetch('ajax.php', { method: 'POST', body: fd }).then(function(r) { return r.json(); });
+            }).then(function(data) {
+                saveBtn.disabled = false;
+                if (data.error) {
+                    errEl.style.display = '';
+                    errEl.textContent = data.error;
+                    if (mode === 'edit') errEl.textContent += ' (Original was dropped — paste the old definition and re-create manually if needed.)';
+                    saveBtn.textContent = mode === 'create' ? 'Create' : 'Save Changes';
+                } else {
+                    closeModal();
+                    window.location.reload();
+                }
+            }).catch(function(err) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = mode === 'create' ? 'Create' : 'Save Changes';
+                errEl.style.display = '';
+                errEl.textContent = 'Network error: ' + err.message;
+            });
+        });
+
+        function closeModal() {
+            overlay.classList.remove('modal-visible');
+            setTimeout(function() { overlay.remove(); }, 150);
+        }
+        document.getElementById('evt-cancel').addEventListener('click', closeModal);
+        document.getElementById('evt-cancel2').addEventListener('click', closeModal);
+        overlay.addEventListener('click', function(e) { if (e.target === overlay) closeModal(); });
+    }
+
+    // Create button
+    var addBtn = document.getElementById('evt-add');
+    if (addBtn) addBtn.addEventListener('click', function() { openEventEditor(); });
+
+    // View definition
+    document.querySelectorAll('.evt-view').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var name = this.dataset.name;
+            var old = document.getElementById('dbforge-modal');
+            if (old) old.remove();
+
+            fetch('ajax.php?action=get_event_definition&db=' + encodeURIComponent(db) + '&name=' + encodeURIComponent(name))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var def = data.definition || 'Could not retrieve definition.';
+                    var overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay';
+                    overlay.id = 'dbforge-modal';
+                    overlay.innerHTML =
+                        '<div class="modal-box" style="max-width:750px;">' +
+                            '<div class="modal-header"><span class="modal-title">' + name + '</span><button class="modal-close" id="evt-view-close">&times;</button></div>' +
+                            '<div class="modal-body" style="padding:0;">' +
+                                '<div class="mini-editor-wrap" style="min-height:300px;border-radius:0;">' +
+                                    '<div class="mini-editor-backdrop" style="border-radius:0;border-left:none;border-right:none;"><div class="mini-editor-highlight" id="evt-view-highlight"></div></div>' +
+                                    '<textarea id="evt-view-sql" readonly rows="18" spellcheck="false" style="font-family:var(--font-mono);font-size:var(--font-size-xs);width:100%;min-height:300px;max-height:500px;padding:8px 12px;border:none;border-top:1px solid var(--border);border-bottom:1px solid var(--border);resize:vertical;line-height:1.5;cursor:text;white-space:pre-wrap;word-break:break-word;"></textarea>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="modal-footer">' +
+                                '<button class="btn btn-ghost modal-btn" id="evt-view-copy">Copy</button>' +
+                                '<button class="btn btn-ghost modal-btn" id="evt-view-close2">Close</button>' +
+                            '</div>' +
+                        '</div>';
+                    document.body.appendChild(overlay);
+                    requestAnimationFrame(function() { overlay.classList.add('modal-visible'); });
+
+                    var sqlEl = document.getElementById('evt-view-sql');
+                    var viewHighlight = document.getElementById('evt-view-highlight');
+                    sqlEl.value = def;
+
+                    if (viewHighlight && typeof DBForge !== 'undefined') {
+                        var tokens = DBForge.tokenize(def);
+                        tokens = DBForge.resolveTableNames(tokens);
+                        viewHighlight.innerHTML = DBForge.renderTokens(tokens) + '\n';
+                    }
+                    sqlEl.addEventListener('scroll', function() {
+                        if (viewHighlight && viewHighlight.parentNode) viewHighlight.parentNode.scrollTop = sqlEl.scrollTop;
+                    });
+
+                    document.getElementById('evt-view-copy').addEventListener('click', function() {
+                        navigator.clipboard.writeText(def).then(function() {
+                            DBForge.setStatus('Copied to clipboard.');
+                        });
+                    });
+
+                    function closeView() { overlay.classList.remove('modal-visible'); setTimeout(function() { overlay.remove(); }, 150); }
+                    document.getElementById('evt-view-close').addEventListener('click', closeView);
+                    document.getElementById('evt-view-close2').addEventListener('click', closeView);
+                    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeView(); });
+                });
+        });
+    });
+
+    // Edit
+    document.querySelectorAll('.evt-edit').forEach(function(btn) {
+        btn.addEventListener('click', function() { openEventEditor(this.dataset.name); });
+    });
+
+    // Toggle enable/disable
+    document.querySelectorAll('.evt-toggle').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var name = this.dataset.name;
+            var isEnabled = this.dataset.enabled === '1';
+            var newStatus = isEnabled ? 'DISABLE' : 'ENABLE';
+            var fd = new FormData();
+            fd.append('action', 'toggle_event_status');
+            fd.append('name', name);
+            fd.append('status', newStatus);
+            fd.append('db', db);
+            fd.append('_csrf_token', csrf());
+            fetch('ajax.php', { method: 'POST', body: fd })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.error) {
+                        DBForge.alert({ title: 'Error', message: data.error });
+                    } else {
+                        DBForge.setStatus('Event ' + (isEnabled ? 'disabled' : 'enabled') + '.');
+                        window.location.reload();
+                    }
+                });
+        });
+    });
+
+    // Drop
+    document.querySelectorAll('.evt-drop').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var name = this.dataset.name;
+            DBForge.confirm({
+                title: 'Drop Event',
+                message: 'Are you sure you want to drop event "' + name + '"? This cannot be undone.',
+                confirmText: 'Drop',
+                danger: true,
+            }).then(function(ok) {
+                if (!ok) return;
+                var fd = new FormData();
+                fd.append('action', 'drop_event');
+                fd.append('name', name);
+                fd.append('db', db);
+                fd.append('_csrf_token', csrf());
+                fetch('ajax.php', { method: 'POST', body: fd })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.error) {
+                            DBForge.alert({ title: 'Error', message: data.error });
+                        } else {
+                            DBForge.setStatus('Event dropped.');
+                            window.location.reload();
+                        }
+                    });
+            });
+        });
+    });
+});
+</script>
+<?php endif; ?>

@@ -473,6 +473,69 @@ class Database
     }
 
     /**
+     * Get the full processlist. Requires PROCESS privilege to see other users'
+     * threads; without it, only threads owned by the current user are returned.
+     *
+     * @return array<array{id:int,user:string,host:string,db:?string,command:string,time:int,state:?string,info:?string}>
+     */
+    public function getProcessList(): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->query('SHOW FULL PROCESSLIST');
+        $rows = $stmt->fetchAll();
+        $result = [];
+        foreach ($rows as $row) {
+            // Column case varies between MySQL and MariaDB — normalize.
+            $norm = [];
+            foreach ($row as $k => $v) {
+                if (is_int($k)) continue;
+                $norm[strtolower($k)] = $v;
+            }
+            $result[] = [
+                'id'      => (int)($norm['id'] ?? 0),
+                'user'    => (string)($norm['user'] ?? ''),
+                'host'    => (string)($norm['host'] ?? ''),
+                'db'      => $norm['db'] ?? null,
+                'command' => (string)($norm['command'] ?? ''),
+                'time'    => (int)($norm['time'] ?? 0),
+                'state'   => $norm['state'] ?? null,
+                'info'    => $norm['info'] ?? null,
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the connection ID of this DBForge session's MySQL connection.
+     * Used so the UI can mark "this is you" and block self-kill.
+     */
+    public function getCurrentConnectionId(): int
+    {
+        $pdo = $this->connect();
+        $id = $pdo->query('SELECT CONNECTION_ID()')->fetchColumn();
+        return (int)$id;
+    }
+
+    /**
+     * Kill a MySQL thread by ID. Refuses to kill the caller's own connection.
+     *
+     * @throws InvalidArgumentException if attempting to kill self
+     * @throws PDOException on KILL failure (no privilege, thread gone, etc.)
+     */
+    public function killProcess(int $id): bool
+    {
+        $pdo = $this->connect();
+        $ownId = $this->getCurrentConnectionId();
+        if ($id === $ownId) {
+            throw new InvalidArgumentException('Refusing to kill the current DBForge connection.');
+        }
+        // KILL doesn't take placeholders in all versions; cast to int above protects us.
+        $pdo->exec('KILL ' . $id);
+        return true;
+    }
+
+    /**
+
      * Generate CREATE TABLE + INSERT statements for a single table.
      * Does not include a file header — caller is responsible for that.
      */
@@ -780,6 +843,85 @@ class Database
         $pdo = $this->connect($database);
         $pdo->exec("DROP {$type} IF EXISTS `" . $this->escapeIdentifier($name) . '`');
         return true;
+    }
+
+    public function getEvents(string $database): array
+    {
+        $pdo = $this->connect();
+        $stmt = $pdo->prepare('
+            SELECT
+                EVENT_NAME       AS name,
+                EVENT_TYPE       AS type,
+                STATUS           AS status,
+                EXECUTE_AT       AS execute_at,
+                INTERVAL_VALUE   AS interval_value,
+                INTERVAL_FIELD   AS interval_field,
+                STARTS           AS starts,
+                ENDS             AS ends,
+                ON_COMPLETION    AS on_completion,
+                DEFINER          AS definer,
+                CREATED          AS created,
+                LAST_ALTERED     AS modified,
+                LAST_EXECUTED    AS last_executed,
+                EVENT_COMMENT    AS comment
+            FROM information_schema.EVENTS
+            WHERE EVENT_SCHEMA = ?
+            ORDER BY EVENT_NAME
+        ');
+        $stmt->execute([$database]);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * @return string|null The full CREATE EVENT statement, or null if not found
+     */
+    public function getEventDefinition(string $database, string $name): ?string
+    {
+        $pdo = $this->connect($database);
+        $nameSafe = '`' . $this->escapeIdentifier($name) . '`';
+        $row = $pdo->query("SHOW CREATE EVENT {$nameSafe}")->fetch();
+        return $row['Create Event'] ?? null;
+    }
+
+    public function createEvent(string $database, string $sql): bool
+    {
+        $pdo = $this->connect($database);
+        $pdo->exec($sql);
+        return true;
+    }
+
+    public function dropEvent(string $database, string $name): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+            throw new InvalidArgumentException('Invalid event name.');
+        }
+        $pdo = $this->connect($database);
+        $pdo->exec('DROP EVENT IF EXISTS `' . $this->escapeIdentifier($name) . '`');
+        return true;
+    }
+
+    public function setEventStatus(string $database, string $name, string $status): bool
+    {
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+            throw new InvalidArgumentException('Invalid event name.');
+        }
+        $status = strtoupper($status);
+        if (!in_array($status, ['ENABLE', 'DISABLE'], true)) {
+            throw new InvalidArgumentException('Invalid status — must be ENABLE or DISABLE.');
+        }
+        $pdo = $this->connect($database);
+        $pdo->exec('ALTER EVENT `' . $this->escapeIdentifier($name) . '` ' . $status);
+        return true;
+    }
+
+    /**
+     * Returns 'ON', 'OFF', or 'DISABLED' (the last means it's compiled out entirely).
+     */
+    public function getEventSchedulerStatus(): string
+    {
+        $pdo = $this->connect();
+        $row = $pdo->query("SHOW VARIABLES LIKE 'event_scheduler'")->fetch();
+        return strtoupper($row['Value'] ?? 'OFF');
     }
 
     public function createDatabase(string $name, string $charset = 'utf8mb4', string $collation = 'utf8mb4_general_ci'): bool

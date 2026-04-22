@@ -1089,6 +1089,99 @@ switch ($action) {
         }
         break;
 
+    // List events (GET)
+    case 'get_events':
+        if (!$db) { echo json_encode(['error' => 'No database selected.']); break; }
+        try {
+            $events = $dbInstance->getEvents($db);
+            $scheduler = $dbInstance->getEventSchedulerStatus();
+            echo json_encode(['success' => true, 'events' => $events, 'scheduler' => $scheduler]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Get event definition (GET)
+    case 'get_event_definition':
+        if (!$db) { echo json_encode(['error' => 'No database selected.']); break; }
+        $name = trim($_GET['name'] ?? '');
+        if (!$name) { echo json_encode(['error' => 'Name required.']); break; }
+        try {
+            $def = $dbInstance->getEventDefinition($db, $name);
+            echo json_encode(['success' => true, 'definition' => $def]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Create event (POST, write)
+    case 'create_event':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Write operations are disabled in read-only mode.']); break; }
+        $sql = trim($_POST['sql'] ?? '');
+        if (!$db || !$sql) { echo json_encode(['error' => 'Database and SQL required.']); break; }
+        try {
+            $dbInstance->createEvent($db, $sql);
+            $auth->logActivity("Created event in {$db}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Drop event (POST, write)
+    case 'drop_event':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Write operations are disabled in read-only mode.']); break; }
+        $name = trim($_POST['name'] ?? '');
+        if (!$db || !$name) { echo json_encode(['error' => 'Database and name required.']); break; }
+        try {
+            $dbInstance->dropEvent($db, $name);
+            $auth->logActivity("Dropped event: {$db}.{$name}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Toggle event enabled/disabled (POST, write)
+    case 'toggle_event_status':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Write operations are disabled in read-only mode.']); break; }
+        $name   = trim($_POST['name'] ?? '');
+        $status = trim($_POST['status'] ?? '');
+        if (!$db || !$name || !$status) { echo json_encode(['error' => 'Database, name, and status required.']); break; }
+        try {
+            $dbInstance->setEventStatus($db, $name, $status);
+            $auth->logActivity("Set event {$db}.{$name} to {$status}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Get processlist (GET)
+    case 'get_processlist':
+        try {
+            $processes = $dbInstance->getProcessList();
+            $currentId = $dbInstance->getCurrentConnectionId();
+            echo json_encode(['success' => true, 'processes' => $processes, 'current_id' => $currentId]);
+        } catch (PDOException $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
+    // Kill a process (POST, write)
+    case 'kill_process':
+        if ($auth->isReadOnly()) { echo json_encode(['error' => 'Write operations are disabled in read-only mode.']); break; }
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) { echo json_encode(['error' => 'Valid process ID required.']); break; }
+        try {
+            $dbInstance->killProcess($id);
+            $auth->logActivity("Killed MySQL process {$id}");
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['error' => $e->getMessage()]);
+        }
+        break;
+
     // Toggle favorite (POST)
     case 'toggle_favorite':
         $favDb    = trim($_POST['db'] ?? '');

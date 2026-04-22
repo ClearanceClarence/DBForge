@@ -8,6 +8,57 @@ All notable changes to [DBForge](https://github.com/ClearanceClarence/DBForge) a
 
 ---
 
+## [1.8.0-alpha] — 2026-04-22
+
+> Live process monitoring. New top-level Processes tab with auto-refresh and kill support. Query History captures errors and result summaries with expand-on-click. Events bugfix. Version-from-config bugfix.
+
+### New Features
+
+- **Processes tab** — new top-level tab showing `SHOW FULL PROCESSLIST` output. Columns: ID, User, Host, Database, Command (color-coded badge), Time (color-scaled — gold at 3s, amber at 10s, red at 60s), State, Query (truncated with full-text tooltip), Actions.
+- **Header stats** — Total, Active, Sleeping, Longest-running. Update on every refresh.
+- **Auto-refresh** — Off / 2s / 5s / 10s selector. Scroll position preserved across refreshes. Pulse indicator in the header while a fetch is in flight. Timer cleared automatically on page navigation.
+- **Filter** — text filter across user, host, database, query, and state. "Hide sleeping" checkbox to cut through noise on quiet servers.
+- **Current connection marker** — a green star next to the row representing your DBForge session (matched against `CONNECTION_ID()`). Its Kill button is disabled to prevent self-termination.
+- **Kill button** — red danger-styled button per row with a themed confirm modal that shows the current query being killed. Disabled in read-only mode. Backend also refuses to kill the current session even if the request is forged.
+
+### Query History
+
+- **Errors are now captured.** Previously only the `success` boolean and a combined `rows` number were stored in the session — the actual error message from PDO was discarded. History entries now include `error`, `result_type` (`select` / `modify`), `count`, and `affected` fields.
+- **Result summary per entry.** Successful queries show "N rows returned" (SELECT) or "N rows affected" (INSERT/UPDATE/DELETE), including the zero-rows case which was previously hidden. Failed queries show the full database error inline.
+- **Expand on click.** Click a history row to expand its detail pane showing the result summary or error message. Click again to collapse. Expanded rows get a stronger color tint and a 3px left-edge accent bar.
+- **Load button.** Clicking a row no longer overwrites the editor — that's now a dedicated Load button (pencil icon) that appears on hover next to the delete button. Prevents accidentally losing in-progress SQL while inspecting history.
+- **Tinted row backgrounds.** Successful rows get a 5% wash of the theme accent color, failed rows get a 6% wash of the danger color. Uses `color-mix()` so every theme gets the right tint automatically — no per-theme overrides.
+- Removed the old standalone "N rows" meta pill on each history row — the result summary under the SQL now conveys this with more context.
+
+### Fixes
+
+- **Version string was read from `config.php`, which is generated once at install and never updated.** This meant the UI always showed the version you first installed, not the version you were running — upgrades appeared to do nothing. Moved version to a `DBFORGE_VERSION` constant at the top of `index.php` (single source of truth, updated in lockstep with the code) and removed the now-unused `version` key from `config.template.php`. Existing installs pick up the real version automatically after copying the new files.
+- **Events: Drop, Edit, and Enable/Disable buttons failed with "Database and name required."** Three AJAX calls in `templates/structure.php` (`drop_event` twice, `toggle_event_status` once) were missing `fd.append('db', db)`. The backend requires an explicit database parameter for these actions — the events panel is rendered under a specific database, but the click handlers weren't forwarding it. Fixed.
+
+### Backend
+
+- `Database.php`: `getProcessList()` (normalizes MySQL/MariaDB column case), `getCurrentConnectionId()`, `killProcess(int $id)` with self-kill guard.
+- `ajax.php`: `get_processlist` (GET, returns processes + current ID), `kill_process` (POST, CSRF-protected, read-only aware, activity-logged).
+
+---
+
+## [1.7.0-alpha] — 2026-04-22
+
+> Scheduled events CRUD. The last missing schema object type — now every MySQL schema object has full management.
+
+### New Features
+
+- **Scheduled Events** — list, create, edit, drop, enable/disable MySQL events. Events panel appears at the bottom of the Structure tab (database level). Columns: status badge (ENABLED/DISABLED), name, type badge (RECURRING/ONE TIME), schedule, last executed, modified. Create/edit modal with syntax-highlighted textarea, skeleton template covering the common `EVERY 1 DAY` case with `ON COMPLETION PRESERVE`, `ENABLE`, `COMMENT`, and `BEGIN ... END` block.
+- **Scheduler status badge** — the header of the Events panel shows the current value of `event_scheduler` (ON/OFF) with color coding. If events exist but the scheduler is OFF, a warning banner appears above the list with the exact command to enable it.
+- **One-click enable/disable** — toggle button on every event (play icon when disabled, x icon when enabled) runs `ALTER EVENT ... ENABLE/DISABLE` without reopening the definition.
+
+### Backend
+
+- `Database.php`: `getEvents()`, `getEventDefinition()`, `createEvent()`, `dropEvent()`, `setEventStatus()`, `getEventSchedulerStatus()`.
+- `ajax.php`: `get_events`, `get_event_definition`, `create_event`, `drop_event`, `toggle_event_status` — all CSRF-protected and read-only aware.
+
+---
+
 ## [1.6.0-alpha] — 2026-04-20
 
 > ER diagram rewrite, saved queries, routines CRUD, partitions management, maintenance panel, Docker support, code cleanup.
